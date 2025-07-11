@@ -43,29 +43,59 @@
             font-weight: 700;
             margin-top: 10px;
         }
+        .youtube-section-standalone {
+            width: 100%;
+            max-width: 300px; /* Zmniejszona szerokość kwadratu YouTube */
+            margin: 30px auto; /* Centrowanie i odstępy */
+            background-color: #ffffff;
+            border: 1px solid #90caf9;
+            border-radius: 12px;
+            padding: 20px; /* Nieco mniejszy padding */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex-shrink: 0; /* Zapobiega zmniejszaniu się na małych ekranach */
+        }
+        .youtube-section-standalone:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        }
+        .youtube-section-standalone h2 {
+            font-size: 1.8em; /* Nieco mniejszy nagłówek dla mniejszego kwadratu */
+            margin-bottom: 15px;
+        }
+        .youtube-section-standalone h2::after {
+            width: 50px; /* Krótsza linia */
+        }
+        .youtube-section-standalone p {
+            font-size: 1em; /* Mniejszy tekst opisu */
+            margin: 5px 0 20px 0; /* Mniejsze marginesy */
+            color: #424242;
+        }
         .container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 30px;
             width: 100%;
-            max-width: 1200px; /* Zwiększona szerokość dla lepszego układu */
+            max-width: 1200px;
         }
-        .pitch-schedule, .youtube-live { /* Utrzymujemy te klasy dla spójności */
-            background-color: #ffffff; /* Białe tło dla kart */
-            border: 1px solid #90caf9; /* Subtelna ramka */
+        .pitch-schedule {
+            background-color: #ffffff;
+            border: 1px solid #90caf9;
             border-radius: 12px;
             padding: 25px;
             width: 100%;
-            max-width: 450px; /* Maksymalna szerokość karty */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Głebszy cień */
+            max-width: 450px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Wyśrodkowanie elementów wewnątrz youtube-live */
-            text-align: center; /* Wyśrodkowanie tekstu */
         }
-        .pitch-schedule:hover, .youtube-live:hover {
+        .pitch-schedule:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
         }
@@ -80,56 +110,61 @@
         h2::after {
             content: '';
             position: absolute;
-            left: 50%; /* Wyśrodkowanie linii pod tytułem */
-            transform: translateX(-50%); /* Wyśrodkowanie linii pod tytułem */
+            left: 50%;
+            transform: translateX(-50%);
             bottom: 0;
             width: 60px;
             height: 4px;
             background-color: #64b5f6;
             border-radius: 2px;
         }
-        p {
+        .pitch-schedule p { /* Specyficzny styl dla paragrafów w harmonogramie */
             margin: 10px 0;
             font-size: 1.15em;
             color: #424242;
             display: flex;
             align-items: baseline;
             line-height: 1.4;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Płynne przejście dla podświetlenia */
+            padding: 5px 10px; /* Dodatkowy padding dla lepszego wyglądu podświetlenia */
+            border-radius: 5px; /* Lekkie zaokrąglenie podświetlenia */
         }
-        strong {
+        .pitch-schedule strong {
             color: #2196f3;
             font-size: 1.2em;
             margin-right: 12px;
             flex-shrink: 0;
             min-width: 75px;
         }
+        /* Style dla podświetlonego meczu */
+        .highlighted-match {
+            background-color: #fffde7; /* Bardzo jasny żółty */
+            color: #e65100; /* Ciemnopomarańczowy */
+            font-weight: 700;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .highlighted-match strong {
+            color: #ff9800; /* Jaśniejszy pomarańczowy dla godziny w podświetleniu */
+        }
+
         .channel-link {
-            display: inline-block; /* Aby zastosować padding i margin */
-            margin-top: 25px; /* Odstęp od nagłówka */
-            padding: 15px 30px;
-            background-color: #ff0000; /* Klasyczny czerwony YouTube */
+            display: inline-block;
+            margin-top: 15px; /* Mniejszy odstęp */
+            padding: 12px 25px; /* Mniejszy przycisk */
+            background-color: #ff0000;
             color: #ffffff;
             text-decoration: none;
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
-            font-size: 1.3em;
+            font-size: 1.1em; /* Mniejsza czcionka */
             border-radius: 8px;
             transition: background-color 0.3s ease, transform 0.2s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .channel-link:hover {
-            background-color: #cc0000; /* Ciemniejszy czerwony przy najechaniu */
+            background-color: #cc0000;
             transform: translateY(-2px);
         }
-
-        /* Nowy styl dla kontenera YouTube-live, gdy jest poza .container */
-        .youtube-section-standalone {
-            width: 100%;
-            max-width: 900px; /* Taka sama szerokość jak header */
-            margin-top: 30px; /* Odstęp od headera */
-            margin-bottom: 30px; /* Odstęp od harmonogramów */
-        }
-
 
         /* Responsywność */
         @media (max-width: 768px) {
@@ -139,23 +174,30 @@
             #current-time {
                 font-size: 1.2em;
             }
-            .pitch-schedule, .youtube-live {
+            .youtube-section-standalone {
+                max-width: 280px; /* Zmniejszenie na tabletach */
+                padding: 15px;
+            }
+            .youtube-section-standalone h2 {
+                font-size: 1.6em;
+            }
+            .channel-link {
+                font-size: 1em;
+                padding: 10px 20px;
+            }
+            .pitch-schedule {
                 padding: 20px;
                 max-width: 90%;
             }
             h2 {
                 font-size: 1.8em;
             }
-            p {
+            .pitch-schedule p {
                 font-size: 1em;
             }
-            strong {
+            .pitch-schedule strong {
                 font-size: 1.1em;
                 min-width: 65px;
-            }
-            .channel-link {
-                font-size: 1.1em;
-                padding: 12px 25px;
             }
         }
         @media (max-width: 480px) {
@@ -168,24 +210,32 @@
             #current-time {
                 font-size: 1em;
             }
-            .pitch-schedule, .youtube-live {
+            .youtube-section-standalone {
+                max-width: 90%; /* Na telefonach rozciągnie się do 90% szerokości */
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .youtube-section-standalone h2 {
+                font-size: 1.4em;
+            }
+            .channel-link {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+            .pitch-schedule {
                 padding: 15px;
             }
             h2 {
                 font-size: 1.6em;
             }
-            p {
+            .pitch-schedule p {
                 flex-direction: column;
                 align-items: flex-start;
             }
-            strong {
+            .pitch-schedule strong {
                 margin-bottom: 5px;
                 font-size: 1.1em;
                 min-width: unset;
-            }
-            .channel-link {
-                font-size: 1em;
-                padding: 10px 20px;
             }
         }
     </style>
@@ -203,33 +253,33 @@
     </div>
 
     <div class="container">
-        <div class="pitch-schedule">
+        <div class="pitch-schedule" id="pitch-A">
             <h2>Boisko A</h2>
-            <p><strong>11:00</strong> Puchar Gwiazd : CPM</p>
-            <p><strong>11:15</strong> CPM : Bad Boys</p>
-            <p><strong>11:30</strong> Puchar Gwiazd : Kokołaje</p>
-            <p><strong>11:45</strong> Kokołaje : Bad Boys</p>
-            <p><strong>12:00</strong> Namiot Team : Bad Boys</p>
-            <p><strong>12:15</strong> CPM : Kokołaje</p>
-            <p><strong>12:30</strong> Kokołaje : Namiot Team</p>
-            <p><strong>12:45</strong> Puchar Gwiazd : Namiot Team</p>
-            <p><strong>13:00</strong> Kokołaje : Hetman</p>
-            <p><strong>13:15</strong> Namiot Team : CPM</p>
+            <p data-time="11:00"><strong>11:00</strong> Puchar Gwiazd : CPM</p>
+            <p data-time="11:15"><strong>11:15</strong> CPM : Bad Boys</p>
+            <p data-time="11:30"><strong>11:30</strong> Puchar Gwiazd : Kokołaje</p>
+            <p data-time="11:45"><strong>11:45</strong> Kokołaje : Bad Boys</p>
+            <p data-time="12:00"><strong>12:00</strong> Namiot Team : Bad Boys</p>
+            <p data-time="12:15"><strong>12:15</strong> CPM : Kokołaje</p>
+            <p data-time="12:30"><strong>12:30</strong> Kokołaje : Namiot Team</p>
+            <p data-time="12:45"><strong>12:45</strong> Puchar Gwiazd : Namiot Team</p>
+            <p data-time="13:00"><strong>13:00</strong> Kokołaje : Hetman</p>
+            <p data-time="13:15"><strong>13:15</strong> Namiot Team : CPM</p>
         </div>
 
-        <div class="pitch-schedule">
+        <div class="pitch-schedule" id="pitch-B">
             <h2>Boisko B</h2>
-            <p><strong>11:00</strong> Turbo Grzmoty : Kokołaje</p>
-            <p><strong>11:15</strong> Hetman : Namiot Team</p>
-            <p><strong>11:30</strong> Turbo Grzmoty : Namiot Team</p>
-            <p><strong>11:45</strong> CPM : Hetman</p>
-            <p><strong>12:00</strong> Hetman : Puchar Gwiazd</p>
-            <p><strong>12:15</strong> Turbo Grzmoty : Puchar Gwiazd</p>
-            <p><strong>12:30</strong> Bad Boys : Hetman</p>
-            <p><strong>12:45</strong> CPM : Turbo Grzmoty</p>
-            <p><strong>13:00</strong> Turbo Grzmoty : Bad Boys</p>
-            <p><strong>13:15</strong> Bad Boys : Puchar Gwiazd</p>
-            <p><strong>13:30</strong> Turbo Grzmoty : Hetman</p>
+            <p data-time="11:00"><strong>11:00</strong> Turbo Grzmoty : Kokołaje</p>
+            <p data-time="11:15"><strong>11:15</strong> Hetman : Namiot Team</p>
+            <p data-time="11:30"><strong>11:30</strong> Turbo Grzmoty : Namiot Team</p>
+            <p data-time="11:45"><strong>11:45</strong> CPM : Hetman</p>
+            <p data-time="12:00"><strong>12:00</strong> Hetman : Puchar Gwiazd</p>
+            <p data-time="12:15"><strong>12:15</strong> Turbo Grzmoty : Puchar Gwiazd</p>
+            <p data-time="12:30"><strong>12:30</strong> Bad Boys : Hetman</p>
+            <p data-time="12:45"><strong>12:45</strong> CPM : Turbo Grzmoty</p>
+            <p data-time="13:00"><strong>13:00</strong> Turbo Grzmoty : Bad Boys</p>
+            <p data-time="13:15"><strong>13:15</strong> Bad Boys : Puchar Gwiazd</p>
+            <p data-time="13:30"><strong>13:30</strong> Turbo Grzmoty : Hetman</p>
         </div>
     </div>
 
@@ -247,11 +297,44 @@
                 hour12: false
             };
             document.getElementById('current-time').textContent = now.toLocaleDateString('pl-PL', options);
+
+            highlightCurrentMatch(now);
         }
 
-        // Aktualizuj czas co sekundę
+        function highlightCurrentMatch(now) {
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+
+            // Usuń poprzednie podświetlenia
+            document.querySelectorAll('.highlighted-match').forEach(match => {
+                match.classList.remove('highlighted-match');
+            });
+
+            // Przejdź przez wszystkie paragrafy meczów
+            document.querySelectorAll('.pitch-schedule p').forEach(pElement => {
+                const matchTime = pElement.dataset.time; // Pobierz czas z atrybutu data-time
+                if (matchTime) {
+                    const [matchHourStr, matchMinuteStr] = matchTime.split(':');
+                    const matchHour = parseInt(matchHourStr);
+                    const matchMinute = parseInt(matchMinuteStr);
+
+                    // Oblicz czas rozpoczęcia i zakończenia meczu (zakładamy 15 minut na mecz)
+                    const startTimeInMinutes = matchHour * 60 + matchMinute;
+                    const endTimeInMinutes = startTimeInMinutes + 15; // Mecz trwa 15 minut
+
+                    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+                    // Sprawdź, czy aktualny czas mieści się w przedziale meczu
+                    if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
+                        pElement.classList.add('highlighted-match');
+                    }
+                }
+            });
+        }
+
+        // Aktualizuj czas i podświetlenie co sekundę
         setInterval(updateTime, 1000);
-        // Ustaw czas od razu po załadowaniu strony
+        // Ustaw czas i podświetlenie od razu po załadowaniu strony
         updateTime();
     </script>
 </body>
