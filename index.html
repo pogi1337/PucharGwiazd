@@ -51,7 +51,7 @@
             width: 100%;
             max-width: 1200px; /* Zwiększona szerokość dla lepszego układu */
         }
-        .pitch-schedule {
+        .pitch-schedule, .youtube-live { /* Dodano .youtube-live */
             background-color: #ffffff; /* Białe tło dla kart */
             border: 1px solid #90caf9; /* Subtelna ramka */
             border-radius: 12px;
@@ -63,7 +63,7 @@
             display: flex;
             flex-direction: column;
         }
-        .pitch-schedule:hover {
+        .pitch-schedule:hover, .youtube-live:hover { /* Dodano .youtube-live */
             transform: translateY(-5px); /* Efekt uniesienia przy najechaniu */
             box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
         }
@@ -100,6 +100,23 @@
             flex-shrink: 0; /* Zapobiega zmniejszaniu się godziny */
             min-width: 75px; /* Minimalna szerokość dla godziny */
         }
+        .video-container { /* Styl dla responsywnego wideo */
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio (9 / 16 * 100%) */
+            height: 0;
+            overflow: hidden;
+            margin-top: 15px; /* Odstęp od nagłówka */
+            border-radius: 8px; /* Lekko zaokrąglone rogi dla wideo */
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0; /* Usuń domyślne obramowanie iframe */
+        }
         /* Responsywność */
         @media (max-width: 768px) {
             h1 {
@@ -108,7 +125,7 @@
             #current-time {
                 font-size: 1.2em;
             }
-            .pitch-schedule {
+            .pitch-schedule, .youtube-live {
                 padding: 20px;
                 max-width: 90%; /* Lepiej wygląda na małych ekranach */
             }
@@ -133,7 +150,7 @@
             #current-time {
                 font-size: 1em;
             }
-            .pitch-schedule {
+            .pitch-schedule, .youtube-live {
                 padding: 15px;
             }
             h2 {
@@ -185,6 +202,19 @@
             <p><strong>13:00</strong> Turbo Grzmoty : Bad Boys</p>
             <p><strong>13:15</strong> Bad Boys : Puchar Gwiazd</p>
             <p><strong>13:30</strong> Turbo Grzmoty : Hetman</p>
+        </div>
+
+        <div class="youtube-live">
+            <h2>Transmisja na Żywo</h2>
+            <div class="video-container">
+                <iframe
+                    src="https://www.youtube.com/embed/live_stream?channel=UC-lHJZR3GqXM2R8Kz_NVyFw&autoplay=1&mute=1"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <p style="margin-top: 20px;">Oglądaj transmisje meczów na żywo!</p>
         </div>
     </div>
 
