@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmonogram Meczów - Puchar Gwiazd</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght=500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -51,7 +51,7 @@
             width: 100%;
             max-width: 1200px; /* Zwiększona szerokość dla lepszego układu */
         }
-        .pitch-schedule, .youtube-live { /* Dodano .youtube-live */
+        .pitch-schedule, .youtube-live { /* Utrzymujemy te klasy dla spójności */
             background-color: #ffffff; /* Białe tło dla kart */
             border: 1px solid #90caf9; /* Subtelna ramka */
             border-radius: 12px;
@@ -62,14 +62,16 @@
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             display: flex;
             flex-direction: column;
+            align-items: center; /* Wyśrodkowanie elementów wewnątrz youtube-live */
+            text-align: center; /* Wyśrodkowanie tekstu */
         }
-        .pitch-schedule:hover, .youtube-live:hover { /* Dodano .youtube-live */
-            transform: translateY(-5px); /* Efekt uniesienia przy najechaniu */
+        .pitch-schedule:hover, .youtube-live:hover {
+            transform: translateY(-5px);
             box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
         }
         h2 {
             font-family: 'Montserrat', sans-serif;
-            color: #0d47a1; /* Bardzo ciemny niebieski */
+            color: #0d47a1;
             margin-bottom: 20px;
             font-size: 2em;
             position: relative;
@@ -78,45 +80,50 @@
         h2::after {
             content: '';
             position: absolute;
-            left: 0;
+            left: 50%; /* Wyśrodkowanie linii pod tytułem */
+            transform: translateX(-50%); /* Wyśrodkowanie linii pod tytułem */
             bottom: 0;
-            width: 60px; /* Krótka linia pod tytułem */
+            width: 60px;
             height: 4px;
-            background-color: #64b5f6; /* Jasniejszy niebieski */
+            background-color: #64b5f6;
             border-radius: 2px;
         }
         p {
             margin: 10px 0;
-            font-size: 1.15em; /* Nieco większy tekst meczu */
-            color: #424242; /* Ciemnoszary */
+            font-size: 1.15em;
+            color: #424242;
             display: flex;
             align-items: baseline;
             line-height: 1.4;
         }
         strong {
-            color: #2196f3; /* Niebieski dla godziny */
-            font-size: 1.2em; /* Większa godzina */
+            color: #2196f3;
+            font-size: 1.2em;
             margin-right: 12px;
-            flex-shrink: 0; /* Zapobiega zmniejszaniu się godziny */
-            min-width: 75px; /* Minimalna szerokość dla godziny */
+            flex-shrink: 0;
+            min-width: 75px;
         }
-        .video-container { /* Styl dla responsywnego wideo */
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio (9 / 16 * 100%) */
-            height: 0;
-            overflow: hidden;
-            margin-top: 15px; /* Odstęp od nagłówka */
-            border-radius: 8px; /* Lekko zaokrąglone rogi dla wideo */
+        /* Usunięto style .video-container i .video-container iframe, ponieważ nie są już potrzebne */
+
+        .channel-link {
+            display: inline-block; /* Aby zastosować padding i margin */
+            margin-top: 25px; /* Odstęp od nagłówka */
+            padding: 15px 30px;
+            background-color: #ff0000; /* Klasyczny czerwony YouTube */
+            color: #ffffff;
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.3em;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0; /* Usuń domyślne obramowanie iframe */
+        .channel-link:hover {
+            background-color: #cc0000; /* Ciemniejszy czerwony przy najechaniu */
+            transform: translateY(-2px);
         }
+
         /* Responsywność */
         @media (max-width: 768px) {
             h1 {
@@ -127,7 +134,7 @@
             }
             .pitch-schedule, .youtube-live {
                 padding: 20px;
-                max-width: 90%; /* Lepiej wygląda na małych ekranach */
+                max-width: 90%;
             }
             h2 {
                 font-size: 1.8em;
@@ -138,6 +145,10 @@
             strong {
                 font-size: 1.1em;
                 min-width: 65px;
+            }
+            .channel-link {
+                font-size: 1.1em;
+                padding: 12px 25px;
             }
         }
         @media (max-width: 480px) {
@@ -157,13 +168,17 @@
                 font-size: 1.6em;
             }
             p {
-                flex-direction: column; /* Godzina i mecz pod sobą */
+                flex-direction: column;
                 align-items: flex-start;
             }
             strong {
                 margin-bottom: 5px;
                 font-size: 1.1em;
                 min-width: unset;
+            }
+            .channel-link {
+                font-size: 1em;
+                padding: 10px 20px;
             }
         }
     </style>
@@ -205,16 +220,9 @@
         </div>
 
         <div class="youtube-live">
-            <h2>Transmisja na Żywo</h2>
-            <div class="video-container">
-                <iframe
-                    src="https://www.youtube.com/embed/live_stream?channel=UC-lHJZR3GqXM2R8Kz_NVyFw&autoplay=1&mute=1"
-                    frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen>
-                </iframe>
-            </div>
-            <p style="margin-top: 20px;">Oglądaj transmisje meczów na żywo!</p>
+            <h2>Nasz Kanał YouTube</h2>
+            <p>Wszystkie mecze na żywo oraz powtórki znajdziesz na naszym kanale YouTube!</p>
+            <a href="https://www.youtube.com/channel/YOUR_CHANNEL_ID_OR_CUSTOM_URL" target="_blank" class="channel-link">Odwiedź Kanał</a>
         </div>
     </div>
 
