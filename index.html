@@ -45,34 +45,34 @@
         }
         .youtube-section-standalone {
             width: 100%;
-            max-width: 300px; /* Zmniejszona szerokość kwadratu YouTube */
+            max-width: 500px; /* Zwiększona szerokość, aby był prostokątem */
             margin: 30px auto; /* Centrowanie i odstępy */
             background-color: #ffffff;
             border: 1px solid #90caf9;
             border-radius: 12px;
-            padding: 20px; /* Nieco mniejszy padding */
+            padding: 15px 25px; /* Mniejsza wysokość, większa szerokość paddingu */
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            flex-shrink: 0; /* Zapobiega zmniejszaniu się na małych ekranach */
+            flex-shrink: 0;
         }
         .youtube-section-standalone:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
         }
         .youtube-section-standalone h2 {
-            font-size: 1.8em; /* Nieco mniejszy nagłówek dla mniejszego kwadratu */
+            font-size: 2em; /* Powrót do większego rozmiaru, lepiej pasuje do prostokąta */
             margin-bottom: 15px;
         }
         .youtube-section-standalone h2::after {
-            width: 50px; /* Krótsza linia */
+            width: 60px; /* Dłuższa linia pod tytułem */
         }
         .youtube-section-standalone p {
-            font-size: 1em; /* Mniejszy tekst opisu */
-            margin: 5px 0 20px 0; /* Mniejsze marginesy */
+            font-size: 1.1em; /* Nieco większy tekst opisu */
+            margin: 5px 0 20px 0;
             color: #424242;
         }
         .container {
@@ -118,16 +118,16 @@
             background-color: #64b5f6;
             border-radius: 2px;
         }
-        .pitch-schedule p { /* Specyficzny styl dla paragrafów w harmonogramie */
+        .pitch-schedule p {
             margin: 10px 0;
             font-size: 1.15em;
             color: #424242;
             display: flex;
             align-items: baseline;
             line-height: 1.4;
-            transition: background-color 0.3s ease, color 0.3s ease; /* Płynne przejście dla podświetlenia */
-            padding: 5px 10px; /* Dodatkowy padding dla lepszego wyglądu podświetlenia */
-            border-radius: 5px; /* Lekkie zaokrąglenie podświetlenia */
+            transition: background-color 0.3s ease, color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 5px;
         }
         .pitch-schedule strong {
             color: #2196f3;
@@ -136,27 +136,26 @@
             flex-shrink: 0;
             min-width: 75px;
         }
-        /* Style dla podświetlonego meczu */
         .highlighted-match {
-            background-color: #fffde7; /* Bardzo jasny żółty */
-            color: #e65100; /* Ciemnopomarańczowy */
+            background-color: #fffde7;
+            color: #e65100;
             font-weight: 700;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .highlighted-match strong {
-            color: #ff9800; /* Jaśniejszy pomarańczowy dla godziny w podświetleniu */
+            color: #ff9800;
         }
 
         .channel-link {
             display: inline-block;
-            margin-top: 15px; /* Mniejszy odstęp */
-            padding: 12px 25px; /* Mniejszy przycisk */
+            margin-top: 15px;
+            padding: 12px 25px;
             background-color: #ff0000;
             color: #ffffff;
             text-decoration: none;
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
-            font-size: 1.1em; /* Mniejsza czcionka */
+            font-size: 1.1em;
             border-radius: 8px;
             transition: background-color 0.3s ease, transform 0.2s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -175,11 +174,11 @@
                 font-size: 1.2em;
             }
             .youtube-section-standalone {
-                max-width: 280px; /* Zmniejszenie na tabletach */
-                padding: 15px;
+                max-width: 90%; /* Będzie zajmować 90% szerokości ekranu na mniejszych urządzeniach */
+                padding: 15px 20px; /* Dostosowany padding */
             }
             .youtube-section-standalone h2 {
-                font-size: 1.6em;
+                font-size: 1.8em; /* Lekko zmniejszony */
             }
             .channel-link {
                 font-size: 1em;
@@ -211,12 +210,10 @@
                 font-size: 1em;
             }
             .youtube-section-standalone {
-                max-width: 90%; /* Na telefonach rozciągnie się do 90% szerokości */
-                margin-left: auto;
-                margin-right: auto;
+                padding: 10px 15px; /* Mniejszy padding na najmniejszych ekranach */
             }
             .youtube-section-standalone h2 {
-                font-size: 1.4em;
+                font-size: 1.6em; /* Jeszcze mniejszy na najmniejszych */
             }
             .channel-link {
                 font-size: 0.9em;
