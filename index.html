@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmonogram Meczów - Puchar Gwiazd</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e3f2fd; /* Bardzo jasny błękit */
-            color: #212121; /* Ciemnoszary dla kontrastu */
+            background: radial-gradient(circle at top left, #add8e6 0%, #87ceeb 100%); /* Delikatny gradient nieba */
+            color: #212121;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -17,64 +18,143 @@
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
+            overflow-x: hidden; /* Zapobiega poziomemu przewijaniu */
         }
         .header {
             width: 100%;
             max-width: 900px;
             text-align: center;
             margin-bottom: 30px;
-            padding: 20px;
-            background-color: #bbdefb; /* Jasny błękit */
-            border-radius: 12px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-            border: 1px solid #90caf9;
+            padding: 25px; /* Większy padding */
+            background-color: #ffffff; /* Białe tło dla headera */
+            border-radius: 15px; /* Bardziej zaokrąglone rogi */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); /* Głebszy cień */
+            border: 2px solid #64b5f6; /* Podkreślona ramka */
+            opacity: 0; /* Początkowa przezroczystość dla animacji */
+            transform: translateY(-20px); /* Początkowe przesunięcie dla animacji */
+            animation: fadeInTop 1s ease-out forwards; /* Animacja wejścia */
+        }
+        @keyframes fadeInTop {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         h1 {
             font-family: 'Montserrat', sans-serif;
-            color: #1976d2; /* Ciemniejszy niebieski */
-            font-size: 2.8em;
+            color: #0d47a1; /* Głęboki, bogaty niebieski */
+            font-size: 3.2em; /* Większy tytuł */
             margin-bottom: 10px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2); /* Wyraźniejszy cień tekstu */
+            letter-spacing: 1px; /* Lekkie rozstawienie liter */
         }
         #current-time {
             font-family: 'Montserrat', sans-serif;
-            font-size: 1.5em;
+            font-size: 1.6em;
             color: #1e88e5; /* Średni niebieski */
             font-weight: 700;
             margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px; /* Odstęp między ikoną a tekstem */
         }
+        #current-time i {
+            color: #ff9800; /* Kolor ikony zegara */
+        }
+
         .youtube-section-standalone {
             width: 100%;
-            max-width: 500px; /* Zwiększona szerokość, aby był prostokątem */
-            margin: 30px auto; /* Centrowanie i odstępy */
+            max-width: 600px; /* Jeszcze szerszy prostokąt, aby był bardziej "banerowy" */
+            margin: 30px auto;
             background-color: #ffffff;
-            border: 1px solid #90caf9;
-            border-radius: 12px;
-            padding: 15px 25px; /* Mniejsza wysokość, większa szerokość paddingu */
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 2px solid #ff5722; /* Pomarańczowa ramka */
+            border-radius: 15px;
+            padding: 20px 35px; /* Zwiększony padding poziomy */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Bardziej wyraźny cień */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
             flex-shrink: 0;
+            opacity: 0;
+            transform: scale(0.95);
+            animation: fadeInScale 1s ease-out 0.3s forwards; /* Opóźniona animacja */
+        }
+        @keyframes fadeInScale {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
         .youtube-section-standalone:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-8px) scale(1.01); /* Wyraźniejszy efekt uniesienia */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
         }
         .youtube-section-standalone h2 {
-            font-size: 2em; /* Powrót do większego rozmiaru, lepiej pasuje do prostokąta */
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.4em; /* Większy nagłówek */
+            color: #ff5722; /* Dynamiczny pomarańczowy */
             margin-bottom: 15px;
+            position: relative;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Odstęp między ikoną a tekstem */
+        }
+        .youtube-section-standalone h2 i {
+            color: #ff0000; /* Kolor ikony YouTube */
         }
         .youtube-section-standalone h2::after {
-            width: 60px; /* Dłuższa linia pod tytułem */
+            width: 80px; /* Dłuższa linia */
+            height: 5px; /* Grubsza linia */
+            background-color: #ffccbc; /* Jasnopomarańczowy */
+            bottom: -5px; /* Przesunięcie w dół */
         }
         .youtube-section-standalone p {
-            font-size: 1.1em; /* Nieco większy tekst opisu */
-            margin: 5px 0 20px 0;
+            font-size: 1.1em;
+            margin: 10px 0 25px 0; /* Większe marginesy */
             color: #424242;
+            line-height: 1.5;
         }
+
+        .channel-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 15px 40px; /* Większy przycisk */
+            background-color: #ff0000; /* Klasyczny czerwony YouTube */
+            color: #ffffff;
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.2em; /* Większa czcionka */
+            border-radius: 10px; /* Bardziej zaokrąglone rogi */
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25); /* Wyraźniejszy cień */
+            position: relative; /* Dla pseudo-elementu */
+            overflow: hidden; /* Aby animacja blasku nie wychodziła poza przycisk */
+        }
+        .channel-link::before { /* Efekt blasku na przycisku */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: skewX(-30deg);
+            transition: all 0.7s ease;
+        }
+        .channel-link:hover::before {
+            left: 100%;
+        }
+        .channel-link:hover {
+            background-color: #e60000; /* Ciemniejszy czerwony przy najechaniu */
+            transform: translateY(-3px) scale(1.02); /* Wyraźniejsze uniesienie */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
         .container {
             display: flex;
             flex-wrap: wrap;
@@ -82,121 +162,153 @@
             gap: 30px;
             width: 100%;
             max-width: 1200px;
+            margin-top: 30px; /* Odstęp od sekcji YouTube */
         }
         .pitch-schedule {
             background-color: #ffffff;
-            border: 1px solid #90caf9;
-            border-radius: 12px;
-            padding: 25px;
+            border: 2px solid #90caf9; /* Grubsza ramka */
+            border-radius: 15px;
+            padding: 30px; /* Większy padding */
             width: 100%;
-            max-width: 450px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            display: flex;
-            flex-direction: column;
+            max-width: 480px; /* Nieco szersze */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: fadeInRight 1s ease-out 0.6s forwards; /* Opóźniona animacja dla boisk */
+        }
+        #pitch-B { /* Specyficzna animacja dla boiska B */
+            animation: fadeInLeft 1s ease-out 0.8s forwards;
+            transform: translateX(20px);
+        }
+        @keyframes fadeInRight {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes fadeInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
         .pitch-schedule:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
         }
-        h2 {
+        .pitch-schedule h2 {
             font-family: 'Montserrat', sans-serif;
             color: #0d47a1;
             margin-bottom: 20px;
-            font-size: 2em;
+            font-size: 2.2em; /* Większy nagłówek */
             position: relative;
             padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        h2::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 0;
-            width: 60px;
-            height: 4px;
+        .pitch-schedule h2 i {
+            color: #2196f3; /* Kolor ikony piłki */
+        }
+        .pitch-schedule h2::after {
+            width: 70px;
+            height: 5px;
             background-color: #64b5f6;
-            border-radius: 2px;
+            bottom: -5px;
         }
         .pitch-schedule p {
-            margin: 10px 0;
-            font-size: 1.15em;
+            margin: 12px 0; /* Większe marginesy między meczami */
+            font-size: 1.2em; /* Większy tekst meczu */
             color: #424242;
             display: flex;
             align-items: baseline;
-            line-height: 1.4;
-            transition: background-color 0.3s ease, color 0.3s ease;
-            padding: 5px 10px;
-            border-radius: 5px;
+            line-height: 1.5;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.1s ease;
+            padding: 8px 15px; /* Większy padding */
+            border-radius: 8px; /* Bardziej zaokrąglone rogi */
+        }
+        .pitch-schedule p:hover:not(.highlighted-match) { /* Efekt hover dla meczów, które nie są podświetlone */
+            background-color: #e0f7fa; /* Bardzo jasny błękit */
+            transform: translateX(5px);
+            cursor: pointer;
         }
         .pitch-schedule strong {
-            color: #2196f3;
-            font-size: 1.2em;
-            margin-right: 12px;
+            color: #1976d2; /* Ciemniejszy niebieski dla godziny */
+            font-size: 1.3em; /* Większa godzina */
+            margin-right: 15px;
             flex-shrink: 0;
-            min-width: 75px;
-        }
-        .highlighted-match {
-            background-color: #fffde7;
-            color: #e65100;
+            min-width: 80px; /* Minimalna szerokość dla godziny */
             font-weight: 700;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        /* Style dla podświetlonego meczu (bardziej "fire") */
+        .highlighted-match {
+            background: linear-gradient(to right, #ffccbc, #ffab91); /* Gradient pomarańczowy */
+            color: #b71c1c; /* Ciemna czerwień dla tekstu */
+            font-weight: 800; /* Pogrubiony */
+            box-shadow: 0 4px 10px rgba(255, 87, 34, 0.4); /* Pomarańczowy cień */
+            transform: scale(1.02); /* Lekkie powiększenie */
+            border: 2px solid #ff5722; /* Pomarańczowa ramka */
+            animation: pulseHighlight 1.5s infinite alternate; /* Delikatne pulsowanie */
+        }
+        @keyframes pulseHighlight {
+            from {
+                box-shadow: 0 4px 10px rgba(255, 87, 34, 0.4);
+            }
+            to {
+                box-shadow: 0 6px 15px rgba(255, 87, 34, 0.6);
+            }
         }
         .highlighted-match strong {
-            color: #ff9800;
-        }
-
-        .channel-link {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 12px 25px;
-            background-color: #ff0000;
-            color: #ffffff;
-            text-decoration: none;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 1.1em;
-            border-radius: 8px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .channel-link:hover {
-            background-color: #cc0000;
-            transform: translateY(-2px);
+            color: #d84315; /* Bardziej intensywny pomarańczowy dla godziny */
         }
 
         /* Responsywność */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2.2em;
-            }
-            #current-time {
-                font-size: 1.2em;
+        @media (max-width: 992px) {
+            .header {
+                max-width: 90%;
             }
             .youtube-section-standalone {
-                max-width: 90%; /* Będzie zajmować 90% szerokości ekranu na mniejszych urządzeniach */
-                padding: 15px 20px; /* Dostosowany padding */
+                max-width: 80%; /* Dostosowanie na średnich ekranach */
+            }
+            .container {
+                max-width: 95%;
+            }
+            .pitch-schedule {
+                max-width: 45%; /* Dwa obok siebie na tabletach */
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+            #current-time {
+                font-size: 1.3em;
+            }
+            .youtube-section-standalone {
+                padding: 15px 25px;
             }
             .youtube-section-standalone h2 {
-                font-size: 1.8em; /* Lekko zmniejszony */
+                font-size: 2em;
             }
             .channel-link {
                 font-size: 1em;
-                padding: 10px 20px;
+                padding: 12px 30px;
             }
             .pitch-schedule {
-                padding: 20px;
-                max-width: 90%;
+                padding: 25px;
+                max-width: 90%; /* Jeden pod drugim na tabletach pionowo */
             }
             h2 {
-                font-size: 1.8em;
+                font-size: 2em;
             }
             .pitch-schedule p {
-                font-size: 1em;
+                font-size: 1.1em;
             }
             .pitch-schedule strong {
-                font-size: 1.1em;
-                min-width: 65px;
+                font-size: 1.2em;
+                min-width: 70px;
             }
         }
         @media (max-width: 480px) {
@@ -204,26 +316,32 @@
                 padding: 10px;
             }
             h1 {
-                font-size: 1.8em;
+                font-size: 2em;
             }
             #current-time {
-                font-size: 1em;
+                font-size: 1.1em;
             }
             .youtube-section-standalone {
-                padding: 10px 15px; /* Mniejszy padding na najmniejszych ekranach */
+                padding: 10px 15px;
             }
             .youtube-section-standalone h2 {
-                font-size: 1.6em; /* Jeszcze mniejszy na najmniejszych */
+                font-size: 1.7em;
+            }
+            .youtube-section-standalone h2::after {
+                width: 50px;
+            }
+            .youtube-section-standalone p {
+                font-size: 0.95em;
             }
             .channel-link {
                 font-size: 0.9em;
-                padding: 8px 15px;
+                padding: 10px 20px;
             }
             .pitch-schedule {
-                padding: 15px;
+                padding: 20px;
             }
             h2 {
-                font-size: 1.6em;
+                font-size: 1.8em;
             }
             .pitch-schedule p {
                 flex-direction: column;
@@ -240,40 +358,40 @@
 <body>
     <div class="header">
         <h1>Harmonogram Meczów</h1>
-        <div id="current-time"></div>
+        <div id="current-time"><i class="fa-solid fa-clock"></i></div>
     </div>
 
     <div class="youtube-live youtube-section-standalone">
-        <h2>Nasz Kanał YouTube</h2>
+        <h2><i class="fa-brands fa-youtube"></i> Nasz Kanał YouTube</h2>
         <p>Wszystkie mecze na żywo oraz powtórki znajdziesz na naszym kanale YouTube!</p>
         <a href="https://www.youtube.com/channel/UCb2X6x9_WldOie_PTYlHX8Q" target="_blank" class="channel-link">Odwiedź Kanał</a>
     </div>
 
     <div class="container">
         <div class="pitch-schedule" id="pitch-A">
-            <h2>Boisko A</h2>
-            <p data-time="11:00"><strong>11:00</strong> Puchar Gwiazd : CPM</p>
-            <p data-time="11:15"><strong>11:15</strong> CPM : Bad Boys</p>
+            <h2><i class="fa-solid fa-futbol"></i> Boisko A</h2>
+            <p data-time="11:00"><strong>11:00</strong> Puchar Gwiazd : Czarne Perły Mozambiku</p>
+            <p data-time="11:15"><strong>11:15</strong> Czarne Perły Mozambiku : Bad Boys</p>
             <p data-time="11:30"><strong>11:30</strong> Puchar Gwiazd : Kokołaje</p>
             <p data-time="11:45"><strong>11:45</strong> Kokołaje : Bad Boys</p>
             <p data-time="12:00"><strong>12:00</strong> Namiot Team : Bad Boys</p>
-            <p data-time="12:15"><strong>12:15</strong> CPM : Kokołaje</p>
+            <p data-time="12:15"><strong>12:15</strong> Czarne Perły Mozambiku : Kokołaje</p>
             <p data-time="12:30"><strong>12:30</strong> Kokołaje : Namiot Team</p>
             <p data-time="12:45"><strong>12:45</strong> Puchar Gwiazd : Namiot Team</p>
             <p data-time="13:00"><strong>13:00</strong> Kokołaje : Hetman</p>
-            <p data-time="13:15"><strong>13:15</strong> Namiot Team : CPM</p>
+            <p data-time="13:15"><strong>13:15</strong> Namiot Team : Czarne Perły Mozambiku</p>
         </div>
 
         <div class="pitch-schedule" id="pitch-B">
-            <h2>Boisko B</h2>
+            <h2><i class="fa-solid fa-futbol"></i> Boisko B</h2>
             <p data-time="11:00"><strong>11:00</strong> Turbo Grzmoty : Kokołaje</p>
             <p data-time="11:15"><strong>11:15</strong> Hetman : Namiot Team</p>
             <p data-time="11:30"><strong>11:30</strong> Turbo Grzmoty : Namiot Team</p>
-            <p data-time="11:45"><strong>11:45</strong> CPM : Hetman</p>
+            <p data-time="11:45"><strong>11:45</strong> Czarne Perły Mozambiku : Hetman</p>
             <p data-time="12:00"><strong>12:00</strong> Hetman : Puchar Gwiazd</p>
             <p data-time="12:15"><strong>12:15</strong> Turbo Grzmoty : Puchar Gwiazd</p>
             <p data-time="12:30"><strong>12:30</strong> Bad Boys : Hetman</p>
-            <p data-time="12:45"><strong>12:45</strong> CPM : Turbo Grzmoty</p>
+            <p data-time="12:45"><strong>12:45</strong> Czarne Perły Mozambiku : Turbo Grzmoty</p>
             <p data-time="13:00"><strong>13:00</strong> Turbo Grzmoty : Bad Boys</p>
             <p data-time="13:15"><strong>13:15</strong> Bad Boys : Puchar Gwiazd</p>
             <p data-time="13:30"><strong>13:30</strong> Turbo Grzmoty : Hetman</p>
@@ -293,7 +411,7 @@
                 second: '2-digit',
                 hour12: false
             };
-            document.getElementById('current-time').textContent = now.toLocaleDateString('pl-PL', options);
+            document.getElementById('current-time').innerHTML = `<i class="fa-solid fa-clock"></i> ${now.toLocaleDateString('pl-PL', options)}`;
 
             highlightCurrentMatch(now);
         }
@@ -301,15 +419,19 @@
         function highlightCurrentMatch(now) {
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
+            const currentSeconds = now.getSeconds(); // Użyjemy sekund do "bliskości" meczu
 
             // Usuń poprzednie podświetlenia
             document.querySelectorAll('.highlighted-match').forEach(match => {
                 match.classList.remove('highlighted-match');
             });
 
-            // Przejdź przez wszystkie paragrafy meczów
+            let closestMatch = null;
+            let minTimeDiff = Infinity; // Różnica w minutach do najbliższego meczu
+
+            // Znajdź wszystkie paragrafy meczów i znajdź najbliższy mecz w przyszłości
             document.querySelectorAll('.pitch-schedule p').forEach(pElement => {
-                const matchTime = pElement.dataset.time; // Pobierz czas z atrybutu data-time
+                const matchTime = pElement.dataset.time;
                 if (matchTime) {
                     const [matchHourStr, matchMinuteStr] = matchTime.split(':');
                     const matchHour = parseInt(matchHourStr);
@@ -324,10 +446,27 @@
                     // Sprawdź, czy aktualny czas mieści się w przedziale meczu
                     if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
                         pElement.classList.add('highlighted-match');
+                        closestMatch = null; // Jeśli jest mecz w trakcie, nie szukaj najbliższego przyszłego
+                        return; // Wyjdź z pętli, bo znaleźliśmy bieżący mecz
+                    }
+
+                    // Jeśli mecz jest w przyszłości, sprawdź czy jest najbliższy
+                    if (startTimeInMinutes > currentTimeInMinutes) {
+                        const timeDiff = startTimeInMinutes - currentTimeInMinutes;
+                        if (timeDiff < minTimeDiff) {
+                            minTimeDiff = timeDiff;
+                            closestMatch = pElement;
+                        }
                     }
                 }
             });
+
+            // Jeśli nie ma meczu w trakcie, a jest najbliższy przyszły mecz, podświetl go
+            if (!document.querySelector('.highlighted-match') && closestMatch) {
+                closestMatch.classList.add('highlighted-match');
+            }
         }
+
 
         // Aktualizuj czas i podświetlenie co sekundę
         setInterval(updateTime, 1000);
