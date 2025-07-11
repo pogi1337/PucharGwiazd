@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* Globalne style */
         body {
             font-family: 'Roboto', sans-serif;
             background: radial-gradient(circle at top left, #add8e6 0%, #87ceeb 100%); /* Delikatny gradient nieba */
@@ -19,6 +20,7 @@
             min-height: 100vh;
             box-sizing: border-box;
             overflow-x: hidden; /* Zapobiega poziomemu przewijaniu */
+            transition: background 0.5s ease, color 0.5s ease; /* Płynne przejście dla motywu */
         }
         .header {
             width: 100%;
@@ -33,6 +35,8 @@
             opacity: 0; /* Początkowa przezroczystość dla animacji */
             transform: translateY(-20px); /* Początkowe przesunięcie dla animacji */
             animation: fadeInTop 1s ease-out forwards; /* Animacja wejścia */
+            position: relative; /* Dla przycisku motywu */
+            transition: background-color 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
         }
         @keyframes fadeInTop {
             to {
@@ -47,6 +51,7 @@
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2); /* Wyraźniejszy cień tekstu */
             letter-spacing: 1px; /* Lekkie rozstawienie liter */
+            transition: color 0.5s ease, text-shadow 0.5s ease;
         }
         #current-time {
             font-family: 'Montserrat', sans-serif;
@@ -58,9 +63,11 @@
             align-items: center;
             justify-content: center;
             gap: 10px; /* Odstęp między ikoną a tekstem */
+            transition: color 0.5s ease;
         }
         #current-time i {
             color: #ff9800; /* Kolor ikony zegara */
+            transition: color 0.5s ease;
         }
 
         .youtube-section-standalone {
@@ -72,7 +79,7 @@
             border-radius: 15px;
             padding: 20px 35px; /* Zwiększony padding poziomy */
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Bardziej wyraźny cień */
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.5s ease, border-color 0.5s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -102,21 +109,29 @@
             display: flex;
             align-items: center;
             gap: 10px; /* Odstęp między ikoną a tekstem */
+            transition: color 0.5s ease;
         }
         .youtube-section-standalone h2 i {
             color: #ff0000; /* Kolor ikony YouTube */
+            transition: color 0.5s ease;
         }
         .youtube-section-standalone h2::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             width: 80px; /* Dłuższa linia */
             height: 5px; /* Grubsza linia */
             background-color: #ffccbc; /* Jasnopomarańczowy */
             bottom: -5px; /* Przesunięcie w dół */
+            transition: background-color 0.5s ease;
         }
         .youtube-section-standalone p {
             font-size: 1.1em;
             margin: 10px 0 25px 0; /* Większe marginesy */
             color: #424242;
             line-height: 1.5;
+            transition: color 0.5s ease;
         }
 
         .channel-link {
@@ -172,7 +187,7 @@
             width: 100%;
             max-width: 480px; /* Nieco szersze */
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, background-color 0.5s ease, border-color 0.5s ease;
             opacity: 0;
             transform: translateX(-20px);
             animation: fadeInRight 1s ease-out 0.6s forwards; /* Opóźniona animacja dla boisk */
@@ -207,15 +222,22 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: color 0.5s ease;
         }
         .pitch-schedule h2 i {
             color: #2196f3; /* Kolor ikony piłki */
+            transition: color 0.5s ease;
         }
         .pitch-schedule h2::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             width: 70px;
             height: 5px;
             background-color: #64b5f6;
             bottom: -5px;
+            transition: background-color 0.5s ease;
         }
         .pitch-schedule p {
             margin: 12px 0; /* Większe marginesy między meczami */
@@ -240,6 +262,7 @@
             flex-shrink: 0;
             min-width: 80px; /* Minimalna szerokość dla godziny */
             font-weight: 700;
+            transition: color 0.5s ease;
         }
         /* Style dla podświetlonego meczu (bardziej "fire") */
         .highlighted-match {
@@ -262,6 +285,111 @@
         .highlighted-match strong {
             color: #d84315; /* Bardziej intensywny pomarańczowy dla godziny */
         }
+
+        /* --- Style dla ciemnego motywu --- */
+        body.dark-mode {
+            background: radial-gradient(circle at top left, #2c3e50 0%, #1a2a3a 100%); /* Ciemny gradient tła */
+            color: #f5f5f5; /* Jasny tekst */
+        }
+        .dark-mode .header {
+            background-color: #34495e; /* Ciemniejsze tło headera */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            border-color: #5d6d7e; /* Ciemniejsza ramka */
+        }
+        .dark-mode h1 {
+            color: #9cdcfe; /* Jasnoniebieski dla tytułu */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .dark-mode #current-time {
+            color: #b3e5fc; /* Jasny błękit dla czasu */
+        }
+        .dark-mode #current-time i {
+            color: #ffd54f; /* Złoty kolor ikony zegara */
+        }
+
+        .dark-mode .youtube-section-standalone {
+            background-color: #34495e;
+            border-color: #e57373; /* Ciemniejsza pomarańczowa ramka */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+        }
+        .dark-mode .youtube-section-standalone:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+        .dark-mode .youtube-section-standalone h2 {
+            color: #ef9a9a; /* Jaśniejszy pomarańczowy */
+        }
+        .dark-mode .youtube-section-standalone h2 i {
+            color: #ff5252; /* Jasnoczerwony YouTube */
+        }
+        .dark-mode .youtube-section-standalone h2::after {
+            background-color: #e57373; /* Ciemniejsza linia */
+        }
+        .dark-mode .youtube-section-standalone p {
+            color: #cfd8dc; /* Jasnoszary tekst */
+        }
+        .dark-mode .channel-link {
+            background-color: #d32f2f; /* Ciemniejszy czerwony */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        .dark-mode .channel-link:hover {
+            background-color: #c62828;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .dark-mode .pitch-schedule {
+            background-color: #34495e;
+            border-color: #81d4fa; /* Jaśniejsza ramka */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        .dark-mode .pitch-schedule:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
+        }
+        .dark-mode .pitch-schedule h2 {
+            color: #9cdcfe;
+        }
+        .dark-mode .pitch-schedule h2 i {
+            color: #4fc3f7; /* Jasnoniebieska piłka */
+        }
+        .dark-mode .pitch-schedule h2::after {
+            background-color: #81d4fa;
+        }
+        .dark-mode .pitch-schedule p {
+            color: #cfd8dc;
+        }
+        .dark-mode .pitch-schedule p:hover:not(.highlighted-match) {
+            background-color: #455a64; /* Ciemniejszy hover */
+        }
+        .dark-mode .pitch-schedule strong {
+            color: #bbdefb; /* Jaśniejszy niebieski dla godziny */
+        }
+        .dark-mode .highlighted-match {
+            background: linear-gradient(to right, #6d4c41, #5d4037); /* Ciemniejszy gradient pomarańczowy */
+            color: #ffccbc; /* Jaśniejszy tekst */
+            box-shadow: 0 4px 10px rgba(255, 87, 34, 0.2);
+            border-color: #d84315; /* Ciemniejsza pomarańczowa ramka */
+        }
+        .dark-mode .highlighted-match strong {
+            color: #ff8a65; /* Jaśniejszy intensywny pomarańczowy */
+        }
+        /* Style dla przycisku motywu */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #616161; /* Kolor ikony słońca/księżyca */
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .dark-mode .theme-toggle {
+            color: #fdd835; /* Kolor ikony księżyca w ciemnym motywie */
+        }
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
 
         /* Responsywność */
         @media (max-width: 992px) {
@@ -310,6 +438,11 @@
                 font-size: 1.2em;
                 min-width: 70px;
             }
+            .theme-toggle {
+                font-size: 1.5em;
+                top: 15px;
+                right: 15px;
+            }
         }
         @media (max-width: 480px) {
             body {
@@ -352,6 +485,11 @@
                 font-size: 1.1em;
                 min-width: unset;
             }
+            .theme-toggle {
+                font-size: 1.3em;
+                top: 10px;
+                right: 10px;
+            }
         }
     </style>
 </head>
@@ -359,6 +497,9 @@
     <div class="header">
         <h1>Harmonogram Meczów</h1>
         <div id="current-time"><i class="fa-solid fa-clock"></i></div>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Przełącz motyw">
+            <i class="fas fa-moon"></i>
+        </button>
     </div>
 
     <div class="youtube-live youtube-section-standalone">
@@ -419,17 +560,14 @@
         function highlightCurrentMatch(now) {
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
-            const currentSeconds = now.getSeconds(); // Użyjemy sekund do "bliskości" meczu
 
-            // Usuń poprzednie podświetlenia
             document.querySelectorAll('.highlighted-match').forEach(match => {
                 match.classList.remove('highlighted-match');
             });
 
             let closestMatch = null;
-            let minTimeDiff = Infinity; // Różnica w minutach do najbliższego meczu
+            let minTimeDiff = Infinity;
 
-            // Znajdź wszystkie paragrafy meczów i znajdź najbliższy mecz w przyszłości
             document.querySelectorAll('.pitch-schedule p').forEach(pElement => {
                 const matchTime = pElement.dataset.time;
                 if (matchTime) {
@@ -437,20 +575,17 @@
                     const matchHour = parseInt(matchHourStr);
                     const matchMinute = parseInt(matchMinuteStr);
 
-                    // Oblicz czas rozpoczęcia i zakończenia meczu (zakładamy 15 minut na mecz)
                     const startTimeInMinutes = matchHour * 60 + matchMinute;
-                    const endTimeInMinutes = startTimeInMinutes + 15; // Mecz trwa 15 minut
+                    const endTimeInMinutes = startTimeInMinutes + 15;
 
                     const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
-                    // Sprawdź, czy aktualny czas mieści się w przedziale meczu
                     if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
                         pElement.classList.add('highlighted-match');
-                        closestMatch = null; // Jeśli jest mecz w trakcie, nie szukaj najbliższego przyszłego
-                        return; // Wyjdź z pętli, bo znaleźliśmy bieżący mecz
+                        closestMatch = null;
+                        return;
                     }
 
-                    // Jeśli mecz jest w przyszłości, sprawdź czy jest najbliższy
                     if (startTimeInMinutes > currentTimeInMinutes) {
                         const timeDiff = startTimeInMinutes - currentTimeInMinutes;
                         if (timeDiff < minTimeDiff) {
@@ -461,11 +596,37 @@
                 }
             });
 
-            // Jeśli nie ma meczu w trakcie, a jest najbliższy przyszły mecz, podświetl go
             if (!document.querySelector('.highlighted-match') && closestMatch) {
                 closestMatch.classList.add('highlighted-match');
             }
         }
+
+        // --- Funkcjonalność ciemnego motywu ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        // Sprawdź, czy użytkownik ma zapisany motyw w localStorage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Zmień ikonę na słońce
+        } else {
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Zmień ikonę na księżyc
+        }
+
+        // Dodaj nasłuchiwanie na kliknięcie przycisku
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode'); // Przełącz klasę 'dark-mode' na body
+
+            // Zapisz preferencje użytkownika
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Zmień ikonę na słońce
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Zmień ikonę na księżyc
+            }
+        });
 
 
         // Aktualizuj czas i podświetlenie co sekundę
