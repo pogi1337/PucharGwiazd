@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmonogram Meczów - Puchar Gwiazd</title>
+    <meta name="description" content="Oficjalny harmonogram meczów Pucharu Gwiazd. Sprawdź aktualny czas, śledź wyniki na żywo i bądź na bieżąco z wydarzeniami!">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -35,7 +36,7 @@
             opacity: 0; /* Początkowa przezroczystość dla animacji */
             transform: translateY(-20px); /* Początkowe przesunięcie dla animacji */
             animation: fadeInTop 1s ease-out forwards; /* Animacja wejścia */
-            position: relative; /* Dla przycisku motywu */
+            position: relative; /* Dla przycisku motywu i ikon social media */
             transition: background-color 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
         }
         @keyframes fadeInTop {
@@ -170,6 +171,27 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
 
+        .social-media-links {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .social-media-links a {
+            color: #424242; /* Kolor domyślny ikon */
+            font-size: 2.2em; /* Większe ikony */
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .social-media-links a:hover {
+            transform: translateY(-3px) scale(1.1);
+        }
+        .social-media-links a.instagram:hover {
+            color: #C13584; /* Instagram gradient-like color */
+        }
+        .social-media-links a.tiktok:hover {
+            color: #000000; /* TikTok black */
+        }
+
         .container {
             display: flex;
             flex-wrap: wrap;
@@ -286,6 +308,76 @@
             color: #d84315; /* Bardziej intensywny pomarańczowy dla godziny */
         }
 
+        /* Sekcja z informacjami o turnieju */
+        .tournament-info {
+            width: 100%;
+            max-width: 900px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+            border: 2px solid #aed581; /* Zielona ramka */
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInBottom 1s ease-out 1s forwards; /* Opóźniona animacja */
+            transition: background-color 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
+        }
+        @keyframes fadeInBottom {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .tournament-info h2 {
+            font-family: 'Montserrat', sans-serif;
+            color: #33691e; /* Ciemna zieleń */
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .tournament-info h2 i {
+            color: #8bc34a; /* Jasna zieleń */
+        }
+        .tournament-info p {
+            font-size: 1.1em;
+            color: #424242;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .tournament-info ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        .tournament-info ul li {
+            background-color: #e8f5e9; /* Bardzo jasna zieleń */
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            color: #388e3c; /* Średnia zieleń */
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tournament-info ul li i {
+            color: #689f38; /* Ciemniejsza zieleń */
+        }
+        .tournament-info ul li:hover {
+            background-color: #c8e6c9;
+            transform: translateY(-3px);
+        }
+
         /* --- Style dla ciemnego motywu --- */
         body.dark-mode {
             background: radial-gradient(circle at top left, #2c3e50 0%, #1a2a3a 100%); /* Ciemny gradient tła */
@@ -305,6 +397,15 @@
         }
         .dark-mode #current-time i {
             color: #ffd54f; /* Złoty kolor ikony zegara */
+        }
+        .dark-mode .social-media-links a {
+            color: #cfd8dc; /* Jasnoszary kolor ikon w ciemnym motywie */
+        }
+        .dark-mode .social-media-links a.instagram:hover {
+            color: #f06292; /* Jaśniejszy róż dla Instagrama */
+        }
+        .dark-mode .social-media-links a.tiktok:hover {
+            color: #64ffda; /* Zielony/turkusowy dla TikToka (charakterystyczny kolor logo) */
         }
 
         .dark-mode .youtube-section-standalone {
@@ -371,6 +472,32 @@
         .dark-mode .highlighted-match strong {
             color: #ff8a65; /* Jaśniejszy intensywny pomarańczowy */
         }
+
+        .dark-mode .tournament-info {
+            background-color: #34495e;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            border-color: #7cb342; /* Ciemniejsza zieleń */
+        }
+        .dark-mode .tournament-info h2 {
+            color: #c5e1a5; /* Jaśniejsza zieleń */
+        }
+        .dark-mode .tournament-info h2 i {
+            color: #aed581;
+        }
+        .dark-mode .tournament-info p {
+            color: #cfd8dc;
+        }
+        .dark-mode .tournament-info ul li {
+            background-color: #4caf50; /* Ciemniejsza zieleń */
+            color: #e8f5e9;
+        }
+        .dark-mode .tournament-info ul li i {
+            color: #c8e6c9;
+        }
+        .dark-mode .tournament-info ul li:hover {
+            background-color: #388e3c;
+        }
+
         /* Style dla przycisku motywu */
         .theme-toggle {
             position: absolute;
@@ -404,6 +531,9 @@
             }
             .pitch-schedule {
                 max-width: 45%; /* Dwa obok siebie na tabletach */
+            }
+            .tournament-info {
+                max-width: 90%;
             }
         }
 
@@ -442,6 +572,19 @@
                 font-size: 1.5em;
                 top: 15px;
                 right: 15px;
+            }
+            .tournament-info h2 {
+                font-size: 1.8em;
+            }
+            .tournament-info p {
+                font-size: 1em;
+            }
+            .tournament-info ul li {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+            .social-media-links a {
+                font-size: 1.8em;
             }
         }
         @media (max-width: 480px) {
@@ -490,6 +633,23 @@
                 top: 10px;
                 right: 10px;
             }
+            .tournament-info h2 {
+                font-size: 1.5em;
+            }
+            .tournament-info p {
+                font-size: 0.9em;
+            }
+            .tournament-info ul li {
+                font-size: 0.8em;
+                padding: 6px 12px;
+            }
+            .social-media-links {
+                flex-direction: column; /* Ułożenie ikon pionowo na bardzo małych ekranach */
+                gap: 10px;
+            }
+            .social-media-links a {
+                font-size: 1.5em;
+            }
         }
     </style>
 </head>
@@ -500,12 +660,16 @@
         <button id="theme-toggle" class="theme-toggle" aria-label="Przełącz motyw">
             <i class="fas fa-moon"></i>
         </button>
+        <div class="social-media-links">
+            <a href="https://www.instagram.com/puchargwiazd/" target="_blank" aria-label="Instagram Pucharu Gwiazd" class="instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank" aria-label="TikTok Pucharu Gwiazd" class="tiktok"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
     </div>
 
     <div class="youtube-live youtube-section-standalone">
         <h2><i class="fa-brands fa-youtube"></i> Nasz Kanał YouTube</h2>
         <p>Wszystkie mecze na żywo oraz powtórki znajdziesz na naszym kanale YouTube!</p>
-        <a href="https://www.youtube.com/channel/UCb2X6x9_WldOie_PTYlHX8Q" target="_blank" class="channel-link">Odwiedź Kanał</a>
+        <a href="https://www.youtube.com/@PucharGwiazd" target="_blank" class="channel-link">Odwiedź Kanał</a>
     </div>
 
     <div class="container">
@@ -539,6 +703,18 @@
         </div>
     </div>
 
+    <div class="tournament-info">
+        <h2><i class="fa-solid fa-circle-info"></i> Informacje o Turnieju</h2>
+        <p>Puchar Gwiazd to turniej piłkarski, który gromadzi najlepsze amatorskie drużyny z regionu. Naszym celem jest promowanie sportu, zdrowej rywalizacji i integracji społeczności.</p>
+        <p>Dołącz do nas i poczuj emocje piłki nożnej na najwyższym poziomie amatorskim!</p>
+        <ul>
+            <li><i class="fa-solid fa-calendar-alt"></i> Data: <strong>12 Lipca</strong></li>
+            <li><i class="fa-solid fa-location-dot"></i> Lokalizacja: <strong>Gminny Stadion w Kołbieli</strong></li>
+            <li><i class="fa-solid fa-users"></i> Liczba Drużyn: <strong>7</strong></li>
+            <li><i class="fa-solid fa-trophy"></i> Nagrody: <strong>Puchary, Medale, Nagrody Rzeczowe</strong></li>
+        </ul>
+    </div>
+
     <script>
         function updateTime() {
             const now = new Date();
@@ -560,12 +736,13 @@
         function highlightCurrentMatch(now) {
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
+            const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
             document.querySelectorAll('.highlighted-match').forEach(match => {
                 match.classList.remove('highlighted-match');
             });
 
-            let closestMatch = null;
+            let closestFutureMatch = null;
             let minTimeDiff = Infinity;
 
             document.querySelectorAll('.pitch-schedule p').forEach(pElement => {
@@ -576,63 +753,56 @@
                     const matchMinute = parseInt(matchMinuteStr);
 
                     const startTimeInMinutes = matchHour * 60 + matchMinute;
-                    const endTimeInMinutes = startTimeInMinutes + 15;
-
-                    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+                    const endTimeInMinutes = startTimeInMinutes + 15; // Zakładamy, że mecz trwa 15 minut
 
                     if (currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes) {
                         pElement.classList.add('highlighted-match');
-                        closestMatch = null;
-                        return;
+                        closestFutureMatch = null; // Jeśli jest aktualny mecz, nie szukamy najbliższego przyszłego
+                        return; // Przerywamy pętlę, znaleziono aktualny mecz
                     }
 
                     if (startTimeInMinutes > currentTimeInMinutes) {
                         const timeDiff = startTimeInMinutes - currentTimeInMinutes;
                         if (timeDiff < minTimeDiff) {
                             minTimeDiff = timeDiff;
-                            closestMatch = pElement;
+                            closestFutureMatch = pElement;
                         }
                     }
                 }
             });
 
-            if (!document.querySelector('.highlighted-match') && closestMatch) {
-                closestMatch.classList.add('highlighted-match');
+            // Jeśli nie ma aktualnie trwającego meczu, podświetl najbliższy przyszły
+            if (!document.querySelector('.highlighted-match') && closestFutureMatch) {
+                closestFutureMatch.classList.add('highlighted-match');
             }
         }
 
-        // --- Funkcjonalność ciemnego motywu ---
+        // Uruchomienie funkcji aktualizującej czas i podświetlającej mecz co sekundę
+        setInterval(updateTime, 1000);
+        updateTime(); // Wywołaj od razu po załadowaniu strony
+
+        // Obsługa przełączania motywu
         const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-
-        // Sprawdź, czy użytkownik ma zapisany motyw w localStorage
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            body.classList.add('dark-mode');
-            themeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Zmień ikonę na słońce
-        } else {
-            themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Zmień ikonę na księżyc
-        }
-
-        // Dodaj nasłuchiwanie na kliknięcie przycisku
         themeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode'); // Przełącz klasę 'dark-mode' na body
-
-            // Zapisz preferencje użytkownika
-            if (body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>'; // Zmień ikonę na słońce
-            } else {
-                localStorage.setItem('theme', 'light');
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>'; // Zmień ikonę na księżyc
-            }
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            themeToggle.querySelector('i').classList.toggle('fa-moon', !isDarkMode);
+            themeToggle.querySelector('i').classList.toggle('fa-sun', isDarkMode);
         });
 
-
-        // Aktualizuj czas i podświetlenie co sekundę
-        setInterval(updateTime, 1000);
-        // Ustaw czas i podświetlenie od razu po załadowaniu strony
-        updateTime();
+        // Sprawdź preferencje motywu po załadowaniu strony
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'true') {
+                document.body.classList.add('dark-mode');
+                themeToggle.querySelector('i').classList.add('fa-sun');
+                themeToggle.querySelector('i').classList.remove('fa-moon');
+            } else {
+                themeToggle.querySelector('i').classList.add('fa-moon');
+                themeToggle.querySelector('i').classList.remove('fa-sun');
+            }
+        });
     </script>
 </body>
 </html>
