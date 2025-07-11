@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonogram Meczów - Puchar Gwiazd</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght=500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e3f2fd; /* Bardzo jasny błękit */
+            color: #212121; /* Ciemnoszary dla kontrastu */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .header {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #bbdefb; /* Jasny błękit */
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid #90caf9;
+        }
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            color: #1976d2; /* Ciemniejszy niebieski */
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        #current-time {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5em;
+            color: #1e88e5; /* Średni niebieski */
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px; /* Zwiększona szerokość dla lepszego układu */
+        }
+        .pitch-schedule {
+            background-color: #ffffff; /* Białe tło dla kart */
+            border: 1px solid #90caf9; /* Subtelna ramka */
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            max-width: 450px; /* Maksymalna szerokość karty */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Głebszy cień */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+        .pitch-schedule:hover {
+            transform: translateY(-5px); /* Efekt uniesienia przy najechaniu */
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        }
+        h2 {
+            font-family: 'Montserrat', sans-serif;
+            color: #0d47a1; /* Bardzo ciemny niebieski */
+            margin-bottom: 20px;
+            font-size: 2em;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        h2::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 60px; /* Krótka linia pod tytułem */
+            height: 4px;
+            background-color: #64b5f6; /* Jasniejszy niebieski */
+            border-radius: 2px;
+        }
+        p {
+            margin: 10px 0;
+            font-size: 1.15em; /* Nieco większy tekst meczu */
+            color: #424242; /* Ciemnoszary */
+            display: flex;
+            align-items: baseline;
+            line-height: 1.4;
+        }
+        strong {
+            color: #2196f3; /* Niebieski dla godziny */
+            font-size: 1.2em; /* Większa godzina */
+            margin-right: 12px;
+            flex-shrink: 0; /* Zapobiega zmniejszaniu się godziny */
+            min-width: 75px; /* Minimalna szerokość dla godziny */
+        }
+        /* Responsywność */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2em;
+            }
+            #current-time {
+                font-size: 1.2em;
+            }
+            .pitch-schedule {
+                padding: 20px;
+                max-width: 90%; /* Lepiej wygląda na małych ekranach */
+            }
+            h2 {
+                font-size: 1.8em;
+            }
+            p {
+                font-size: 1em;
+            }
+            strong {
+                font-size: 1.1em;
+                min-width: 65px;
+            }
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            #current-time {
+                font-size: 1em;
+            }
+            .pitch-schedule {
+                padding: 15px;
+            }
+            h2 {
+                font-size: 1.6em;
+            }
+            p {
+                flex-direction: column; /* Godzina i mecz pod sobą */
+                align-items: flex-start;
+            }
+            strong {
+                margin-bottom: 5px;
+                font-size: 1.1em;
+                min-width: unset;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Harmonogram Meczów</h1>
+        <div id="current-time"></div>
+    </div>
+
+    <div class="container">
+        <div class="pitch-schedule">
+            <h2>Boisko A</h2>
+            <p><strong>11:00</strong> Puchar Gwiazd : CPM</p>
+            <p><strong>11:15</strong> CPM : Bad Boys</p>
+            <p><strong>11:30</strong> Puchar Gwiazd : Kokołaje</p>
+            <p><strong>11:45</strong> Kokołaje : Bad Boys</p>
+            <p><strong>12:00</strong> Namiot Team : Bad Boys</p>
+            <p><strong>12:15</strong> CPM : Kokołaje</p>
+            <p><strong>12:30</strong> Kokołaje : Namiot Team</p>
+            <p><strong>12:45</strong> Puchar Gwiazd : Namiot Team</p>
+            <p><strong>13:00</strong> Kokołaje : Hetman</p>
+            <p><strong>13:15</strong> Namiot Team : CPM</p>
+        </div>
+
+        <div class="pitch-schedule">
+            <h2>Boisko B</h2>
+            <p><strong>11:00</strong> Turbo Grzmoty : Kokołaje</p>
+            <p><strong>11:15</strong> Hetman : Namiot Team</p>
+            <p><strong>11:30</strong> Turbo Grzmoty : Namiot Team</p>
+            <p><strong>11:45</strong> CPM : Hetman</p>
+            <p><strong>12:00</strong> Hetman : Puchar Gwiazd</p>
+            <p><strong>12:15</strong> Turbo Grzmoty : Puchar Gwiazd</p>
+            <p><strong>12:30</strong> Bad Boys : Hetman</p>
+            <p><strong>12:45</strong> CPM : Turbo Grzmoty</p>
+            <p><strong>13:00</strong> Turbo Grzmoty : Bad Boys</p>
+            <p><strong>13:15</strong> Bad Boys : Puchar Gwiazd</p>
+            <p><strong>13:30</strong> Turbo Grzmoty : Hetman</p>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            document.getElementById('current-time').textContent = now.toLocaleDateString('pl-PL', options);
+        }
+
+        // Aktualizuj czas co sekundę
+        setInterval(updateTime, 1000);
+        // Ustaw czas od razu po załadowaniu strony
+        updateTime();
+    </script>
+</body>
+</html>
