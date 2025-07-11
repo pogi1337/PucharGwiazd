@@ -103,8 +103,6 @@
             flex-shrink: 0;
             min-width: 75px;
         }
-        /* Usunięto style .video-container i .video-container iframe, ponieważ nie są już potrzebne */
-
         .channel-link {
             display: inline-block; /* Aby zastosować padding i margin */
             margin-top: 25px; /* Odstęp od nagłówka */
@@ -123,6 +121,15 @@
             background-color: #cc0000; /* Ciemniejszy czerwony przy najechaniu */
             transform: translateY(-2px);
         }
+
+        /* Nowy styl dla kontenera YouTube-live, gdy jest poza .container */
+        .youtube-section-standalone {
+            width: 100%;
+            max-width: 900px; /* Taka sama szerokość jak header */
+            margin-top: 30px; /* Odstęp od headera */
+            margin-bottom: 30px; /* Odstęp od harmonogramów */
+        }
+
 
         /* Responsywność */
         @media (max-width: 768px) {
@@ -189,6 +196,12 @@
         <div id="current-time"></div>
     </div>
 
+    <div class="youtube-live youtube-section-standalone">
+        <h2>Nasz Kanał YouTube</h2>
+        <p>Wszystkie mecze na żywo oraz powtórki znajdziesz na naszym kanale YouTube!</p>
+        <a href="https://www.youtube.com/channel/YOUR_CHANNEL_ID_OR_CUSTOM_URL" target="_blank" class="channel-link">Odwiedź Kanał</a>
+    </div>
+
     <div class="container">
         <div class="pitch-schedule">
             <h2>Boisko A</h2>
@@ -217,12 +230,6 @@
             <p><strong>13:00</strong> Turbo Grzmoty : Bad Boys</p>
             <p><strong>13:15</strong> Bad Boys : Puchar Gwiazd</p>
             <p><strong>13:30</strong> Turbo Grzmoty : Hetman</p>
-        </div>
-
-        <div class="youtube-live">
-            <h2>Nasz Kanał YouTube</h2>
-            <p>Wszystkie mecze na żywo oraz powtórki znajdziesz na naszym kanale YouTube!</p>
-            <a href="https://www.youtube.com/channel/YOUR_CHANNEL_ID_OR_CUSTOM_URL" target="_blank" class="channel-link">Odwiedź Kanał</a>
         </div>
     </div>
 
