@@ -14,6 +14,7 @@
     body {
       height: 100vh;
       display: flex;
+      flex-direction: column; /* Changed to column to stack logo and text */
       justify-content: center;
       align-items: center;
       font-family: 'Segoe UI', sans-serif;
@@ -33,6 +34,12 @@
     .container {
       text-align: center;
       padding: 0 20px;
+    }
+
+    .logo {
+      margin-bottom: 20px; /* Space between logo and title */
+      max-width: 200px; /* Adjust as needed */
+      height: auto;
     }
 
     h1 {
@@ -85,11 +92,16 @@
         height: 100px;
         border-width: 12px;
       }
+
+      .logo {
+        max-width: 250px; /* Larger logo on larger screens */
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <img src="c5654d7e-e05b-4129-95fd-448891925e95-removebg-preview.png" alt="Logo Pucharu Gwiazd" class="logo">
     <h1>Strona w trakcie konfiguracji</h1>
     <div class="loader"></div>
   </div>
