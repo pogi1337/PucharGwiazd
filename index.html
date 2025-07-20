@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strona Główna - Puchar Gwiazd</title>
+    <meta name="description" content="Oficjalny harmonogram meczów Pucharu Gwiazd. Sprawdź aktualny czas, śledź wyniki na żywo i bądź na bieżąco z wydarzeniami!">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <img src="logo.png" alt="Puchar Gwiazd Logo" class="logo">
+        <h1>Strona Główna - Puchar Gwiazd</h1>
+        <div id="current-time"></div>
+    </div>
+
+    <nav id="main-nav">
+        <ul>
+            <li><a href="index.html">Strona Główna</a></li>
+            <li><a href="druzyny.html">Drużyny</a></li>
+            <li><a href="regulamin.html">Regulamin</a></li>
+            <li><a href="tabela.html">Tabele Grup</a></li>
+            <li><a href="onas.html">O Nas</a></li>
+            <li><a href="pusta-strona.html">Pusta Strona</a></li>
+        </ul>
+    </nav>
+
+    <section class="content-section">
+        <h2>Następny Turniej Rozpoczyna Się Za:</h2>
+        <div id="countdown" class="countdown"></div>
+
+        <h2>Nadchodzące Mecze</h2>
+        <div class="match-schedule">
+            <ul>
+                <li>
+                    <span>Drużyna A vs Drużyna B</span>
+                    <strong>XX - XX</strong>
+                </li>
+                <li>
+                    <span>Drużyna C vs Drużyna D</span>
+                    <strong>XX - XX</strong>
+                </li>
+            </ul>
+        </div>
+
+        <h2>Wyniki Na Żywo</h2>
+        <div class="live-scores">
+            <p>Brak aktywnych meczów.</p>
+        </div>
+
+        <h2>Aktualności</h2>
+        <div class="news-updates">
+            <article>
+                <h3>Witajcie w Pucharze Gwiazd!</h3>
+                <p>To jest oficjalna strona interentowa pucharu gwiazd. Sprawdzisz tu wszystkie informacje.</p>
+            </article>
+        </div>
+    </section>
+
+    <div class="footer">
+        <div class="social-media-links">
+            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
+
+    <button id="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
