@@ -10,36 +10,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* Globalne style i tło */
+        /* Globalne style (ZGODNE Z INDEX.HTML) */
         body { 
             font-family: 'Roboto', sans-serif; 
             margin: 0;
             padding: 20px 10px; 
-            background-color: #f4f7f9; /* Jasne, neutralne tło */
-            color: #333;
+            background-color: #e0f2f7; /* Tło z Panelu Admina */
+            color: #212121;
             min-height: 100vh;
         }
 
-        /* Kontener główny */
+        /* Kontener główny (ZGODNY Z INDEX.HTML) */
         .team-container {
             max-width: 800px; 
             margin: 0 auto; 
-            padding: 15px;
+            padding: 20px;
             background: white; 
-            border-radius: 12px; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1); 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); /* Cień z Panelu Admina */
         }
 
-        /* Nagłówek i ID drużyny */
+        /* Nagłówki (ZGODNE Z INDEX.HTML) */
         #team-header {
             text-align: center;
             padding-bottom: 10px;
-            border-bottom: 3px solid #007bff;
+            border-bottom: 2px solid #64b5f6; /* Kolor z nagłówka h2 w Adminie */
             margin-bottom: 25px;
         }
         #team-name {
             font-size: 2.2em;
-            color: #1565c0; /* Główny kolor drużyny */
+            color: #1565c0; /* Główny kolor h1/h2 w Adminie */
             margin: 0;
             font-weight: 700;
             text-transform: uppercase;
@@ -50,135 +50,158 @@
             margin-top: 5px;
         }
         
-        /* Sekcje */
+        /* Sekcje (ZGODNE Z H2 W INDEX.HTML) */
         .section-header {
             font-size: 1.5em;
-            color: #007bff;
+            color: #1565c0;
             margin-top: 30px;
             margin-bottom: 15px;
-            padding-left: 10px;
-            border-left: 4px solid #ffc107; /* Akcent kolorystyczny */
+            padding-bottom: 5px;
+            border-bottom: 2px solid #64b5f6;
             font-weight: 600;
+        }
+        .section-header i {
+            margin-right: 8px;
         }
         
         /* =================================
-           1. OSIĄGNIĘCIA
+           1. OSIĄGNIĘCIA (Nowy, spójny styl)
            ================================= */
         #achievements-list {
             list-style: none;
             padding: 0;
             display: flex;
-            flex-wrap: wrap; /* Umożliwia zawijanie na małych ekranach */
+            flex-wrap: wrap; 
             gap: 10px;
-            justify-content: center; /* Centrowanie na środku */
+            /* Centrowanie na środku dla lepszej estetyki, jeśli jest mało osiągnięć */
+            /* Jeśli chcesz wyrównanie do lewej (jak w Panelu Admina), usuń 'justify-content: center;' */
+            justify-content: flex-start; 
         }
 
         .achievement-badge {
-            background-color: #e9ecef; /* Tło dla osiągnięcia */
-            color: #495057;
+            background-color: #f0f0f0; /* Bardziej neutralne tło */
+            color: #212121;
             padding: 8px 15px;
-            border-radius: 20px;
+            border-radius: 6px; /* Zgodnie z zaokrągleniami pól w Adminie */
             font-weight: 500;
             display: flex;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             transition: background-color 0.3s;
         }
         .achievement-badge:hover {
-            background-color: #dee2e6;
+            background-color: #e9e9e9;
         }
         .achievement-badge i {
             margin-right: 8px;
-            color: #28a745; /* Kolor ikony - trofeum */
+            color: #007bff; /* Kolor ikony - zgodny z głównym kolorem Admina */
         }
 
         /* =================================
-           2. SKŁAD ZAWODNIKÓW (Tabela)
+           2. SKŁAD ZAWODNIKÓW (Styl listowy zgodny z Adminem)
            ================================= */
         .player-table-wrapper {
-            overflow-x: auto; /* Umożliwia przewijanie na bardzo małych ekranach */
             margin-top: 20px;
         }
+        /* Używamy listy zamiast tabeli na mobilnych, na PC wygląda jak tabela (zgodnie z listą edycji w Adminie) */
+        #players-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .player-item-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px dashed #eee; /* Zgodnie z listami w Adminie */
+            background-color: white;
+        }
+        .player-item-wrapper:nth-child(even) {
+            background-color: #f8f8f8; /* Lekkie paski */
+        }
+        .player-item-wrapper:hover {
+            background-color: #f0faff; /* Lekki hover */
+        }
+
+        .player-number {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #dc3545; /* Kolor czerwony (jak delete/alert w Adminie) */
+            margin-right: 15px;
+            width: 40px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .player-name {
+            flex-grow: 1;
+            font-size: 1.1em;
+            color: #212121;
+        }
+
+        /* Tabela dla PC (zgodność z estetyką admina) */
         .player-table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-radius: 6px;
+            overflow: hidden;
         }
 
         .player-table th {
-            background-color: #007bff;
+            background-color: #007bff; /* Kolor przycisków w Adminie */
             color: white;
             padding: 12px 15px;
             text-transform: uppercase;
             font-weight: 600;
-            letter-spacing: 0.5px;
             border: none;
         }
         
         .player-table td {
             padding: 10px 15px;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid #e0e0e0;
             vertical-align: middle;
         }
         
         .player-table tbody tr:nth-child(even) {
-            background-color: #f8f9fa; /* Lekko ciemniejszy wiersz */
+            background-color: #fcfcfc;
         }
         .player-table tbody tr:hover {
-            background-color: #e9f2ff; /* Efekt hover */
+            background-color: #e9f2ff;
         }
 
-        .player-number {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #dc3545; /* Kolor numeru */
-            text-align: center;
-            width: 50px; /* Ustalona szerokość kolumny numeru */
-        }
-        
+
         /* =================================
-           3. RESPONSIVE (poprawki dla telefonu)
+           3. RESPONSIVE (Użycie Tabela/Lista)
            ================================= */
         @media (max-width: 600px) {
             body { padding: 10px 5px; }
-            .team-container { padding: 10px; border-radius: 0; box-shadow: none; }
+            .team-container { padding: 15px; border-radius: 0; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
             #team-name { font-size: 1.8em; }
             .section-header { font-size: 1.3em; margin-top: 20px; }
-
-            /* Ukrywanie nagłówka numeru na małym ekranie */
-            .player-table th:first-child {
-                display: none;
-            }
-            /* Stylizacja komórek dla mobilności */
-            .player-table td {
-                display: block;
-                padding: 8px 0;
-                border-bottom: none;
-            }
-
-            .player-table tbody tr {
-                display: block;
-                border-bottom: 2px solid #007bff; /* Wyraźne oddzielenie zawodników */
-                margin-bottom: 15px;
-                padding-bottom: 5px;
-            }
             
-            /* Przesunięcie numeru zawodnika do pierwszej linii w komórce */
-            .player-number {
-                display: inline-block;
-                margin-right: 15px;
-                width: auto;
-            }
+            /* Na telefonie ukrywamy tradycyjną tabelę i pokazujemy listę */
+            .player-table { display: none; }
+            #players-list-mobile { display: block; }
             
-            /* Ukrycie standardowej kolumny 'Imię i Nazwisko' na mobilnych i wyświetlenie jej obok numeru */
-            .player-table td:nth-child(2)::before {
-                content: "Imię: ";
-                font-weight: 500;
-                color: #6c757d;
-                display: none; /* Ukryj label na mobilnym, bo nazwa jest wystarczająco oczywista */
+            .player-item-wrapper {
+                 /* Poprawienie odstępów na mobilnym */
+                padding: 12px 10px;
             }
         }
-
+        
+        /* Domyślnie ukrywamy listę mobilną, pokazujemy tabelę na PC */
+        #players-list-mobile {
+            display: none;
+            padding: 0;
+            margin: 0;
+        }
+        @media (min-width: 601px) {
+             .player-table { display: table; }
+        }
     </style>
 </head>
 <body>
@@ -199,14 +222,18 @@
         <table class="player-table">
             <thead>
                 <tr>
-                    <th style="width: 10%;" class="player-number-header">Nr</th>
+                    <th style="width: 10%;">Nr</th>
                     <th style="width: 90%;">Imię i Nazwisko</th>
                 </tr>
             </thead>
-            <tbody id="players-list">
+            <tbody id="players-list-pc">
                 <tr><td colspan="2">Ładowanie składu...</td></tr>
             </tbody>
         </table>
+        
+        <ul id="players-list-mobile">
+            <li class="player-item-wrapper"><span class="player-name">Ładowanie składu...</span></li>
+        </ul>
     </div>
 
 </div>
@@ -227,10 +254,8 @@
     const db = firebase.database();
     const TEAM_BASE_PATH = "teams/teams/";
 
-    // Funkcja do pobrania ID drużyny z URL (np. druzyna.html?id=Team1)
     function getTeamIdFromUrl() {
         const params = new URLSearchParams(window.location.search);
-        // Normalizacja ID do poprawnego formatu dla ścieżki Firebase
         let teamId = params.get('id');
         return teamId ? teamId.replace(/\s+/g, '') : null;
     }
@@ -239,14 +264,16 @@
         const teamId = getTeamIdFromUrl();
         const teamNameDisplay = document.getElementById("team-name");
         const teamIdDisplay = document.getElementById("team-id-display");
-        const playersList = document.getElementById("players-list");
+        const playersListPC = document.getElementById("players-list-pc");
+        const playersListMobile = document.getElementById("players-list-mobile");
         const achievementsList = document.getElementById("achievements-list");
         const pageTitle = document.getElementById("page-title");
 
         if (!teamId) {
             teamNameDisplay.textContent = "Błąd: Brak ID drużyny w URL.";
             teamIdDisplay.textContent = "Użyj linku w formacie: druzyna.html?id=NAZWA_DRUZYNY";
-            playersList.innerHTML = '<tr><td colspan="2">Brak danych.</td></tr>';
+            playersListPC.innerHTML = '<tr><td colspan="2">Brak danych.</td></tr>';
+            playersListMobile.innerHTML = '<li class="player-item-wrapper"><span class="player-name">Brak danych.</span></li>';
             return;
         }
         
@@ -262,32 +289,44 @@
             if (!teamData) {
                 teamNameDisplay.textContent = "Drużyna nie znaleziona";
                 teamIdDisplay.textContent = `ID: ${teamId}`;
-                playersList.innerHTML = '<tr><td colspan="2">Brak danych o drużynie.</td></tr>';
+                playersListPC.innerHTML = '<tr><td colspan="2">Brak danych o drużynie.</td></tr>';
+                playersListMobile.innerHTML = '<li class="player-item-wrapper"><span class="player-name">Brak danych o drużynie.</span></li>';
                 achievementsList.innerHTML = '<li>Brak osiągnięć.</li>';
                 return;
             }
 
             // 1. RENDEROWANIE SKŁADU
-            playersList.innerHTML = '';
+            playersListPC.innerHTML = '';
+            playersListMobile.innerHTML = '';
             const players = teamData.players;
             
             if (players) {
-                // Konwersja obiektu na tablicę i sortowanie wg numeru
                 const sortedPlayers = Object.values(players)
                     .sort((a, b) => (a.number || 999) - (b.number || 999));
 
                 sortedPlayers.forEach(player => {
-                    const row = document.createElement("tr");
                     const playerNumber = player.number !== undefined && player.number !== null ? player.number : '—'; 
                     
+                    // WERSJA PC (Tabela)
+                    const row = document.createElement("tr");
                     row.innerHTML = `
                         <td class="player-number">${playerNumber}</td>
                         <td>${player.name}</td>
                     `;
-                    playersList.appendChild(row);
+                    playersListPC.appendChild(row);
+                    
+                    // WERSJA MOBILNA (Lista)
+                    const listItem = document.createElement("li");
+                    listItem.classList.add('player-item-wrapper');
+                    listItem.innerHTML = `
+                        <span class="player-number">${playerNumber}</span>
+                        <span class="player-name">${player.name}</span>
+                    `;
+                    playersListMobile.appendChild(listItem);
                 });
             } else {
-                playersList.innerHTML = '<tr><td colspan="2">Brak zawodników w składzie.</td></tr>';
+                playersListPC.innerHTML = '<tr><td colspan="2">Brak zawodników w składzie.</td></tr>';
+                playersListMobile.innerHTML = '<li class="player-item-wrapper"><span class="player-name">Brak zawodników w składzie.</span></li>';
             }
 
             // 2. RENDEROWANIE OSIĄGNIĘĆ
@@ -296,7 +335,6 @@
 
             if (achievements) {
                 const fragment = document.createDocumentFragment();
-                // Iteracja przez wartości (teksty osiągnięć)
                 Object.values(achievements).forEach(achievementText => {
                     const listItem = document.createElement("li");
                     listItem.classList.add('achievement-badge');
@@ -311,7 +349,6 @@
         });
     }
 
-    // Uruchomienie ładowania szczegółów po załadowaniu strony
     document.addEventListener('DOMContentLoaded', loadTeamDetails);
 </script>
 </body>
