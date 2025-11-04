@@ -68,9 +68,9 @@
         }
 
         // 1. Sprawdzamy hasło w gałęzi captains_access
-        db.ref("captains_access/" + teamId).once("value")
-            .then(snapshot => {
-                const correctPassword = snapshot.val();
+       db.ref("teams/captains_access/" + teamId).once("value")
+    .then(snapshot => {
+        const correctPassword = snapshot.val();
 
                 if (correctPassword === password) {
                     messageEl.textContent = "Zalogowano pomyślnie! Przekierowanie...";
@@ -91,4 +91,5 @@
 </script>
 
 </body>
+
 </html>
