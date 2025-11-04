@@ -2,19 +2,73 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Panel Admina - Wyniki</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
-        .login-box, .admin-panel { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input, select, button { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; width: 45%; box-sizing: border-box; }
-        button { background-color: #007bff; color: white; cursor: pointer; border: none; width: auto; }
-        h1, h2, h3 { color: #333; }
-        h2 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px; }
+        /* Globalne style */
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            padding: 10px; /* Mniejszy padding globalny */
+            background-color: #e0f2f7; /* Jasny niebieski */
+            color: #212121;
+        }
+
+        /* Kontenery */
+        .login-box, .admin-panel { 
+            max-width: 600px; 
+            margin: 10px auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+        }
+
+        /* Ogólne kontrolki */
+        input, select, button { 
+            padding: 10px; 
+            margin: 5px 0; /* Zmień marginesy, aby uniknąć problemów z szerokością */
+            border-radius: 6px; 
+            border: 1px solid #ccc; 
+            width: 100%; /* Domyślnie pełna szerokość */
+            box-sizing: border-box; 
+            font-size: 1em;
+        }
         
+        /* Specjalne style dla pól wejściowych w sekcji "Dodaj mecz" */
+        #teamA, #teamB {
+            width: 49%; 
+            display: inline-block;
+        }
+
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            cursor: pointer; 
+            border: none; 
+            width: 100%; 
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .delete-btn { 
+            background-color: #dc3545; 
+        }
+        .delete-btn:hover {
+            background-color: #b02739;
+        }
+
+        h1 { color: #1565c0; margin-bottom: 20px; text-align: center; }
+        h2 { border-bottom: 2px solid #64b5f6; padding-bottom: 5px; margin-top: 25px; color: #1565c0; }
+        h3 { color: #007bff; margin-top: 15px; }
+        
+        .group-section { margin-bottom: 25px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; }
+
+        /* WERSJA DLA PC: Układ meczu w jednym wierszu */
         .match-box { 
             border: 1px solid #ddd; 
             padding: 10px; 
@@ -22,23 +76,111 @@
             display: flex; 
             align-items: center; 
             justify-content: space-between;
-            flex-wrap: wrap; /* Zezwól na zawijanie na mniejszych ekranach */
+            flex-wrap: nowrap; /* Wersja PC: bez zawijania */
+            border-radius: 6px;
+            background-color: #f9f9f9;
         }
-        .match-box > * { margin: 5px; }
 
-        .delete-btn { background-color: #dc3545; }
-        .group-section { margin-bottom: 20px; border-top: 2px solid #007bff; padding-top: 10px; }
+        .match-box > * { margin: 5px; }
         
-        /* Styl dla inputów w match-box, aby były mniejsze */
-        .match-box input[type="number"], .match-box select { 
-            width: 50px; 
+        /* Ustalona szerokość dla nazw drużyn na PC */
+        .match-box span {
+            min-width: 150px;
+            max-width: 200px; /* Ograniczenie, aby nie zajmowały zbyt dużo miejsca */
+            font-weight: bold;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .match-box span:last-of-type {
+            text-align: left;
+            padding-left: 10px;
+            padding-right: 0;
+        }
+
+        /* Styl dla inputów w match-box (wyniki) */
+        .match-box input[type="number"] { 
+            width: 40px; /* Wystarczająco mały */
             text-align: center; 
+            margin: 0 2px;
+            padding: 5px;
+            flex-shrink: 0; /* Nie kurczy się */
+        }
+
+        .match-box select {
+            width: auto; /* Nie zajmuje całej szerokości */
+            flex-grow: 1;
+            margin: 0 5px;
         }
         .match-box button {
             padding: 8px 12px;
+            width: auto; /* Nie zajmuje całej szerokości */
+            margin: 0 2px;
+            flex-shrink: 0;
         }
-        .match-box span {
-             min-width: 150px;
+
+        /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (MAX SZEROKOŚĆ 600px) --- */
+        @media (max-width: 600px) {
+            
+            .login-box, .admin-panel {
+                padding: 15px; /* Mniejszy padding wewnątrz */
+            }
+
+            /* Układ sekcji 'Dodaj mecz' */
+            #teamA, #teamB {
+                width: 100%; /* Pełna szerokość dla inputów, jeden pod drugim */
+            }
+
+            /* KLUCZOWE: Układ meczy w panelu zarządzania */
+            .match-box {
+                flex-direction: column; /* Wszystko pod sobą */
+                align-items: stretch; /* Rozciągnij elementy na całą szerokość */
+            }
+
+            .match-box > * { 
+                width: 100%; /* Elementy zajmują całą dostępną szerokość */
+                margin: 5px 0; 
+                text-align: center; 
+            }
+
+            /* Ustalenie układu dla nazw drużyn i wyników */
+            .match-box > span {
+                min-width: unset; 
+                text-align: center !important; 
+                padding: 0; 
+                font-size: 1.1em;
+            }
+
+            /* Ujednolicony pasek Wyników i Zapisz */
+            .score-controls {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 5px;
+                width: 100%;
+                margin: 5px 0;
+            }
+            .score-controls input {
+                width: 60px; /* Większe dla dotyku */
+                margin: 0;
+                padding: 10px;
+            }
+            .score-controls button {
+                width: auto;
+                flex-grow: 1;
+                margin: 0;
+            }
+
+            .match-box select, .match-box button.delete-btn {
+                width: 100%;
+            }
+            
+            /* Zmodyfikowanie elementów w match-box, aby ułatwić zarządzanie */
+            .match-box .score-group {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -98,8 +240,6 @@
         if (enteredPassword === ADMIN_PASSWORD) {
             document.getElementById("login-form").style.display = 'none';
             document.getElementById("admin-interface").style.display = 'block';
-            // Jeśli admin się zalogował, odświeżamy listę meczów
-            // (w tym kodzie nasłuchiwanie na zmiany jest już aktywne)
         } else {
             alert("Nieprawidłowe hasło administratora.");
         }
@@ -122,10 +262,8 @@
             group: group,
             status: status
         }).then(() => {
-            // Czyszczenie pól po dodaniu
             document.getElementById("teamA").value = '';
             document.getElementById("teamB").value = '';
-            // Pozostawiamy wybraną grupę i status dla wygody
         }).catch(error => {
             alert("Błąd dodawania meczu: " + error.message);
         });
@@ -198,31 +336,32 @@
             groupedMatches[groupName].push({ id, ...match });
         });
         
-        // Sortowanie grup alfabetycznie (A, B, C...)
         const sortedGroupNames = Object.keys(groupedMatches).sort();
 
         sortedGroupNames.forEach(groupName => {
             let groupHtml = `<div class="group-section"><h3>Grupa ${groupName}</h3>`;
             
-            // Sortowanie meczów w grupie: Live > Scheduled > Finished
             groupedMatches[groupName].sort((a, b) => {
                 const order = { 'live': 1, 'scheduled': 2, 'finished': 3 };
                 return order[a.status] - order[b.status];
             }).forEach(match => {
                 const statusOptions = generateStatusOptions(match.status);
 
+                // Zmodyfikowana struktura HTML w pętli do lepszego zarządzania mobilnego
                 groupHtml += `
                     <div class="match-box">
-                        <span style="width: 150px;">${match.teamA} vs ${match.teamB}</span>
-                        <input id="a-${match.id}" type="number" value="${match.scoreA}" min="0" max="99">
-                        <input id="b-${match.id}" type="number" value="${match.scoreB}" min="0" max="99">
+                        <span>${match.teamA} vs ${match.teamB}</span>
                         
+                        <div class="score-controls">
+                            <input id="a-${match.id}" type="number" value="${match.scoreA}" min="0" max="99">
+                            <input id="b-${match.id}" type="number" value="${match.scoreB}" min="0" max="99">
+                            <button onclick="updateScore('${match.id}')">Zapisz Wynik</button>
+                        </div>
+
                         <select onchange="updateStatus('${match.id}', this.value)">
                             ${statusOptions}
                         </select>
-                        
-                        <button onclick="updateScore('${match.id}')">Zapisz Wynik</button>
-                        <button class="delete-btn" onclick="deleteMatch('${match.id}')">Usuń</button>
+                        <button class="delete-btn" onclick="deleteMatch('${match.id}')">Usuń Mecz</button>
                     </div>
                 `;
             });
