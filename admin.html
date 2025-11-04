@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Panel Admina - Wyniki na żywo</title>
 
-  <!-- Firebase COMPAT (działa z prostym JS) -->
+  <!-- Firebase COMPAT -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -16,7 +16,9 @@
   </style>
 </head>
 <body>
-  <script>
+
+<!-- ✅ HASŁO — musi być tutaj -->
+<script>
     const password = prompt("Podaj hasło administratora:");
 
     if (password !== "Kowalski12") {
@@ -24,7 +26,6 @@
         throw new Error("Access denied");
     }
 </script>
-
 
 <h1>Panel Admina – Wyniki na żywo</h1>
 
@@ -38,11 +39,10 @@
 
 <script>
 
-  // ✅ TWÓJ CONFIG (uzupełnij tylko databaseURL !!!)
   const firebaseConfig = {
     apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
     authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-    databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/",   // ✅ <<< WAŻNE
+    databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
     projectId: "puchargwiazd-bdaa4",
     storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
     messagingSenderId: "890734185883",
@@ -71,13 +71,16 @@
     document.getElementById("teamB").value = "";
   }
 
-  // ✅ WYŚWIETLANIE MECZÓW NA ŻYWO
+  // ✅ WYŚWIETLANIE MECZÓW
   db.ref("matches").on("value", snap => {
     const data = snap.val();
     const box = document.getElementById("matches");
     box.innerHTML = "";
 
-    if (!data) return;
+    if (!data) {
+      box.innerHTML = "<p>Brak meczów</p>";
+      return;
+    }
 
     Object.entries(data).forEach(([id, match]) => {
       box.innerHTML += `
@@ -91,7 +94,7 @@
     });
   });
 
-  // ✅ AKTUALIZACJA WYNIKU
+  // ✅ AKTUALIZACJA WYNIKÓW
   function updateScore(id) {
     const scoreA = Number(document.getElementById("a-" + id).value);
     const scoreB = Number(document.getElementById("b-" + id).value);
@@ -106,4 +109,3 @@
 
 </body>
 </html>
-
