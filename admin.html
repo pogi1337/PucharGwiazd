@@ -30,7 +30,7 @@
 
         /* Ogólne kontrolki */
         input, select, button { 
-            padding: 10px; 
+            padding: 12px; /* Zwiększony padding dla lepszej obsługi dotykowej */
             margin: 5px 0; 
             border-radius: 6px; 
             border: 1px solid #ccc; 
@@ -60,6 +60,7 @@
         .delete-btn { 
             background-color: #dc3545; 
             width: auto !important;
+            padding: 8px 10px;
         }
         .delete-btn:hover {
             background-color: #b02739;
@@ -83,7 +84,6 @@
             border-radius: 6px;
             background-color: #f9f9f9;
         }
-
         .match-box > * { margin: 5px; }
         .match-box span { min-width: 150px; max-width: 200px; font-weight: bold; text-align: right; padding-right: 10px; }
         .match-box input[type="number"] { width: 40px; text-align: center; margin: 0 2px; padding: 5px; flex-shrink: 0; }
@@ -91,7 +91,7 @@
         .match-box select { width: auto; flex-grow: 1; margin: 0 5px; }
 
 
-        /* NOWE STYLE DLA ZARZĄDZANIA DRUŻYNAMI */
+        /* NOWE STYLE DLA ZARZĄDZANIA DRUŻYNAMI (PC) */
         .player-list, .achievements-list { list-style: none; padding: 0; }
         .player-list li, .achievements-list li { 
             display: flex; 
@@ -99,12 +99,23 @@
             align-items: center; 
             padding: 8px 0; 
             border-bottom: 1px dashed #eee; 
+            font-size: 1em;
         }
         .player-number { font-weight: bold; color: #1565c0; margin-right: 10px; }
-        .small-input { width: 49% !important; display: inline-block !important; }
-        .ach-input-group { display: flex; gap: 10px; align-items: center; }
+
+        /* Układ pól dodawania - PC */
+        .ach-input-group { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            margin-bottom: 15px; 
+        }
         .ach-input-group input { margin: 0; }
-        .ach-input-group button { width: auto !important; padding: 8px 12px !important; margin: 0; }
+        .ach-input-group button { width: auto !important; padding: 12px !important; margin: 0; }
+        /* Ustalenie szerokości pól dodawania zawodników na PC */
+        #player-number-admin-input { width: 20% !important; }
+        #player-name-admin-input { width: 60% !important; }
+        .add-player-btn { width: 20% !important; }
 
 
         /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (MAX SZEROKOŚĆ 600px) --- */
@@ -112,22 +123,61 @@
             .login-box, .admin-panel { padding: 15px; }
             #teamA, #teamB { width: 100%; }
 
-            /* Układ meczy w panelu zarządzania */
+            /* Modyfikacja układu meczów na telefonie (niezmienione, działało dobrze) */
             .match-box { flex-direction: column; align-items: stretch; }
             .match-box > * { width: 100%; margin: 5px 0; text-align: center; }
-            .match-box > span { min-width: unset; text-align: center !important; padding: 0; font-size: 1.1em; }
-
-            /* Pasek Wyników i Zapisz */
             .score-controls { display: flex; justify-content: center; align-items: center; gap: 5px; width: 100%; margin: 5px 0; }
             .score-controls input { width: 60px; margin: 0; padding: 10px; }
             .score-controls button { width: auto; flex-grow: 1; margin: 0; }
             .match-box select, .match-box button.delete-btn { width: 100%; }
 
-            /* Zarządzanie drużynami (Telefon) */
-            .small-input { width: 100% !important; display: block !important; }
-            .achievements-list li { flex-direction: column; align-items: flex-start; }
-            .achievements-list li button { width: 100%; margin-top: 5px; }
-            .ach-input-group { flex-direction: column; }
+            /* ======================================= */
+            /* ZARZĄDZANIE DRUŻYNAMI - POPRAWKI MOBILNE */
+            /* ======================================= */
+            
+            /* Grupowanie pól dodawania (np. Osiągnięcia) */
+            .ach-input-group { 
+                flex-direction: column; /* Ułóż pionowo */
+                gap: 5px;
+            }
+            .ach-input-group input, .ach-input-group button {
+                width: 100% !important; /* Pełna szerokość */
+            }
+
+            /* Edycja zawodników - pola */
+            .add-player-controls {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 5px;
+            }
+            .add-player-controls input {
+                /* Nr i Imię/Nazwisko obok siebie, potem przycisk */
+                width: calc(50% - 5px); 
+                margin: 0;
+            }
+            .add-player-controls .add-player-btn {
+                 width: 100% !important; /* Przycisk na dole, na całą szerokość */
+                 margin-top: 5px;
+            }
+
+
+            /* Lista zawodników i osiągnięć - lepsza widoczność */
+            .player-list li, .achievements-list li {
+                flex-direction: column; /* Zawartość pod sobą */
+                align-items: flex-start;
+                padding: 10px 0;
+                font-size: 1.1em;
+            }
+
+            .player-list li .delete-btn, .achievements-list li .delete-btn {
+                width: 100%; /* Przycisk usuwania na pełnej szerokości */
+                margin-top: 8px;
+            }
+            .player-number {
+                font-size: 1.3em;
+                margin-right: 15px;
+            }
         }
     </style>
 </head>
@@ -173,18 +223,18 @@
     <div id="team-details-editor" style="display: none; border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 15px;">
         <h3 id="editing-team-title">Edycja: </h3>
 
-        <h4>Osiągnięcia <i class="fas fa-trophy"></i></h4>
+        <h4><i class="fas fa-trophy"></i> Osiągnięcia</h4>
         <div class="ach-input-group">
             <input id="achievement-input" placeholder="Wpisz osiągnięcie (np. Mistrz Ligi 2024)">
-            <button onclick="addAchievement()">Dodaj</button>
+            <button onclick="addAchievement()"><i class="fas fa-plus"></i> Dodaj Osiągnięcie</button>
         </div>
         <ul id="achievements-output" class="achievements-list"></ul>
 
-        <h4>Skład <i class="fas fa-user-friends"></i></h4>
-        <div class="ach-input-group">
+        <h4><i class="fas fa-user-friends"></i> Skład</h4>
+        <div class="add-player-controls">
             <input id="player-number-admin-input" type="number" min="1" max="99" placeholder="Nr" class="small-input">
             <input id="player-name-admin-input" placeholder="Imię i Nazwisko" class="small-input">
-            <button onclick="addPlayerAdmin()">Dodaj</button>
+            <button onclick="addPlayerAdmin()" class="add-player-btn"><i class="fas fa-plus"></i> Dodaj Zawodnika</button>
         </div>
         <ul id="players-output" class="player-list"></ul>
     </div>
