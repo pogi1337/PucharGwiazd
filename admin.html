@@ -30,7 +30,7 @@
 
         /* Ogólne kontrolki */
         input, select, button { 
-            padding: 12px; /* Zwiększony padding dla lepszej obsługi dotykowej */
+            padding: 12px;
             margin: 5px 0; 
             border-radius: 6px; 
             border: 1px solid #ccc; 
@@ -62,9 +62,22 @@
             width: auto !important;
             padding: 8px 10px;
         }
-        .delete-btn:hover {
-            background-color: #b02739;
+        .edit-btn {
+            background-color: #ffc107;
+            color: #212529;
+            width: auto !important;
+            padding: 8px 10px;
+            margin-right: 5px;
         }
+        .save-btn {
+            background-color: #28a745;
+            width: auto !important;
+            padding: 8px 10px;
+            margin-right: 5px;
+        }
+        .delete-btn:hover { background-color: #b02739; }
+        .edit-btn:hover { background-color: #e0a800; }
+        .save-btn:hover { background-color: #1e7e34; }
 
         h1 { color: #1565c0; margin-bottom: 20px; text-align: center; }
         h2 { border-bottom: 2px solid #64b5f6; padding-bottom: 5px; margin-top: 25px; color: #1565c0; }
@@ -93,7 +106,7 @@
 
         /* NOWE STYLE DLA ZARZĄDZANIA DRUŻYNAMI (PC) */
         .player-list, .achievements-list { list-style: none; padding: 0; }
-        .player-list li, .achievements-list li { 
+        .list-item-wrapper { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
@@ -101,6 +114,8 @@
             border-bottom: 1px dashed #eee; 
             font-size: 1em;
         }
+        .item-data { display: flex; align-items: center; flex-grow: 1; }
+        .item-actions { display: flex; align-items: center; flex-shrink: 0; }
         .player-number { font-weight: bold; color: #1565c0; margin-right: 10px; }
 
         /* Układ pól dodawania - PC */
@@ -112,10 +127,24 @@
         }
         .ach-input-group input { margin: 0; }
         .ach-input-group button { width: auto !important; padding: 12px !important; margin: 0; }
+        
         /* Ustalenie szerokości pól dodawania zawodników na PC */
         #player-number-admin-input { width: 20% !important; }
         #player-name-admin-input { width: 60% !important; }
         .add-player-btn { width: 20% !important; }
+
+        /* Style dla trybu edycji */
+        .edit-mode .item-data input[type="text"], .edit-mode .item-data input[type="number"] {
+            padding: 5px;
+            margin: 0 5px;
+            width: 80px;
+            font-size: 1em;
+            flex-grow: 1;
+        }
+        .edit-mode .item-data input[type="number"] {
+            width: 50px;
+            flex-grow: 0;
+        }
 
 
         /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (MAX SZEROKOŚĆ 600px) --- */
@@ -123,7 +152,7 @@
             .login-box, .admin-panel { padding: 15px; }
             #teamA, #teamB { width: 100%; }
 
-            /* Modyfikacja układu meczów na telefonie (niezmienione, działało dobrze) */
+            /* Modyfikacja układu meczów na telefonie */
             .match-box { flex-direction: column; align-items: stretch; }
             .match-box > * { width: 100%; margin: 5px 0; text-align: center; }
             .score-controls { display: flex; justify-content: center; align-items: center; gap: 5px; width: 100%; margin: 5px 0; }
@@ -135,16 +164,16 @@
             /* ZARZĄDZANIE DRUŻYNAMI - POPRAWKI MOBILNE */
             /* ======================================= */
             
-            /* Grupowanie pól dodawania (np. Osiągnięcia) */
+            /* Grupowanie pól dodawania (Osiągnięcia) */
             .ach-input-group { 
-                flex-direction: column; /* Ułóż pionowo */
+                flex-direction: column; 
                 gap: 5px;
             }
             .ach-input-group input, .ach-input-group button {
-                width: 100% !important; /* Pełna szerokość */
+                width: 100% !important; 
             }
 
-            /* Edycja zawodników - pola */
+            /* Edycja zawodników - pola dodawania */
             .add-player-controls {
                 display: flex;
                 flex-wrap: wrap;
@@ -152,31 +181,50 @@
                 gap: 5px;
             }
             .add-player-controls input {
-                /* Nr i Imię/Nazwisko obok siebie, potem przycisk */
                 width: calc(50% - 5px); 
                 margin: 0;
             }
             .add-player-controls .add-player-btn {
-                 width: 100% !important; /* Przycisk na dole, na całą szerokość */
+                 width: 100% !important; 
                  margin-top: 5px;
             }
 
 
-            /* Lista zawodników i osiągnięć - lepsza widoczność */
-            .player-list li, .achievements-list li {
+            /* Lista zawodników i osiągnięć - lepsza widoczność na mobilnych */
+            .list-item-wrapper {
                 flex-direction: column; /* Zawartość pod sobą */
                 align-items: flex-start;
                 padding: 10px 0;
                 font-size: 1.1em;
             }
-
-            .player-list li .delete-btn, .achievements-list li .delete-btn {
-                width: 100%; /* Przycisk usuwania na pełnej szerokości */
-                margin-top: 8px;
+            .item-data {
+                width: 100%;
+                margin-bottom: 10px;
             }
+            .item-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .item-actions button {
+                width: calc(50% - 5px) !important; /* Przyciski edytuj/usuń obok siebie */
+                margin: 0;
+            }
+            
             .player-number {
                 font-size: 1.3em;
                 margin-right: 15px;
+            }
+            
+            /* Edycja na mobilnych */
+            .edit-mode .item-data {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .edit-mode .item-data input[type="text"], .edit-mode .item-data input[type="number"] {
+                width: 100%;
+                margin: 5px 0;
+                padding: 8px;
             }
         }
     </style>
@@ -242,8 +290,8 @@
 </div>
 
 <script>
-    // 🔑 HASŁO ADMINISTRATORA 
-    const ADMIN_PASSWORD = "Kowalski12"; 
+    // 🔑 NOWA LISTA HASEŁ ADMINISTRATORA
+    const ADMIN_PASSWORDS = ["Kowalski12", "lodzio12@", "socha12@"]; 
     const TEAM_BASE_PATH = "teams/teams/";
     let currentTeamIdAdmin = null;
 
@@ -267,10 +315,12 @@
 
     function loginAdmin() {
         const enteredPassword = document.getElementById("admin-password").value;
-        if (enteredPassword === ADMIN_PASSWORD) {
+        
+        // Zmieniona logika logowania - sprawdza, czy hasło jest w tablicy ADMIN_PASSWORDS
+        if (ADMIN_PASSWORDS.includes(enteredPassword)) {
             document.getElementById("login-form").style.display = 'none';
             document.getElementById("admin-interface").style.display = 'block';
-            loadAllTeams(); // Ładuj listę drużyn po zalogowaniu
+            loadAllTeams(); 
         } else {
             alert("Nieprawidłowe hasło administratora.");
         }
@@ -317,6 +367,9 @@
         }
     }
 
+    // -----------------------------------
+    // RENDEROWANIE SZCZEGÓŁÓW ZAWODNIKÓW I OSIĄGNIĘĆ
+    // -----------------------------------
     function renderTeamDetails(playersData, achievementsData) {
         // RENDEROWANIE ZAWODNIKÓW
         const playersOutput = document.getElementById("players-output");
@@ -329,11 +382,18 @@
 
             sortedPlayers.forEach(player => {
                 const listItem = document.createElement("li");
+                listItem.classList.add('list-item-wrapper');
                 const playerNumber = player.number !== undefined && player.number !== null ? player.number : '—'; 
+                
                 listItem.innerHTML = `
-                    <span class="player-number">[${playerNumber}]</span>
-                    <span>${player.name}</span>
-                    <button class="delete-btn" onclick="deletePlayerAdmin('${player.id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
+                    <div class="item-data" id="player-data-${player.id}">
+                        <span class="player-number" data-original-number="[${playerNumber}]">[${playerNumber}]</span>
+                        <span id="player-name-${player.id}" data-original-name="${player.name}">${player.name}</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="edit-btn" onclick="toggleEditMode('player', '${player.id}', '${player.name}', ${playerNumber})"><i class="fas fa-edit"></i> Edytuj</button>
+                        <button class="delete-btn" onclick="deletePlayerAdmin('${player.id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
+                    </div>
                 `;
                 playersOutput.appendChild(listItem);
             });
@@ -347,9 +407,15 @@
         if (achievementsData) {
             Object.entries(achievementsData).forEach(([id, achievement]) => {
                 const listItem = document.createElement("li");
+                listItem.classList.add('list-item-wrapper');
                 listItem.innerHTML = `
-                    <span>${achievement}</span>
-                    <button class="delete-btn" onclick="deleteAchievement('${id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
+                    <div class="item-data" id="achievement-data-${id}" data-original-text="<span>${achievement}</span>">
+                        <span id="achievement-text-${id}">${achievement}</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="edit-btn" onclick="toggleEditMode('achievement', '${id}', '${achievement}')"><i class="fas fa-edit"></i> Edytuj</button>
+                        <button class="delete-btn" onclick="deleteAchievement('${id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
+                    </div>
                 `;
                 achievementsOutput.appendChild(listItem);
             });
@@ -358,47 +424,144 @@
         }
     }
 
-    // Dodanie Osiągnięcia
+
+    // -----------------------------------
+    // WŁĄCZANIE TRYBU EDYCJI (TOGGLE)
+    // -----------------------------------
+
+    function toggleEditMode(type, id, currentValue, currentNumber) {
+        const listItem = document.getElementById(`${type}-data-${id}`).parentNode;
+        const itemData = listItem.querySelector('.item-data');
+        const itemActions = listItem.querySelector('.item-actions');
+
+        // Zamykanie wszystkich innych otwartych edycji
+        document.querySelectorAll('.list-item-wrapper.edit-mode').forEach(el => {
+            if (el !== listItem) {
+                el.classList.remove('edit-mode');
+                
+                const dataEl = el.querySelector('.item-data');
+                const actionsEl = el.querySelector('.item-actions');
+
+                // Powrót do stanu sprzed edycji
+                if (el.querySelector('[id^="player-data"]')) {
+                    const numberSpan = el.querySelector('.player-number');
+                    const nameSpan = el.querySelector('span:not(.player-number)');
+                    dataEl.innerHTML = `${numberSpan.outerHTML}${nameSpan.outerHTML}`; 
+                } else if (el.querySelector('[id^="achievement-data"]')) {
+                    dataEl.innerHTML = dataEl.dataset.originalText;
+                }
+                
+                // Przywrócenie przycisków Edytuj/Usuń - wymaga odtworzenia oryginalnych wartości!
+                // Najprościej: ponownie załadować drużynę, ale to jest kosztowne. Zamiast tego: uprościmy przywracanie:
+                actionsEl.innerHTML = `
+                    <button class="edit-btn" onclick="selectTeamToEdit(currentTeamIdAdmin)">Anuluj Edycję</button>
+                    <button class="delete-btn" onclick="deletePlayerAdmin('${id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
+                `;
+                // W tym przypadku polegamy na ogólnym odświeżeniu po włączeniu/wyłączeniu trybu edycji dla czystości.
+                // Użyjemy selectTeamToEdit(currentTeamIdAdmin) na końcu w przypadku anulowania!
+            }
+        });
+
+
+        if (listItem.classList.contains('edit-mode')) {
+            // WYŁĄCZ TRYB EDYCJI (Anuluj/Powrót do trybu wyświetlania)
+            // Zamiast skomplikowanego przywracania stanu:
+            // Wystarczy ponownie załadować szczegóły drużyny z bazy, aby odświeżyć całą listę
+            selectTeamToEdit(currentTeamIdAdmin); 
+            // W ten sposób anulujemy wszelkie niezapisane zmiany, nawet te w polach tekstowych
+        } else {
+            // WŁĄCZ TRYB EDYCJI
+            listItem.classList.add('edit-mode');
+
+            if (type === 'player') {
+                itemData.innerHTML = `
+                    <input type="number" id="edit-num-${id}" value="${currentNumber || ''}" min="1" max="99">
+                    <input type="text" id="edit-name-${id}" value="${currentValue}">
+                `;
+                itemActions.innerHTML = `
+                    <button class="save-btn" onclick="editPlayerNameAndNumber('${id}')"><i class="fas fa-save"></i> Zapisz</button>
+                    <button class="delete-btn" onclick="selectTeamToEdit(currentTeamIdAdmin)">Anuluj</button>
+                `;
+            } else { // achievement
+                itemData.innerHTML = `<input type="text" id="edit-ach-${id}" value="${currentValue}">`;
+                 itemActions.innerHTML = `
+                    <button class="save-btn" onclick="editAchievement('${id}')"><i class="fas fa-save"></i> Zapisz</button>
+                    <button class="delete-btn" onclick="selectTeamToEdit(currentTeamIdAdmin)">Anuluj</button>
+                `;
+            }
+        }
+    }
+
+
+    // -----------------------------------
+    // ZAPIS EDYCJI DO BAZY
+    // -----------------------------------
+
+    function editPlayerNameAndNumber(playerId) {
+        const newName = document.getElementById(`edit-name-${playerId}`).value.trim();
+        const newNumber = parseInt(document.getElementById(`edit-num-${playerId}`).value.trim());
+
+        if (!newName) return alert("Nazwa zawodnika nie może być pusta.");
+        if (isNaN(newNumber) || newNumber < 1 || newNumber > 99) {
+            return alert("🚨 Proszę podać prawidłowy numer zawodnika (1-99).");
+        }
+
+        db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/players/" + playerId).update({
+            name: newName,
+            number: newNumber
+        }).then(() => {
+             // Automatyczne odświeżenie listy po zapisie
+             selectTeamToEdit(currentTeamIdAdmin); 
+        }).catch(error => alert("Błąd zapisu zawodnika: " + error.message));
+    }
+
+    function editAchievement(achievementId) {
+        const newAchievementText = document.getElementById(`edit-ach-${achievementId}`).value.trim();
+
+        if (!newAchievementText) return alert("Osiągnięcie nie może być puste.");
+
+        db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/achievements/" + achievementId).set(newAchievementText)
+            .then(() => {
+                // Automatyczne odświeżenie listy po zapisie
+                selectTeamToEdit(currentTeamIdAdmin);
+            }).catch(error => alert("Błąd zapisu osiągnięcia: " + error.message));
+    }
+    
+    // -----------------------------------
+    // FUNKCJE DODAWANIA/USUWANIA 
+    // -----------------------------------
+
     function addAchievement() {
         const achievementInput = document.getElementById("achievement-input");
         const achievementText = achievementInput.value.trim();
-
         if (!currentTeamIdAdmin) return alert("Wybierz drużynę.");
         if (!achievementText) return alert("Wpisz treść osiągnięcia.");
 
-        // Dodanie do podwęzła 'achievements'
         db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/achievements").push(achievementText)
             .then(() => achievementInput.value = '')
             .catch(error => alert("Błąd dodawania osiągnięcia: " + error.message));
     }
 
-    // Usunięcie Osiągnięcia
     function deleteAchievement(achievementId) {
         if (!currentTeamIdAdmin) return alert("Błąd sesji.");
-        
         if (confirm("Usunąć to osiągnięcie?")) {
             db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/achievements/" + achievementId).remove()
-                .then(() => console.log("Osiągnięcie usunięto."))
                 .catch(error => console.error("Błąd usuwania: ", error));
         }
     }
 
-    // Dodanie Zawodnika (Admin)
     function addPlayerAdmin() {
         const playerNameInput = document.getElementById("player-name-admin-input");
         const playerNumberInput = document.getElementById("player-number-admin-input");
-        
         const playerName = playerNameInput.value.trim();
         const playerNumber = parseInt(playerNumberInput.value.trim());
 
         if (!currentTeamIdAdmin) return alert("Wybierz drużynę.");
         if (!playerName) return alert("Podaj imię i nazwisko zawodnika.");
-        
         if (isNaN(playerNumber) || playerNumber < 1 || playerNumber > 99) {
             return alert("🚨 Proszę podać prawidłowy numer zawodnika (od 1 do 99).");
         }
 
-        // Admin ma możliwość dodania tego samego numeru, ale dla spójności sprawdzamy:
         db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/players").once('value')
             .then(snapshot => {
                 const players = snapshot.val();
@@ -414,7 +577,6 @@
                     return;
                 }
                 
-                // ZAPIS DO BAZY
                 db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/players").push({
                     name: playerName,
                     number: playerNumber 
@@ -425,19 +587,17 @@
             });
     }
 
-    // Usunięcie Zawodnika (Admin)
     function deletePlayerAdmin(playerId) {
         if (!currentTeamIdAdmin) return alert("Błąd sesji.");
         
         if (confirm("Usunąć tego zawodnika?")) {
             db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/players/" + playerId).remove()
-                .then(() => console.log("Zawodnika usunięto."))
                 .catch(error => console.error("Błąd usuwania: ", error));
         }
     }
 
     // ===================================
-    // FUNKCJE ZARZĄDZANIA MECZAMI (BEZ ZMIAN W LOGICE)
+    // FUNKCJE ZARZĄDZANIA MECZAMI (BEZ ZMIAN)
     // ===================================
 
     function addMatch() {
@@ -501,7 +661,6 @@
         }
     }
 
-    // Nasłuchiwanie na zmiany w bazie danych i renderowanie listy meczów
     db.ref("matches").on("value", snap => {
         const data = snap.val();
         const output = document.getElementById("matches-output");
