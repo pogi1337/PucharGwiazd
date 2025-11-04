@@ -1,160 +1,184 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>Panel Admina - Wyniki na żywo</title>
-
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    input, select { margin: 5px; padding: 6px; }
-    button { padding: 6px 12px; cursor: pointer; margin-left: 5px; }
-    .match-box { border: 1px solid #ccc; padding: 10px; margin-top: 10px; margin-bottom: 5px; }
-    .delete-btn { background-color: #f44336; color: white; border: none; }
-    .group-section { margin-top: 20px; border-top: 2px solid #333; padding-top: 10px; }
-    .group-title { background-color: #f0f0f0; padding: 5px; margin-bottom: 10px; font-weight: bold; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Panel Admina - Wyniki</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; background-color: #f4f4f4; }
+        .login-box, .admin-panel { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input, select, button { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; width: 45%; }
+        button { background-color: #007bff; color: white; cursor: pointer; border: none; width: auto; }
+        .match-box { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .delete-btn { background-color: #dc3545; }
+        .group-section { margin-bottom: 20px; border-top: 2px solid #007bff; padding-top: 10px; }
+    </style>
 </head>
 <body>
 
+<div id="login-form" class="login-box">
+    <h2>Logowanie Admina</h2>
+    <input type="password" id="admin-password" placeholder="Hasło Admina">
+    <button onclick="loginAdmin()">Zaloguj</button>
+</div>
+
+<div id="admin-interface" class="admin-panel" style="display: none;">
+    <h1>Panel Administracyjny</h1>
+
+    <h2>Dodaj mecz</h2>
+    <select id="group">
+        <option value="A">Grupa A</option>
+        <option value="B">Grupa B</option>
+        <option value="C">Grupa C</option>
+        <option value="D">Grupa D</option>
+    </select>
+    <select id="status">
+        <option value="scheduled">Zaplanowany</option>
+        <option value="live">Na żywo</option>
+        <option value="finished">Zakończony</option>
+    </select>
+    <input id="teamA" placeholder="Drużyna A">
+    <input id="teamB" placeholder="Drużyna B">
+    <button onclick="addMatch()">Dodaj mecz</button>
+
+    <h2>Zarządzanie Meczami</h2>
+    <div id="matches-output">
+        Ładowanie meczów...
+    </div>
+</div>
+
 <script>
-    const password = prompt("Podaj hasło administratora:");
+    const ADMIN_PASSWORD = "Kowalski12"; // GŁÓWNE HASŁO ADMINA
+    
+    // Konfiguracja Firebase (Używamy Twojej)
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "puchargwiazd-bdaa4",
+        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+        messagingSenderId: "890734185883",
+        appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+    };
 
-    if (password !== "Kowalski12") {
-        document.body.innerHTML = "<h1>Brak dostępu</h1>";
-        throw new Error("Access denied");
-    }
-</script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-<h1>Panel Admina – Wyniki na żywo</h1>
-
-<h2>Dodaj mecz</h2>
-<select id="group">
-    <option value="">Wybierz grupę</option>
-    <option value="A">Grupa A</option>
-    <option value="B">Grupa B</option>
-    <option value="C">Grupa C</option>
-    <option value="D">Grupa D</option>
-</select>
-<input id="teamA" placeholder="Drużyna A">
-<input id="teamB" placeholder="Drużyna B">
-<button onclick="addMatch()">Dodaj mecz</button>
-
-<h2>Lista meczów według grup</h2>
-<div id="matches"></div>
-
-<script>
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-    databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
-    projectId: "puchargwiazd-bdaa4",
-    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-    messagingSenderId: "890734185883",
-    appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-  };
-
-  // ✅ START Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  // ✅ DODAWANIE MECZU (Zmodyfikowane)
-  function addMatch() {
-    const group = document.getElementById("group").value; // Pobieramy grupę
-    const a = document.getElementById("teamA").value;
-    const b = document.getElementById("teamB").value;
-    
-    if (!group || !a || !b) return alert("Wybierz grupę i podaj obie drużyny!");
-
-    const ref = db.ref("matches").push();
-    ref.set({
-      teamA: a,
-      teamB: b,
-      scoreA: 0,
-      scoreB: 0,
-      group: group // ZMIANA: Dodajemy pole grupy do obiektu meczu
-    });
-
-    document.getElementById("teamA").value = "";
-    document.getElementById("teamB").value = "";
-    document.getElementById("group").value = ""; // Opcjonalnie: resetujemy wybór grupy
-  }
-
-  // ✅ WYŚWIETLANIE MECZÓW (Zmodyfikowane, teraz z grupowaniem)
-  db.ref("matches").on("value", snap => {
-    const data = snap.val();
-    const box = document.getElementById("matches");
-    box.innerHTML = "";
-
-    if (!data) {
-      box.innerHTML = "<p>Brak meczów</p>";
-      return;
-    }
-
-    // Krok 1: Grupujemy mecze po nazwie grupy
-    const groupedMatches = {};
-    Object.entries(data).forEach(([id, match]) => {
-        // Używamy nazwy grupy lub 'Inne' dla meczów bez określonej grupy
-        const groupName = match.group || 'Inne'; 
-        if (!groupedMatches[groupName]) {
-            groupedMatches[groupName] = [];
+    function loginAdmin() {
+        const enteredPassword = document.getElementById("admin-password").value;
+        if (enteredPassword === ADMIN_PASSWORD) {
+            document.getElementById("login-form").style.display = 'none';
+            document.getElementById("admin-interface").style.display = 'block';
+        } else {
+            alert("Nieprawidłowe hasło administratora.");
         }
-        groupedMatches[groupName].push({ id, ...match });
-    });
+    }
 
-    // Krok 2: Iterujemy po grupach i je wyświetlamy
-    const sortedGroupNames = Object.keys(groupedMatches).sort();
-
-    sortedGroupNames.forEach(groupName => {
-        let groupHtml = `<div class="group-section">`;
-        groupHtml += `<div class="group-title">GRUPA ${groupName}</div>`;
+    function addMatch() {
+        const group = document.getElementById("group").value; 
+        const status = document.getElementById("status").value;
+        const a = document.getElementById("teamA").value;
+        const b = document.getElementById("teamB").value;
         
-        groupedMatches[groupName].forEach(match => {
-            groupHtml += `
-              <div class="match-box">
-                <b>${match.teamA}</b> vs <b>${match.teamB}</b><br>
-                <input id="a-${match.id}" type="number" value="${match.scoreA}">
-                <input id="b-${match.id}" type="number" value="${match.scoreB}">
-                <button onclick="updateScore('${match.id}')">Zapisz</button>
-                <button class="delete-btn" onclick="deleteMatch('${match.id}')">Usuń</button>
-              </div>
-            `;
+        if (!group || !a || !b) return alert("Wybierz grupę i podaj obie drużyny!");
+
+        // UWAGA: Mecz jest zapisywany pod głównym kluczem /matches
+        const ref = db.ref("matches").push();
+        ref.set({
+            teamA: a,
+            teamB: b,
+            scoreA: 0,
+            scoreB: 0,
+            group: group,
+            status: status
+        });
+        document.getElementById("teamA").value = '';
+        document.getElementById("teamB").value = '';
+    }
+
+    function generateStatusOptions(id, currentStatus) {
+        const statuses = {
+            'scheduled': 'Zaplanowany',
+            'live': 'Na żywo',
+            'finished': 'Zakończony'
+        };
+        let options = '';
+        for (const [key, value] of Object.entries(statuses)) {
+            const selected = key === currentStatus ? 'selected' : '';
+            options += `<option value="${key}" ${selected}>${value}</option>`;
+        }
+        return options;
+    }
+
+    function updateScore(id) {
+        const scoreA = document.getElementById(`a-${id}`).value;
+        const scoreB = document.getElementById(`b-${id}`).value;
+        db.ref("matches/" + id).update({
+            scoreA: parseInt(scoreA),
+            scoreB: parseInt(scoreB)
+        });
+    }
+    
+    function updateStatus(id, newStatus) {
+        db.ref("matches/" + id).update({
+            status: newStatus
+        });
+    }
+
+    function deleteMatch(id) {
+        if (confirm("Czy na pewno chcesz usunąć ten mecz?")) {
+            db.ref("matches/" + id).remove();
+        }
+    }
+
+    db.ref("matches").on("value", snap => {
+        const data = snap.val();
+        const output = document.getElementById("matches-output");
+        output.innerHTML = '';
+        
+        if (!data) {
+            output.innerHTML = '<p>Brak meczów w bazie.</p>';
+            return;
+        }
+
+        const groupedMatches = {};
+        Object.entries(data).forEach(([id, match]) => {
+            const groupName = match.group || 'Inne';
+            if (!groupedMatches[groupName]) {
+                groupedMatches[groupName] = [];
+            }
+            groupedMatches[groupName].push({ id, ...match });
         });
         
-        groupHtml += `</div>`;
-        box.innerHTML += groupHtml;
+        const sortedGroupNames = Object.keys(groupedMatches).sort();
+
+        sortedGroupNames.forEach(groupName => {
+            let groupHtml = `<div class="group-section"><h3>Grupa ${groupName}</h3>`;
+            
+            groupedMatches[groupName].forEach(match => {
+                const statusOptions = generateStatusOptions(match.id, match.status); 
+
+                groupHtml += `
+                    <div class="match-box">
+                        <span style="width: 200px;">${match.teamA} vs ${match.teamB}</span>
+                        <input id="a-${match.id}" type="number" value="${match.scoreA}" style="width: 50px;">
+                        <input id="b-${match.id}" type="number" value="${match.scoreB}" style="width: 50px;">
+                        
+                        <select id="status-${match.id}" onchange="updateStatus('${match.id}', this.value)" style="width: 120px;">
+                            ${statusOptions}
+                        </select>
+                        
+                        <button onclick="updateScore('${match.id}')">Zapisz Wynik</button>
+                        <button class="delete-btn" onclick="deleteMatch('${match.id}')">Usuń</button>
+                    </div>
+                `;
+            });
+            groupHtml += `</div>`;
+            output.innerHTML += groupHtml;
+        });
     });
 
-  });
-
-  // ✅ AKTUALIZACJA WYNIKÓW (Bez zmian)
-  function updateScore(id) {
-    const scoreA = Number(document.getElementById("a-" + id).value);
-    const scoreB = Number(document.getElementById("b-" + id).value);
-
-    db.ref("matches/" + id).update({
-      scoreA,
-      scoreB
-    });
-  }
-  
-  // ✅ USUWANIE MECZU (Bez zmian)
-  function deleteMatch(id) {
-    if (confirm("Czy na pewno chcesz usunąć ten mecz?")) {
-      db.ref("matches/" + id).remove()
-        .then(() => {
-          console.log("Mecz usunięty pomyślnie");
-        })
-        .catch(error => {
-          console.error("Błąd usuwania meczu: ", error);
-        });
-    }
-  }
-
 </script>
-
 </body>
 </html>
