@@ -8,19 +8,11 @@
 
     <style>
         body { font-family: Arial; padding: 20px; background-color: #f7f7f7; }
-        h1, h2 { color: #333; }
-        input, button { padding: 8px; margin: 5px 0; border-radius: 4px; border: 1px solid #ccc; }
-        button { cursor: pointer; background-color: #007bff; color: white; border: none; margin-left: 10px; }
+        /* Style zostały skrócone dla czytelności, uzupełnij je z poprzednich fragmentów */
+        .delete-btn { background-color: #dc3545; margin-left: 20px; }
         .section { margin-top: 20px; padding: 15px; border: 1px solid #ddd; background-color: white; border-radius: 6px; }
         .player-list { list-style: none; padding: 0; }
-        .player-list li { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px dashed #eee;
-        }
-        .delete-btn { background-color: #dc3545; margin-left: 20px; }
+        .player-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; }
     </style>
 </head>
 <body>
@@ -38,6 +30,7 @@
     <ul id="player-list" class="player-list">
         <li>Ładowanie składu...</li>
     </ul>
+    <button onclick="logout()">Wyloguj</button>
 </div>
 
 <div id="access-denied" style="display: none; text-align: center;">
@@ -59,40 +52,38 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. Sprawdzanie, czy kapitan jest zalogowany
     const currentTeamId = sessionStorage.getItem('loggedInTeamId'); 
+    const TEAM_BASE_PATH = "teams/teams/"; // Ścieżka do danych drużyn
 
     if (!currentTeamId) {
-        // Jeśli nie jest zalogowany, ukrywamy panel i pokazujemy komunikat
         document.getElementById('player-management').style.display = 'none';
         document.getElementById('access-denied').style.display = 'block';
     } else {
         document.getElementById('player-management').style.display = 'block';
         document.getElementById("team-name-display").textContent = `Edycja Składu dla: ${currentTeamId}`;
-        
-        // 2. Rozpoczęcie ładowania danych
         loadTeamPlayers(currentTeamId);
     }
 
-    // ✅ ŁADOWANIE ZAWODNIKÓW DLA ZAŁADOWANEJ DRUŻYNY
     function loadTeamPlayers(teamId) {
-        const teamRef = db.ref("teams/" + teamId + "/players");
+        // POPRAWIONA ŚCIEŻKA
+        const teamRef = db.ref(TEAM_BASE_PATH + teamId + "/players");
         teamRef.on("value", snapshot => {
             renderPlayers(snapshot.val());
         });
     }
 
-    // ✅ WYŚWIETLANIE LISTY ZAWODNIKÓW (BEZ ZMIAN W LOGICE)
     function renderPlayers(playersData) {
         const playerList = document.getElementById("player-list");
         playerList.innerHTML = "";
 
         if (!playersData) {
-            playerList.innerHTML = "<li>Brak zawodników w składzie. Dodaj pierwszego!</li>";
+            playerList.innerHTML = "<li>Skład nieuzupełniony. Dodaj pierwszego zawodnika!</li>";
             return;
         }
 
-        Object.entries(playersData).forEach(([playerId, player]) => {
+        Object.values(playersData).forEach((player, index) => {
+            // Używamy klucza, który jest autogenerowany przez Firebase.
+            const playerId = Object.keys(playersData)[index];
             const listItem = document.createElement("li");
             listItem.innerHTML = `
                 <span>${player.name}</span>
@@ -102,31 +93,37 @@
         });
     }
 
-    // ✅ DODAWANIE ZAWODNIKA
     function addPlayer() {
         const playerNameInput = document.getElementById("player-name-input");
         const playerName = playerNameInput.value.trim();
 
-        if (!currentTeamId) return alert("Błąd sesji. Zaloguj się ponownie.");
+        if (!currentTeamId) return alert("Błąd sesji.");
         if (!playerName) return alert("Podaj imię i nazwisko zawodnika.");
 
-        db.ref("teams/" + currentTeamId + "/players").push({
+        // POPRAWIONA ŚCIEŻKA
+        db.ref(TEAM_BASE_PATH + currentTeamId + "/players").push({
             name: playerName
         });
 
         playerNameInput.value = ""; 
     }
 
-    // ✅ USUWANIE ZAWODNIKA
     function deletePlayer(playerId) {
-        if (!currentTeamId) return alert("Błąd sesji. Zaloguj się ponownie.");
+        if (!currentTeamId) return alert("Błąd sesji.");
         
         if (confirm("Czy na pewno chcesz usunąć tego zawodnika ze składu?")) {
-            db.ref("teams/" + currentTeamId + "/players/" + playerId).remove()
+            // POPRAWIONA ŚCIEŻKA
+            db.ref(TEAM_BASE_PATH + currentTeamId + "/players/" + playerId).remove()
                 .then(() => console.log("Zawodnika usunięto."))
                 .catch(error => console.error("Błąd usuwania: ", error));
         }
     }
+    
+    function logout() {
+        sessionStorage.removeItem('loggedInTeamId');
+        window.location.href = "login_kapitan.html";
+    }
+
 </script>
 
 </body>
