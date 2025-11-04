@@ -1,248 +1,283 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strona Główna - Puchar Gwiazd</title>
-    <meta name="description" content="Oficjalny harmonogram meczów Pucharu Gwiazd. Sprawdź aktualny czas, śledź wyniki na żywo i bądź na bieżąco z wydarzeniami!">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchar Gwiazd - Strona Główna</title>
+    <meta name="description" content="Oficjalna strona Pucharu Gwiazd. Sprawdź najnowsze wyniki, nadchodzące mecze i tabele grup.">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
     <style>
-        .group-section { 
-            margin-top: 20px; 
-            border: 1px solid #ddd; 
-            background-color: #ffffff; 
-            padding: 10px; 
-            border-radius: 6px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        .stats-summary {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+            margin-top: 20px;
         }
-        .group-title { 
-            background-color: #007bff;
-            color: white; 
-            padding: 8px; 
-            margin: -10px -10px 10px -10px; 
-            font-size: 1.2em; 
-            font-weight: bold; 
+        .stats-column {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+        .stats-column h3 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
             text-align: center;
-            border-radius: 6px 6px 0 0;
         }
-        .match-box {
+        .match-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px dashed #eee;
         }
-        .match-box:last-child {
+        .match-item:last-child {
             border-bottom: none;
         }
         .team-name {
-            font-weight: bold;
-            flex-grow: 1;
-        }
-        .score {
             font-weight: 700;
+            width: 40%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .score-box {
+            font-weight: 900;
             font-size: 1.1em;
-            color: #dc3545;
-            margin: 0 10px;
+            width: 20%;
+            text-align: center;
         }
-        .match-status {
-            font-style: italic;
-            color: #5cb85c;
-        }
-        
-        /* NOWE STYLE DLA LOGINÓW W STOPCE */
-        .login-links {
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #444;
-        }
-        .login-links a {
-            color: #007bff;
-            margin-left: 15px;
-            text-decoration: none;
+        .status-tag {
+            font-size: 0.8em;
             font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 4px;
         }
-        .login-links a:hover {
-            text-decoration: underline;
+        .scheduled { background-color: #ffc107; color: #333; }
+        .live { background-color: #dc3545; color: white; animation: pulse 1.5s infinite; }
+        .finished { background-color: #28a745; color: white; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+        /* Style dla głównego banneru */
+        .hero-banner {
+            text-align: center;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 50px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .hero-banner h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .hero-banner p {
+            font-size: 1.2em;
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="logo.png" alt="Puchar Gwiazd Logo" class="logo">
-        <h1>Strona Główna - Puchar Gwiazd</h1>
-        <div id="current-time"></div>
-    </div>
+    <div class="header">
+        <h1>Puchar Gwiazd</h1>
+        <div id="current-time"></div>
+    </div>
 
-    <nav id="main-nav">
-        <ul>
-            <li><a href="index.html">Strona Główna</a></li>
-            <li><a href="druzyny.html">Drużyny</a></li>
-            <li><a href="regulamin.html">Regulamin</a></li>
-            <li><a href="tabela.html">Tabele Grup</a></li>
-            <li><a href="onas.html">O Nas</a></li>
-            <li><a href="pusta-strona.html">Pusta Strona</a></li>
-        </ul>
-    </nav>
+    <nav id="main-nav">
+        <ul>
+            <li><a href="index.html">Strona Główna</a></li>
+            <li><a href="druzyny.html">Drużyny</a></li>
+            <li><a href="regulamin.html">Regulamin</a></li>
+            <li><a href="tabela.html">Tabele Grup</a></li>
+            <li><a href="onas.html">O Nas</a></li>
+            <li><a href="pusta-strona.html">Pusta Strona</a></li>
+        </ul>
+    </nav>
 
-    <section class="content-section">
-        <h2>Następny Turniej Rozpoczyna Się Za:</h2>
-        <div id="countdown" class="countdown"></div>
-
-        <h2>Nadchodzące Mecze</h2>
-        <div id="scheduled-matches">
-            <p style="text-align: center;">Ładowanie nadchodzących meczów...</p>
+    <section class="content-section">
+        <div class="hero-banner">
+            <h1>⭐ Oficjalna Strona Pucharu Gwiazd ⭐</h1>
+            <p>Śledź na żywo wyniki, tabele grup i aktualności z największego turnieju! Dołącz do nas!</p>
         </div>
 
-        <h2>Wyniki Na Żywo</h2>
-        <div id="live-matches">
-            <p style="text-align: center;">Brak meczów na żywo.</p>
-        </div>
-        
-        <h2>Zakończone Mecze</h2>
-        <div id="finished-matches">
-            <p style="text-align: center;">Ładowanie zakończonych meczów...</p>
-        </div>
-
-        <h2>Aktualności</h2>
-        <div class="news-updates">
-            <article>
-                <h3>Witajcie w Pucharze Gwiazd!</h3>
-                <p>To jest oficjalna strona interentowa pucharu gwiazd. Sprawdzisz tu wszystkie informacje.</p>
-            </article>
-            <article>
-                <h3>Ruszają zapisy!</h3>
-                <p>Po sukcesie poprzedniej odsłony, amatorski turniej piłkarski Puchar Gwiazd powraca w jeszcze bardziej prestiżowej formie.</br>
-                Organizatorzy ogłosili właśnie rozpoczęcie zapisów do nowej edycji, w której ponownie zmierzą się zawodnicy reprezentujący lokalne kluby i drużyny.</br>
-                W tym roku wydarzenie ma wnieść rywalizację na wyższy poziom – zarówno pod względem organizacji, jak i sportowych emocji. </br>
-                Uczestnicy mogą liczyć na profesjonalną oprawę, dokładne statystyki meczowe, a także specjalne nagrody dla najlepszych drużyn i indywidualnych gwiazd turnieju.</br>
-Zapisy są już otwarte, a liczba miejsc jest ograniczona. Jeśli chcesz wziąć udział w jednym z najbardziej prestiżowych amatorskich turniejów w okolicy, zgłoś swoją drużynę jak najszybciej!</br>
-Puchar Gwiazd czeka na nowe talenty. Dołącz do rywalizacji i pokaż, na co Cię stać!</p>
-            </article>
-        </div>
-    </section>
-
-    <div class="footer">
-        <div class="login-links">
-            <i class="fas fa-lock"></i> **Panele Logowania:**
-            <a href="admin.html">Admin</a>
-            <a href="login_kapitana.html">Kapitanowie</a>
-        </div>
-
-        <div class="social-media-links">
-            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
-
-    <button id="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
-
-    <script src="script.js"></script>
-
-    <script>
-    // ... (Cały kod Firebase JavaScript pozostaje bez zmian)
-    // Poniżej znajduje się tylko kod Firebase. Załóżmy, że powyższy kod HTML jest w całości.
-    const firebaseConfig = {
-        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "puchargwiazd-bdaa4",
-        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-        messagingSenderId: "890734185883",
-        appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    
-    function renderMatchesByStatus(allMatches) {
-        const scheduled = {};
-        const live = {};
-        const finished = {};
-
-        Object.entries(allMatches).forEach(([id, match]) => {
-            const groupName = match.group || 'Inne';
+        <h2>Aktualizacje Meczowe</h2>
+        <div class="stats-summary">
+            <div id="upcoming-matches" class="stats-column">
+                <h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3>
+                <p style="text-align: center;">Ładowanie...</p>
+            </div>
             
-            if (match.status === 'scheduled') {
-                if (!scheduled[groupName]) scheduled[groupName] = [];
-                scheduled[groupName].push({ id, ...match });
-            } else if (match.status === 'live') {
-                if (!live[groupName]) live[groupName] = [];
-                live[groupName].push({ id, ...match });
-            } else if (match.status === 'finished') {
-                if (!finished[groupName]) finished[groupName] = [];
-                finished[groupName].push({ id, ...match });
-            }
-        });
-
-        renderSection('scheduled-matches', scheduled, 'Brak nadchodzących meczów.');
-        renderSection('live-matches', live, 'Brak meczów na żywo.');
-        renderSection('finished-matches', finished, 'Brak zakończonych meczów.');
-    }
-
-    function renderSection(elementId, groupedMatches, emptyMessage) {
-        const box = document.getElementById(elementId);
-        box.innerHTML = '';
+            <div id="recent-results" class="stats-column">
+                <h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>
+                <p style="text-align: center;">Ładowanie...</p>
+            </div>
+        </div>
         
-        const groupNames = Object.keys(groupedMatches);
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="tabela.html" class="button" style="padding: 12px 25px; background-color: #28a745; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;">Zobacz Pełne Tabele Grup</a>
+        </div>
+    </section>
+
+    <div class="footer">
+        <p>© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
+        <div class="social-media-links">
+            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
+
+    <button id="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <script src="script.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            // POPRAWNY URL REALTIME DATABASE:
+            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
         
-        if (groupNames.length === 0) {
-            box.innerHTML = `<p style="text-align: center;">${emptyMessage}</p>`;
-            return;
+        const TEAMS_BASE_PATH = "teams/teams"; 
+        const MATCHES_PATH = "matches"; 
+        
+        let teamsMap = {};
+
+        // 1. POBIERANIE NAZW DRUŻYN (mapowanie ID na nazwy)
+        function loadTeamNames() {
+            return db.ref(TEAMS_BASE_PATH).once('value').then(snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    Object.entries(data).forEach(([id, team]) => {
+                        teamsMap[id] = team.name || id; 
+                    });
+                }
+            });
         }
 
-        const sortedGroupNames = groupNames.sort();
-        let finalHtml = '';
-
-        sortedGroupNames.forEach(groupName => {
-            let groupHtml = `<div class="group-section">`;
-            groupHtml += `<div class="group-title">GRUPA ${groupName}</div>`;
+        // 2. RENDEROWANIE MECZÓW
+        function renderMatches(matches) {
+            const upcomingContainer = document.getElementById('upcoming-matches');
+            const recentContainer = document.getElementById('recent-results');
             
-            groupedMatches[groupName].forEach(match => {
-                const statusInfo = match.status === 'scheduled' ? `<span class="match-status">(Oczekuje)</span>` :
-                                   match.status === 'finished' ? `<span style="color: grey;">(Zakończony)</span>` : '';
-                                   
-                const scoreDisplay = (match.status === 'live' || match.status === 'finished') 
-                                     ? `<span class="score">${match.scoreA} : ${match.scoreB}</span>`
-                                     : statusInfo;
-                
-                groupHtml += `
-                    <div class="match-box">
-                        <span class="team-name">${match.teamA}</span> 
-                        ${scoreDisplay}
-                        <span class="team-name" style="text-align: right;">${match.teamB}</span>
-                    </div>
-                `;
+            upcomingContainer.innerHTML = '<h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3>';
+            recentContainer.innerHTML = '<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>';
+
+            const upcoming = [];
+            const recent = [];
+            const live = [];
+
+            // Sortowanie i grupowanie meczów
+            Object.values(matches).forEach(match => {
+                // Konwersja nazw z ID
+                match.teamAName = teamsMap[match.teamA] || match.teamA;
+                match.teamBName = teamsMap[match.teamB] || match.teamB;
+
+                if (match.status === 'scheduled') {
+                    upcoming.push(match);
+                } else if (match.status === 'finished') {
+                    recent.push(match);
+                } else if (match.status === 'live') {
+                    live.push(match);
+                }
             });
             
-            groupHtml += `</div>`;
-            finalHtml += groupHtml;
+            // Pokaż mecze na żywo na samym początku listy ostatnich wyników
+            const displayRecent = [...live, ...recent.slice(-5)].reverse(); // Pokaż 5 ostatnich + Live
+            const displayUpcoming = [...live, ...upcoming.slice(0, 5)]; // Pokaż 5 najbliższych + Live
+
+            // Renderowanie Nadchodzących/Live
+            if (displayUpcoming.length > 0) {
+                displayUpcoming.forEach(match => {
+                    upcomingContainer.innerHTML += createMatchHtml(match);
+                });
+            } else {
+                upcomingContainer.innerHTML += '<p style="text-align: center; color: #888;">Brak zaplanowanych meczów.</p>';
+            }
+
+            // Renderowanie Ostatnich/Live
+            if (displayRecent.length > 0) {
+                displayRecent.forEach(match => {
+                    recentContainer.innerHTML += createMatchHtml(match);
+                });
+            } else {
+                recentContainer.innerHTML += '<p style="text-align: center; color: #888;">Brak ostatnich wyników.</p>';
+            }
+        }
+
+        // 3. GENEROWANIE HTML DLA POJEDYNCZEGO MECZU
+        function createMatchHtml(match) {
+            const statusClass = match.status;
+            let scoreContent;
+            
+            if (match.status === 'finished') {
+                scoreContent = `<span class="score-box finished-score">${match.scoreA} - ${match.scoreB}</span>`;
+            } else if (match.status === 'live') {
+                scoreContent = `<span class="score-box live-score">${match.scoreA} - ${match.scoreB}</span>`;
+            } else {
+                scoreContent = `<span class="score-box scheduled-score">vs</span>`;
+            }
+
+            const statusText = {
+                'scheduled': 'Zaplanowany',
+                'live': 'NA ŻYWO',
+                'finished': 'ZAKOŃCZONY'
+            }[match.status] || match.status;
+
+            return `
+                <div class="match-item">
+                    <span class="team-name" style="text-align: right;">${match.teamAName}</span>
+                    ${scoreContent}
+                    <span class="team-name" style="text-align: left;">${match.teamBName}</span>
+                    <span class="status-tag ${statusClass}">${statusText} (Gr. ${match.group})</span>
+                </div>
+            `;
+        }
+
+
+        // 4. GŁÓWNA INICJALIZACJA
+        loadTeamNames().then(() => {
+            db.ref(MATCHES_PATH).on('value', snapshot => {
+                const matchesData = snapshot.val();
+                if (matchesData) {
+                    renderMatches(matchesData);
+                } else {
+                    document.getElementById('upcoming-matches').innerHTML = '<h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3><p style="text-align: center;">Brak danych meczowych.</p>';
+                    document.getElementById('recent-results').innerHTML = '<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3><p style="text-align: center;">Brak danych meczowych.</p>';
+                }
+            });
+        }).catch(error => {
+            console.error("Błąd ładowania danych początkowych: ", error);
+            // Wyświetlenie błędu użytkownikowi
+            document.getElementById('upcoming-matches').innerHTML = '<p style="color: red; text-align: center;">Błąd ładowania danych.</p>';
+            document.getElementById('recent-results').innerHTML = '<p style="color: red; text-align: center;">Błąd ładowania danych.</p>';
         });
 
-        box.innerHTML = finalHtml;
-    }
-
-
-    db.ref("matches").on("value", snap => {
-        const data = snap.val();
-        
-        if (data) {
-            renderMatchesByStatus(data);
-        } else {
-            document.getElementById('scheduled-matches').innerHTML = '<p style="text-align: center;">Brak danych w bazie.</p>';
-            document.getElementById('live-matches').innerHTML = '<p style="text-align: center;">Brak danych w bazie.</p>';
-            document.getElementById('finished-matches').innerHTML = '<p style="text-align: center;">Brak danych w bazie.</p>';
-        }
-    });
-    </script>
-    
+    </script>
 </body>
 </html>
-
