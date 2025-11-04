@@ -36,26 +36,26 @@
             background-color: rgba(255, 255, 255, 0.2);
         }
         
-        /* 💡 KLUCZOWA ZMIANA: Powiększenie kontenerów dla lepszego widoku meczów */
+        /* Zmiana szerokości kontenerów */
         .stats-summary {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-around;
-            gap: 20px;
+            gap: 15px; /* Mniejszy odstęp między kolumnami */
             margin-top: 20px;
-            width: 100%; /* Używa pełnej szerokości sekcji content-section */
+            width: 100%;
         }
         
         .stats-column {
             background-color: #fff;
-            padding: 20px;
+            padding: 10px; /* Mniejszy padding wewnątrz kolumny */
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 100%; /* Usunięcie sztywnego ograniczenia 450px */
+            max-width: 100%; 
             box-sizing: border-box;
-            flex: 1; /* Pozwala na równy podział przestrzeni */
-            min-width: 300px; /* Minimalna szerokość, żeby nie wyglądało źle na desktopie */
+            flex: 1; 
+            min-width: 300px; 
         }
         
         .stats-column h3 {
@@ -63,25 +63,26 @@
             border-bottom: 2px solid #007bff;
             padding-bottom: 5px;
             text-align: center;
+            font-size: 1.2em; /* Mniejszy nagłówek kolumny */
         }
         
-        /* KLUCZOWE POPRAWKI DLA WYŚWIETLANIA MECZU */
+        /* 🔥 OSTATECZNE POPRAWKI DLA WYŚWIETLANIA MECZU 🔥 */
         .match-item {
             display: flex;
             align-items: center;
-            padding: 10px 0;
+            padding: 5px 0; /* Mniejszy padding pionowy */
             border-bottom: 1px dashed #eee;
-            font-size: 0.9em; /* Mniejsza czcionka dla oszczędności miejsca */
+            font-size: 0.85em; /* Mała czcionka dla oszczędności miejsca */
         }
         
         .team-name {
             font-weight: 700;
             flex-grow: 1; 
-            min-width: 50px; 
+            min-width: 30px; /* Minimalna szerokość obniżona */
             overflow: hidden; 
-            text-overflow: ellipsis;
+            text-overflow: ellipsis; /* KLUCZOWE: Ucinaj i dodaj "..." */
             white-space: nowrap; 
-            padding: 0 5px; 
+            padding: 0 3px; /* Minimalny padding poziomy */
             text-align: right; 
         }
         
@@ -93,19 +94,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 55px; /* Bardzo ścisła szerokość dla wyniku */
-            flex-shrink: 0; 
-            font-size: 1.1em;
+            width: 50px; /* BARDZO ŚCISŁA szerokość dla wyniku */
+            flex-shrink: 0; /* KLUCZOWE: Wynik się NIE kurczy */
+            font-size: 1em; /* Zmniejszona czcionka wyniku */
             font-weight: 900;
         }
         
         .status-tag {
-            font-size: 0.65em; /* Zmniejszony rozmiar tagu */
+            font-size: 0.6em; /* Bardzo mała czcionka tagu */
             font-weight: bold;
-            padding: 3px 5px;
+            padding: 2px 4px; /* Minimalny padding tagu */
             border-radius: 4px;
             flex-shrink: 0; 
-            margin-left: 5px; /* Mniejszy margines */
+            margin-left: 3px; /* Minimalny margines */
             text-align: center;
         }
         
@@ -329,7 +330,7 @@
             `;
         }
 
-        // Nowa funkcja Odliczania
+        // Funkcja Odliczania
         function startCountdown() {
             // Data i czas docelowy: 14 grudnia 2025, 10:00:00 CET
             const countDownDate = new Date("Dec 14, 2025 10:00:00").getTime();
@@ -362,7 +363,6 @@
 
         // Inicjalizacja: załaduj nazwy, rozpocznij słuchanie meczów i odliczanie
         loadTeamNames().then(() => {
-            // Ładowanie meczów
             db.ref(MATCHES_PATH).on('value', snapshot => {
                 const matchesData = snapshot.val();
                 if (matchesData) {
@@ -372,7 +372,6 @@
                     document.getElementById('recent-results').innerHTML = '<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3><p style="text-align: center;">Brak danych meczowych.</p>';
                 }
             });
-            // Uruchomienie odliczania
             startCountdown(); 
         }).catch(error => {
             console.error("Błąd ładowania danych początkowych: ", error);
