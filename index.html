@@ -59,48 +59,45 @@
         }
         
         /* 💡 KLUCZOWE ZMIANY CSS DLA UKŁADU MECZU */
-        .match-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px dashed #eee;
-            /* Usunięto justify-content: space-between, aby nie wymuszać odstępów */
-        }
-        
-        .team-name {
-            font-weight: 700;
-            flex-grow: 1; /* Pozwól na dynamiczne rozciąganie */
-            min-width: 50px; /* Minimalna szerokość, żeby się całkowicie nie zwinęło */
-            overflow: hidden; 
-            text-overflow: ellipsis;
-            white-space: nowrap; /* Upewnij się, że nazwa jest w jednej linii */
-            padding: 0 5px; 
-            text-align: right; /* Domyślnie wyrównanie do wyniku */
-        }
-        
-        .team-name:last-of-type {
-             text-align: left; /* Druga drużyna wyrównana od lewej */
-        }
+/* W pliku index.html, w sekcji <style> */
 
-        .score-box-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 60px; /* BARDZO ŚCISŁA szerokość dla wyniku, żeby się zmieścił */
-            flex-shrink: 0; /* Najważniejsze: NIE POZWÓL, aby się kurczyło */
-            font-size: 1.1em;
-            font-weight: 900;
-        }
-        
-        .status-tag {
-            font-size: 0.7em;
-            font-weight: bold;
-            padding: 3px 6px;
-            border-radius: 4px;
-            flex-shrink: 0; /* Najważniejsze: NIE POZWÓL, aby się kurczyło */
-            margin-left: 10px;
-            text-align: center;
-        }
+.match-item {
+    display: flex; /* Użycie elastycznego układu */
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+.team-name {
+    font-weight: 700;
+    flex-grow: 1; /* Pozwól, aby nazwa zajęła dostępną przestrzeń */
+    min-width: 50px; 
+    overflow: hidden; 
+    text-overflow: ellipsis; /* Ucinaj długie nazwy z ... */
+    white-space: nowrap; 
+    padding: 0 5px; 
+    text-align: right; 
+}
+
+.team-name:last-of-type {
+     text-align: left; 
+}
+
+.score-box-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px; /* Stała, MAŁA szerokość dla wyniku */
+    flex-shrink: 0; /* ⚠️ KLUCZOWE: NIE POZWÓL NA KURCZENIE SIĘ WYNIKU */
+    font-size: 1.1em;
+    font-weight: 900;
+}
+
+.status-tag {
+    /* ... inne style ... */
+    flex-shrink: 0; /* ⚠️ KLUCZOWE: NIE POZWÓL NA KURCZENIE SIĘ TAGU */
+    margin-left: 10px;
+}
         
         /* Reszta stylów */
         .scheduled { background-color: #ffc107; color: #333; }
@@ -308,3 +305,4 @@
     </script>
 </body>
 </html>
+
