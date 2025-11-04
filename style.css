@@ -651,4 +651,36 @@ body.dark-mode .team-roster ul {
 
 body.dark-mode .team-roster p {
     color: #cfd8dc;
+
+}
+
+/* --- Sekcja dedykowana responsywności i małym ekranom (DOPISANE) --- */
+/* Zmniejszenie marginesów i paddingów na małych urządzeniach */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .header, .content-section, .footer, #main-nav {
+        padding: 15px; /* Zmniejszenie paddingu wewnętrznego */
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    /* Zmniejszenie rozmiaru nagłówków */
+    .header h1 {
+        font-size: 2.5em;
+    }
+
+    .content-section h2 {
+        font-size: 2em;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+
+    /* Zmniejszenie rozmiaru tekstu w nawigacji */
+    #main-nav a {
+        font-size: 1em;
+        padding: 6px 10px;
+    }
 }
