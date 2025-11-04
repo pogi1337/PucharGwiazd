@@ -1,32 +1,45 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+// Funkcja logowania użytkownika (np. drużyny)
+async function login(email, password) {
+  const auth = getAuth();
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+  try {
+    // 🔹 Logowanie użytkownika
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+    console.log("Zalogowano jako:", user.email);
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+    // 🔹 Wymuszenie odświeżenia tokena (żeby pobrać aktualne uprawnienia)
+    await user.getIdToken(true);
+
+    console.log("✅ Token odświeżony — użytkownik ma aktualne uprawnienia!");
+
+    // 🔹 Pobranie claimów (opcjonalne)
+    const idTokenResult = await user.getIdTokenResult();
+    console.log("Custom claims:", idTokenResult.claims);
+
+    // 🔹 Przekierowanie po zalogowaniu
+    if (idTokenResult.claims.role === "teamManager") {
+      console.log("Witaj, menedżerze drużyny!");
+      // np. window.location.href = "/panel-druzyny";
+    } else if (idTokenResult.claims.admin === true) {
+      console.log("Witaj, adminie!");
+      // np. window.location.href = "/admin";
+    } else {
+      alert("Nie masz uprawnień do tego panelu.");
+    }
+
+  } catch (error) {
+    console.error("❌ Błąd logowania:", error.code, error.message);
+    alert("Błąd logowania: " + error.message);
+  }
+}
+
+// 🔸 Przykład użycia (np. po kliknięciu przycisku „Zaloguj”)
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  await login(email, password);
+});
