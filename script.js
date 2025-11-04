@@ -44,7 +44,7 @@ if (currentTimeElement) {
 const countdownElement = document.getElementById('countdown');
 if (countdownElement) {
     // Set the date we're counting down to (July 14, 2026, 00:00:00 CEST)
-    const countDownDate = new Date("Jul 14, 2026 00:00:00 GMT+0200").getTime(); // Adjust for Poland's timezone (CEST)
+    const countDownDate = new Date("Dec 14, 2026 00:00:00 GMT+0200").getTime(); // Adjust for Poland's timezone (CEST)
 
     const x = setInterval(function() {
         const now = new Date().getTime();
@@ -82,4 +82,5 @@ document.addEventListener('DOMContentLoaded', () => {
             expandIcon.classList.toggle('fa-chevron-up');
         });
     });
+
 });
