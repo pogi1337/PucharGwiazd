@@ -1,91 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Panel Admina — Puchar Gwiazd</title>
+  <title>Panel Admina - Wyniki na żywo</title>
 
-  <!-- Firebase compat (działa ze starym API) -->
+  <!-- Firebase COMPAT (działa z prostym JS) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
   <style>
-    body {
-      font-family: Arial;
-      background: #111;
-      color: white;
-      padding: 20px;
-    }
-    .match {
-      background: #222;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-    }
-    input {
-      width: 100px;
-      padding: 5px;
-      margin: 5px;
-    }
-    button {
-      padding: 8px 15px;
-      background: #00c853;
-      border: none;
-      color: white;
-      cursor: pointer;
-      border-radius: 5px;
-    }
+    body { font-family: Arial; padding: 20px; }
+    input { margin: 5px; padding: 6px; }
+    button { padding: 6px 12px; cursor: pointer; }
+    .match-box { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
   </style>
 </head>
 <body>
 
-<h2>Panel Admina — Wyniki na żywo</h2>
+<h1>Panel Admina – Wyniki na żywo</h1>
 
+<h2>Dodaj mecz</h2>
+<input id="teamA" placeholder="Drużyna A">
+<input id="teamB" placeholder="Drużyna B">
+<button onclick="addMatch()">Dodaj mecz</button>
+
+<h2>Lista meczów</h2>
 <div id="matches"></div>
 
 <script>
 
-  /* ✅ TWÓJ FIREBASE CONFIG — wklej tu swoje wartości */
+  // ✅ TWÓJ CONFIG (uzupełnij tylko databaseURL !!!)
   const firebaseConfig = {
-  apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-  authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-  projectId: "puchargwiazd-bdaa4",
-  storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-  messagingSenderId: "890734185883",
-  appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-};
+    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+    databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/",   // ✅ <<< WAŻNE
+    projectId: "puchargwiazd-bdaa4",
+    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+    messagingSenderId: "890734185883",
+    appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+  };
 
+  // ✅ START Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
+  // ✅ DODAWANIE MECZU
+  function addMatch() {
+    const a = document.getElementById("teamA").value;
+    const b = document.getElementById("teamB").value;
+    if (!a || !b) return alert("Podaj obie drużyny!");
+
+    const ref = db.ref("matches").push();
+    ref.set({
+      teamA: a,
+      teamB: b,
+      scoreA: 0,
+      scoreB: 0
+    });
+
+    document.getElementById("teamA").value = "";
+    document.getElementById("teamB").value = "";
+  }
+
+  // ✅ WYŚWIETLANIE MECZÓW NA ŻYWO
+  db.ref("matches").on("value", snap => {
+    const data = snap.val();
+    const box = document.getElementById("matches");
+    box.innerHTML = "";
+
+    if (!data) return;
+
+    Object.entries(data).forEach(([id, match]) => {
+      box.innerHTML += `
+        <div class="match-box">
+          <b>${match.teamA}</b> vs <b>${match.teamB}</b><br>
+          <input id="a-${id}" type="number" value="${match.scoreA}">
+          <input id="b-${id}" type="number" value="${match.scoreB}">
+          <button onclick="updateScore('${id}')">Zapisz</button>
+        </div>
+      `;
+    });
+  });
+
+  // ✅ AKTUALIZACJA WYNIKU
   function updateScore(id) {
-    const teamA = document.getElementById(`teamA-${id}`).value;
-    const teamB = document.getElementById(`teamB-${id}`).value;
-    const scoreA = Number(document.getElementById(`scoreA-${id}`).value);
-    const scoreB = Number(document.getElementById(`scoreB-${id}`).value);
+    const scoreA = Number(document.getElementById("a-" + id).value);
+    const scoreB = Number(document.getElementById("b-" + id).value);
 
     db.ref("matches/" + id).update({
-      teamA,
-      teamB,
       scoreA,
       scoreB
     });
   }
 
-  db.ref("matches").on("value", snapshot => {
-    const data = snapshot.val();
-    const container = document.getElementById("matches");
-    container.innerHTML = "";
+</script>
 
-    for (let id in data) {
-      const m = data[id];
-
-      container.innerHTML += `
-        <div class="match">
-          <h3>Mecz: ${id}</h3>
-          <label>Team A: </label>
-          <input id="teamA-${id}" value="${m.teamA}">
-          <label>Team B: </label>
-          <input id="teamB-${id}" value="${m.teamB}">
-          <br>
-          <label>Wynik: </label>
-          <input id="scoreA-${id}" type="number" value="${m.scoreA}">
+</body>
+</html>
