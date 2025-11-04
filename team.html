@@ -92,3 +92,241 @@
             </div>
             <div class="form-group">
                 <label for="team-password">Hasło:</label>
+                <input type="password" id="team-password" required>
+            </div>
+            <button type="submit" class="submit-btn">Zaloguj</button>
+            <div id="login-message" class="message-area"></div>
+        </form>
+    </div>
+
+    <div class="container" id="team-panel" style="display: none;">
+        <h1 id="team-name-display">Panel Drużyny</h1>
+        <form id="edit-players-form">
+            <h3><i class="fas fa-shirt"></i> Skład Drużyny (Numer / Imię i Nazwisko)</h3>
+            
+            <div id="players-container">
+                </div>
+            
+            <button type="button" class="submit-btn add-player-btn" id="add-player-btn"><i class="fas fa-user-plus"></i> Dodaj Zawodnika</button>
+            
+            <button type="submit" class="submit-btn" style="margin-top: 25px;"><i class="fas fa-save"></i> Zapisz Skład</button>
+            <div id="edit-message" class="message-area"></div>
+        </form>
+        
+        <button id="team-logout-btn" class="submit-btn" style="background-color: var(--danger-color); margin-top: 30px;"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
+    </div>
+
+    <script>
+        // ===========================================
+        // KONFIGURACJA FIREBASE (POPRAWIONA)
+        // ===========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            databaseURL: "puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+        };
+        
+        try {
+            firebase.initializeApp(firebaseConfig); 
+        } catch (e) {
+            console.error("Błąd inicjalizacji Firebase:", e.message);
+        }
+
+        const auth = firebase.auth(); 
+        const db = firebase.database();
+        let teamId = null; // Przechowuje ID zalogowanej drużyny (z Custom Claim)
+
+        // ===========================================
+        // LOGIKA AUTORYZACJI I TOŻSAMOŚCI
+        // ===========================================
+        function checkAuth() {
+            auth.onAuthStateChanged(user => {
+                const loginSection = document.getElementById('login-section');
+                const teamPanel = document.getElementById('team-panel');
+                
+                if (user) {
+                    // Wymuś odświeżenie tokenu, aby uzyskać Custom Claims (teamId)
+                    user.getIdTokenResult(true) 
+                        .then(idTokenResult => {
+                            teamId = idTokenResult.claims.teamId; // Pobieramy teamId z tokenu
+                            
+                            if (teamId) {
+                                loginSection.style.display = 'none';
+                                teamPanel.style.display = 'block';
+                                loadTeamData(teamId);
+                            } else {
+                                // Jeśli użytkownik jest zalogowany, ale nie ma Claim'u teamId
+                                teamPanel.innerHTML = '<div class="message-area error">Błąd: To konto nie ma przypisanej drużyny. Skontaktuj się z administratorem.</div>';
+                                auth.signOut();
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Błąd pobierania tokena:", error);
+                            // Jeśli błąd tokenu, wyloguj i wróć do logowania
+                            auth.signOut();
+                        });
+                } else {
+                    // Brak zalogowanego użytkownika
+                    loginSection.style.display = 'block';
+                    teamPanel.style.display = 'none';
+                    teamId = null;
+                }
+            });
+        }
+
+        document.getElementById('team-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('team-email').value; 
+            const password = document.getElementById('team-password').value;
+            const messageArea = document.getElementById('login-message');
+            
+            messageArea.textContent = "Logowanie...";
+            messageArea.className = "message-area info";
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    // checkAuth() przejmie kontrolę
+                    messageArea.textContent = "Zalogowano pomyślnie! Ładowanie panelu...";
+                    messageArea.className = "message-area success";
+                })
+                .catch(error => {
+                    let displayMessage = "Błąd logowania: Błędny email lub hasło.";
+                    if (error.code === 'auth/network-request-failed') {
+                         displayMessage = "Błąd: Brak połączenia z siecią.";
+                    }
+                    messageArea.textContent = displayMessage;
+                    messageArea.className = "message-area error";
+                    console.error("Firebase Auth Error:", error);
+                });
+        });
+
+        document.getElementById('team-logout-btn').addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        // ===========================================
+        // LOGIKA ŁADOWANIA I EDYCJI DANYCH
+        // ===========================================
+        function loadTeamData(id) {
+            const messageArea = document.getElementById('edit-message');
+            messageArea.textContent = 'Ładowanie danych składu...';
+            messageArea.className = 'message-area info';
+            
+            db.ref(`teams/${id}`).once('value')
+                .then(snapshot => {
+                    const team = snapshot.val();
+                    if (team) {
+                        document.getElementById('team-name-display').textContent = `Panel Drużyny: ${team.name || id}`;
+                        renderPlayers(team.players);
+                        messageArea.textContent = 'Edytuj skład (dodaj, usuń, zmień) i zapisz.';
+                    } else {
+                        messageArea.textContent = 'Błąd: Nie znaleziono danych dla tej drużyny.';
+                        messageArea.className = 'message-area error';
+                        document.getElementById('players-container').innerHTML = '';
+                    }
+                })
+                .catch(error => {
+                    messageArea.textContent = `Błąd ładowania: ${error.message}`;
+                    messageArea.className = 'message-area error';
+                });
+        }
+
+        function renderPlayers(players) {
+            const container = document.getElementById('players-container');
+            container.innerHTML = '';
+            
+            const playerArray = players ? Object.values(players) : [];
+            // Sortowanie po numerze (jeśli istnieje)
+            playerArray.sort((a, b) => (a.number || 999) - (b.number || 999));
+
+            playerArray.forEach(player => {
+                addPlayerInput(player.name, player.number);
+            });
+
+            // Jeśli skład jest pusty, dodaj 5 pustych pól dla wygody
+            if (playerArray.length === 0) {
+                 for(let i=0; i<5; i++) {
+                     addPlayerInput('', '');
+                 }
+            }
+        }
+
+        function addPlayerInput(name = '', number = '') {
+            const container = document.getElementById('players-container');
+            const playerDiv = document.createElement('div');
+            playerDiv.classList.add('player-entry');
+            playerDiv.innerHTML = `
+                <input type="number" class="player-number" value="${number || ''}" min="0" max="99" placeholder="Nr">
+                <input type="text" class="player-name" value="${name}" required placeholder="Imię i Nazwisko / Pseudonim">
+                <button type="button" class="remove-player-btn"><i class="fas fa-trash"></i> Usuń</button>
+            `;
+            playerDiv.querySelector('.remove-player-btn').addEventListener('click', () => {
+                playerDiv.remove();
+            });
+            container.appendChild(playerDiv);
+        }
+
+        document.getElementById('add-player-btn').addEventListener('click', () => {
+            addPlayerInput('', '');
+        });
+
+        document.getElementById('edit-players-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!teamId) return;
+
+            const messageArea = document.getElementById('edit-message');
+            const newPlayers = {};
+            let playerIdCounter = 1;
+            let allPlayersValid = true;
+
+            document.querySelectorAll('#players-container .player-entry').forEach(entry => {
+                const nameInput = entry.querySelector('.player-name').value.trim();
+                const numberInput = entry.querySelector('.player-number').value.trim();
+
+                if (nameInput.length === 0 && (numberInput.length > 0 || playerIdCounter > 1)) {
+                    // Wymagaj nazwy, chyba że to jest puste pole, a nie ma jeszcze zawodników
+                    allPlayersValid = false;
+                    entry.style.border = '2px solid var(--danger-color)'; // Wizualne zaznaczenie błędu
+                    return;
+                } else if (nameInput.length > 0) {
+                    entry.style.border = 'none'; 
+                    const playerKey = 'player' + playerIdCounter; 
+                    newPlayers[playerKey] = {
+                        name: nameInput,
+                        number: numberInput ? parseInt(numberInput) : null 
+                    };
+                    playerIdCounter++;
+                }
+            });
+
+            if (!allPlayersValid) {
+                messageArea.textContent = "Błąd: Uzupełnij nazwy zawodników lub usuń puste pola z numerem.";
+                messageArea.className = "message-area error";
+                return;
+            }
+
+            messageArea.textContent = "Zapisywanie składu...";
+            messageArea.className = "message-area info";
+            
+            // Aktualizacja tylko pola 'players'
+            db.ref(`teams/${teamId}/players`).set(newPlayers) 
+                .then(() => {
+                    messageArea.textContent = `Skład zapisany pomyślnie dla drużyny ${document.getElementById('team-name-display').textContent}.`;
+                    messageArea.className = "message-area success";
+                    loadTeamData(teamId); // Odśwież widok
+                })
+                .catch(error => {
+                    messageArea.textContent = "Błąd zapisu: " + error.message + " (Sprawdź, czy masz Reguły Bezpieczeństwa ustawione poprawnie!)";
+                    messageArea.className = "message-area error";
+                });
+        });
+
+        // START APLIKACJI
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>
