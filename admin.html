@@ -3,16 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>Panel Admina - Wyniki</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
     <style>
-        body { font-family: Arial; padding: 20px; background-color: #f4f4f4; }
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
         .login-box, .admin-panel { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input, select, button { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; width: 45%; }
+        input, select, button { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; width: 45%; box-sizing: border-box; }
         button { background-color: #007bff; color: white; cursor: pointer; border: none; width: auto; }
-        .match-box { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        h1, h2, h3 { color: #333; }
+        h2 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px; }
+        
+        .match-box { 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            flex-wrap: wrap; /* Zezwól na zawijanie na mniejszych ekranach */
+        }
+        .match-box > * { margin: 5px; }
+
         .delete-btn { background-color: #dc3545; }
         .group-section { margin-bottom: 20px; border-top: 2px solid #007bff; padding-top: 10px; }
+        
+        /* Styl dla inputów w match-box, aby były mniejsze */
+        .match-box input[type="number"], .match-box select { 
+            width: 50px; 
+            text-align: center; 
+        }
+        .match-box button {
+            padding: 8px 12px;
+        }
+        .match-box span {
+             min-width: 150px;
+        }
     </style>
 </head>
 <body>
@@ -38,9 +65,9 @@
         <option value="live">Na żywo</option>
         <option value="finished">Zakończony</option>
     </select>
-    <input id="teamA" placeholder="Drużyna A">
-    <input id="teamB" placeholder="Drużyna B">
-    <button onclick="addMatch()">Dodaj mecz</button>
+    <input id="teamA" placeholder="ID Drużyny A (np. Team1)" style="width: 49%;">
+    <input id="teamB" placeholder="ID Drużyny B (np. Team2)" style="width: 49%;">
+    <button onclick="addMatch()" style="width: 100%;">Dodaj mecz</button>
 
     <h2>Zarządzanie Meczami</h2>
     <div id="matches-output">
@@ -49,41 +76,43 @@
 </div>
 
 <script>
-        // Konfiguracja Firebase (Używamy Twojej)
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            // <--- TUTAJ MUSISZ POPRAWIĆ ADRES
-            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
-            // <--- KONIEC POPRAWKI
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-        };
+    // 🔑 HASŁO ADMINISTRATORA 
+    const ADMIN_PASSWORD = "Kowalski12"; 
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    // Konfiguracja Firebase (POPRAWIONY URL)
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
+        projectId: "puchargwiazd-bdaa4",
+        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+        messagingSenderId: "890734185883",
+        appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     function loginAdmin() {
         const enteredPassword = document.getElementById("admin-password").value;
         if (enteredPassword === ADMIN_PASSWORD) {
             document.getElementById("login-form").style.display = 'none';
             document.getElementById("admin-interface").style.display = 'block';
+            // Jeśli admin się zalogował, odświeżamy listę meczów
+            // (w tym kodzie nasłuchiwanie na zmiany jest już aktywne)
         } else {
             alert("Nieprawidłowe hasło administratora.");
         }
     }
 
     function addMatch() {
-        const group = document.getElementById("group").value; 
+        const group = document.getElementById("group").value;
         const status = document.getElementById("status").value;
-        const a = document.getElementById("teamA").value;
-        const b = document.getElementById("teamB").value;
+        const a = document.getElementById("teamA").value.trim();
+        const b = document.getElementById("teamB").value.trim();
         
-        if (!group || !a || !b) return alert("Wybierz grupę i podaj obie drużyny!");
+        if (!group || !a || !b) return alert("Wybierz grupę i podaj ID obu drużyn!");
 
-        // UWAGA: Mecz jest zapisywany pod głównym kluczem /matches
         const ref = db.ref("matches").push();
         ref.set({
             teamA: a,
@@ -92,12 +121,17 @@
             scoreB: 0,
             group: group,
             status: status
+        }).then(() => {
+            // Czyszczenie pól po dodaniu
+            document.getElementById("teamA").value = '';
+            document.getElementById("teamB").value = '';
+            // Pozostawiamy wybraną grupę i status dla wygody
+        }).catch(error => {
+            alert("Błąd dodawania meczu: " + error.message);
         });
-        document.getElementById("teamA").value = '';
-        document.getElementById("teamB").value = '';
     }
 
-    function generateStatusOptions(id, currentStatus) {
+    function generateStatusOptions(currentStatus) {
         const statuses = {
             'scheduled': 'Zaplanowany',
             'live': 'Na żywo',
@@ -115,30 +149,43 @@
         const scoreA = document.getElementById(`a-${id}`).value;
         const scoreB = document.getElementById(`b-${id}`).value;
         db.ref("matches/" + id).update({
-            scoreA: parseInt(scoreA),
-            scoreB: parseInt(scoreB)
+            scoreA: parseInt(scoreA) || 0,
+            scoreB: parseInt(scoreB) || 0
+        }).then(() => {
+            console.log("Wynik zaktualizowany: " + id);
+        }).catch(error => {
+            alert("Błąd aktualizacji wyniku: " + error.message);
         });
     }
     
     function updateStatus(id, newStatus) {
         db.ref("matches/" + id).update({
             status: newStatus
+        }).then(() => {
+            console.log("Status zaktualizowany: " + id);
+        }).catch(error => {
+            alert("Błąd aktualizacji statusu: " + error.message);
         });
     }
 
     function deleteMatch(id) {
-        if (confirm("Czy na pewno chcesz usunąć ten mecz?")) {
-            db.ref("matches/" + id).remove();
+        if (confirm("Czy na pewno chcesz usunąć ten mecz? Tej operacji nie można cofnąć!")) {
+            db.ref("matches/" + id).remove().then(() => {
+                console.log("Mecz usunięty: " + id);
+            }).catch(error => {
+                alert("Błąd usuwania meczu: " + error.message);
+            });
         }
     }
 
+    // Nasłuchiwanie na zmiany w bazie danych i renderowanie listy meczów
     db.ref("matches").on("value", snap => {
         const data = snap.val();
         const output = document.getElementById("matches-output");
         output.innerHTML = '';
         
         if (!data) {
-            output.innerHTML = '<p>Brak meczów w bazie.</p>';
+            output.innerHTML = '<p style="text-align: center;">Brak meczów w bazie.</p>';
             return;
         }
 
@@ -151,21 +198,26 @@
             groupedMatches[groupName].push({ id, ...match });
         });
         
+        // Sortowanie grup alfabetycznie (A, B, C...)
         const sortedGroupNames = Object.keys(groupedMatches).sort();
 
         sortedGroupNames.forEach(groupName => {
             let groupHtml = `<div class="group-section"><h3>Grupa ${groupName}</h3>`;
             
-            groupedMatches[groupName].forEach(match => {
-                const statusOptions = generateStatusOptions(match.id, match.status); 
+            // Sortowanie meczów w grupie: Live > Scheduled > Finished
+            groupedMatches[groupName].sort((a, b) => {
+                const order = { 'live': 1, 'scheduled': 2, 'finished': 3 };
+                return order[a.status] - order[b.status];
+            }).forEach(match => {
+                const statusOptions = generateStatusOptions(match.status);
 
                 groupHtml += `
                     <div class="match-box">
-                        <span style="width: 200px;">${match.teamA} vs ${match.teamB}</span>
-                        <input id="a-${match.id}" type="number" value="${match.scoreA}" style="width: 50px;">
-                        <input id="b-${match.id}" type="number" value="${match.scoreB}" style="width: 50px;">
+                        <span style="width: 150px;">${match.teamA} vs ${match.teamB}</span>
+                        <input id="a-${match.id}" type="number" value="${match.scoreA}" min="0" max="99">
+                        <input id="b-${match.id}" type="number" value="${match.scoreB}" min="0" max="99">
                         
-                        <select id="status-${match.id}" onchange="updateStatus('${match.id}', this.value)" style="width: 120px;">
+                        <select onchange="updateStatus('${match.id}', this.value)">
                             ${statusOptions}
                         </select>
                         
@@ -182,4 +234,3 @@
 </script>
 </body>
 </html>
-
