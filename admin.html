@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script> 
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -153,8 +155,6 @@
             box-sizing: border-box;
             background-color: white;
         }
-        
-        /* ... (tutaj możesz dodać resztę stylów, w tym dark-mode, aby był kompletny) ... */
     </style>
 </head>
 <body>
@@ -293,8 +293,10 @@
                 messageArea.className = "message-area success";
             })
             .catch(error => {
-                messageArea.textContent = "Błąd logowania: Błędne hasło."; 
+                // Błąd logowania/hasła
+                messageArea.textContent = "Błąd logowania: Błędne hasło lub problem z serwerem."; 
                 messageArea.className = "message-area error";
+                console.error("Firebase Auth Error:", error);
             });
     });
 
