@@ -2,17 +2,137 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Kapitanów - Edycja Składu</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <style>
-        body { font-family: Arial; padding: 20px; background-color: #f7f7f7; }
-        /* Style zostały skrócone dla czytelności, uzupełnij je z poprzednich fragmentów */
-        .delete-btn { background-color: #dc3545; margin-left: 20px; }
-        .section { margin-top: 20px; padding: 15px; border: 1px solid #ddd; background-color: white; border-radius: 6px; }
+        /* GLOBALNE STYLE PANELU KAPITANÓW */
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            padding: 10px; 
+            background-color: #e0f2f7; /* Jasny niebieski */
+            color: #212121;
+        }
+
+        .section { 
+            max-width: 600px; 
+            margin: 20px auto; 
+            padding: 20px; 
+            border: 1px solid #64b5f6; 
+            background-color: white; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+        }
+        
+        h1, h2 { color: #1565c0; text-align: center; }
+        h3 { color: #007bff; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+
+        /* Pola input i przyciski */
+        input, button {
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        
+        /* Ustawienie szerokości dla PC */
+        #player-number-input {
+            font-weight: bold;
+            text-align: center;
+            width: 40%; 
+            margin-right: 1%; 
+            display: inline-block;
+        }
+        #player-name-input {
+            width: 59%; 
+            display: inline-block;
+        }
+
+        button { 
+            background-color: #28a745; 
+            color: white; 
+            cursor: pointer; 
+            border: none; 
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #1e7e34;
+        }
+        .delete-btn { 
+            background-color: #dc3545; 
+            width: 80px; 
+            padding: 8px;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .logout-btn {
+            background-color: #6c757d;
+            margin-top: 20px;
+        }
+
+        /* Lista zawodników */
         .player-list { list-style: none; padding: 0; }
-        .player-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #eee; }
+        .player-list li { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 0; 
+            border-bottom: 1px dashed #e0e0e0;
+            font-size: 1.1em;
+        }
+        .player-list li span {
+            flex-grow: 1;
+            padding-right: 10px;
+        }
+        .player-info {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (MAX SZEROKOŚĆ 600px) --- */
+        @media (max-width: 600px) {
+            
+            .section {
+                padding: 15px;
+                margin: 10px auto;
+            }
+
+            /* Układ pól dodawania zawodnika */
+            #player-number-input, #player-name-input {
+                width: 100%; /* Pełna szerokość dla obu pól na telefonie */
+                margin-right: 0;
+                display: block;
+            }
+
+            /* Układ listy zawodników */
+            .player-list li {
+                flex-wrap: wrap; 
+                padding-bottom: 15px;
+                padding-top: 15px;
+            }
+            
+            /* Nazwa zawodnika zajmuje pełny wiersz */
+            .player-list li span {
+                width: 100%;
+                margin-bottom: 8px;
+                padding-right: 0;
+                font-size: 1.2em;
+            }
+
+            /* Przycisk usuwania na pełnej szerokości */
+            .delete-btn {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -23,14 +143,15 @@
     <h2 id="team-name-display">Edycja Składu dla: --</h2>
     
     <h3>Dodaj Nowego Zawodnika</h3>
+    <input id="player-number-input" type="number" min="1" max="99" placeholder="Numer zawodnika (Wymagany)" required>
     <input id="player-name-input" placeholder="Imię i Nazwisko Zawodnika">
-    <button onclick="addPlayer()">Dodaj</button>
+    <button onclick="addPlayer()">Dodaj Zawodnika</button>
     
     <h3>Aktualny Skład</h3>
     <ul id="player-list" class="player-list">
         <li>Ładowanie składu...</li>
     </ul>
-    <button onclick="logout()">Wyloguj</button>
+    <button onclick="logout()" class="logout-btn">Wyloguj</button>
 </div>
 
 <div id="access-denied" style="display: none; text-align: center;">
@@ -39,24 +160,22 @@
 </div>
 
 <script>
-        // Konfiguracja Firebase (Używamy Twojej)
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            // <--- TUTAJ MUSISZ POPRAWIĆ ADRES
-            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
-            // <--- KONIEC POPRAWKI
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-        };
+    // Konfiguracja Firebase (Używamy Twojej)
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
+        projectId: "puchargwiazd-bdaa4",
+        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+        messagingSenderId: "890734185883",
+        appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     const currentTeamId = sessionStorage.getItem('loggedInTeamId'); 
-    const TEAM_BASE_PATH = "teams/teams/"; // Ścieżka do danych drużyn
+    const TEAM_BASE_PATH = "teams/teams/"; 
 
     if (!currentTeamId) {
         document.getElementById('player-management').style.display = 'none';
@@ -68,7 +187,6 @@
     }
 
     function loadTeamPlayers(teamId) {
-        // POPRAWIONA ŚCIEŻKA
         const teamRef = db.ref(TEAM_BASE_PATH + teamId + "/players");
         teamRef.on("value", snapshot => {
             renderPlayers(snapshot.val());
@@ -84,13 +202,19 @@
             return;
         }
 
-        Object.values(playersData).forEach((player, index) => {
-            // Używamy klucza, który jest autogenerowany przez Firebase.
-            const playerId = Object.keys(playersData)[index];
+        // Konwertowanie i sortowanie po numerze zawodnika
+        const sortedPlayers = Object.entries(playersData).map(([id, player]) => ({
+            id,
+            ...player
+        })).sort((a, b) => (a.number || 999) - (b.number || 999));
+
+        sortedPlayers.forEach(player => {
             const listItem = document.createElement("li");
+            const playerNumber = player.number !== undefined && player.number !== null ? `[${player.number}] ` : ''; 
+            
             listItem.innerHTML = `
-                <span>${player.name}</span>
-                <button class="delete-btn" onclick="deletePlayer('${playerId}')">Usuń</button>
+                <span class="player-info">${playerNumber}${player.name}</span>
+                <button class="delete-btn" onclick="deletePlayer('${player.id}')">Usuń</button>
             `;
             playerList.appendChild(listItem);
         });
@@ -98,24 +222,54 @@
 
     function addPlayer() {
         const playerNameInput = document.getElementById("player-name-input");
+        const playerNumberInput = document.getElementById("player-number-input");
+        
         const playerName = playerNameInput.value.trim();
+        const playerNumber = parseInt(playerNumberInput.value.trim());
 
         if (!currentTeamId) return alert("Błąd sesji.");
         if (!playerName) return alert("Podaj imię i nazwisko zawodnika.");
+        
+        // WALIDACJA NUMERU ZAWODNIKA
+        if (isNaN(playerNumber) || playerNumber < 1 || playerNumber > 99) {
+            return alert("🚨 Proszę podać prawidłowy numer zawodnika (od 1 do 99).");
+        }
 
-        // POPRAWIONA ŚCIEŻKA
-        db.ref(TEAM_BASE_PATH + currentTeamId + "/players").push({
-            name: playerName
-        });
+        // Sprawdzenie, czy numer nie jest już zajęty
+        db.ref(TEAM_BASE_PATH + currentTeamId + "/players").once('value')
+            .then(snapshot => {
+                const players = snapshot.val();
+                let numberTaken = false;
+                for (let key in players) {
+                    if (players[key].number === playerNumber) {
+                        numberTaken = true;
+                        break;
+                    }
+                }
 
-        playerNameInput.value = ""; 
+                if (numberTaken) {
+                    alert(`⚠️ Numer ${playerNumber} jest już zajęty w Twojej drużynie! Wybierz inny.`);
+                } else {
+                    // ZAPIS DO BAZY - DODANIE NUMERU
+                    db.ref(TEAM_BASE_PATH + currentTeamId + "/players").push({
+                        name: playerName,
+                        number: playerNumber 
+                    });
+
+                    playerNameInput.value = ""; 
+                    playerNumberInput.value = ""; 
+                }
+            })
+            .catch(error => {
+                console.error("Błąd sprawdzania numeru: ", error);
+                alert("Wystąpił błąd podczas sprawdzania numerów.");
+            });
     }
 
     function deletePlayer(playerId) {
         if (!currentTeamId) return alert("Błąd sesji.");
         
         if (confirm("Czy na pewno chcesz usunąć tego zawodnika ze składu?")) {
-            // POPRAWIONA ŚCIEŻKA
             db.ref(TEAM_BASE_PATH + currentTeamId + "/players/" + playerId).remove()
                 .then(() => console.log("Zawodnika usunięto."))
                 .catch(error => console.error("Błąd usuwania: ", error));
@@ -131,4 +285,3 @@
 
 </body>
 </html>
-
