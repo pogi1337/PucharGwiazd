@@ -1,285 +1,7 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administracyjny - Puchar Gwiazd</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <style>
-        /* ==================================
-           STYLISTYKA GLOBALNA I ADMINISTRACYJNA
-           ================================== */
-        body { 
-            font-family: 'Roboto', sans-serif; 
-            margin: 0;
-            padding: 20px 10px; 
-            background: linear-gradient(135deg, #e0f2f7 0%, #bbdefb 100%); 
-            color: #212121;
-            display: flex; 
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            transition: background 0.5s ease, color 0.5s ease;
-        }
-
-        /* NAGŁÓWEK (.header) */
-        .header {
-            width: 100%; max-width: 900px; margin-bottom: 30px; padding: 25px;
-            background-color: #ffffff; border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #dc3545; /* Admin: Czerwony Akcent */
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        
-        .header h1 {
-            font-family: 'Montserrat', sans-serif; color: #dc3545; font-size: 3.2em;
-            margin-bottom: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        /* GŁÓWNA TREŚĆ STRONY (.content-container) */
-        .content-container {
-            max-width: 900px; width: 100%; margin-bottom: 30px; padding: 25px;
-            background: white; border-radius: 15px; 
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #dc3545;
-        }
-
-        .content-container h2 {
-            font-family: 'Montserrat', sans-serif; font-size: 2.2em; color: #dc3545;
-            margin-top: 10px; margin-bottom: 25px; padding-bottom: 5px;
-            border-bottom: 2px solid #dc3545; font-weight: 700;
-        }
-
-        /* FORMULARZ OGÓLNY */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #333;
-        }
-        input[type="text"], input[type="number"], input[type="password"], select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        
-        /* PRZYCISKI */
-        .submit-btn {
-            background-color: #dc3545;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
-        .submit-btn:hover {
-            background-color: #c82333;
-        }
-
-        /* WIADOMOŚCI */
-        .message-area {
-            padding: 10px;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        .message-area.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .message-area.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .message-area.info {
-            background-color: #cce5ff;
-            color: #004085;
-            border: 1px solid #b8daff;
-        }
-        
-        /* --- STYLIZACJA WPROWADZANIA WYNIKÓW I STRZELCÓW --- */
-        .form-row {
-            display: flex; gap: 20px;
-        }
-        .team-score-group {
-            flex: 1;
-        }
-        .subsection-header {
-            font-size: 1.5em;
-            color: #dc3545;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            border-bottom: 1px dashed #ccc;
-            padding-bottom: 5px;
-        }
-        .subsection-header i { margin-right: 8px; }
-
-        .goal-entry {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #f5c6cb;
-            border-radius: 5px;
-            background-color: #fff0f0;
-        }
-        .goal-entry label {
-            display: block;
-            font-size: 0.9em;
-            color: #444;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .goal-scorer-select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #dc3545;
-            border-radius: 5px;
-            box-sizing: border-box;
-            background-color: white;
-        }
-        
-        /* ==================================
-           STYLISTYKA TRYBU CIEMNEGO
-           ================================== */
-        body.dark-mode {
-            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-            color: #e0e0e0;
-        }
-        body.dark-mode .header {
-            background-color: #263238; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #90caf9;
-        }
-        body.dark-mode .header h1 { color: #ffab91; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        
-        body.dark-mode .content-container {
-            background: #263238; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #ffab91;
-        }
-        body.dark-mode .content-container h2 {
-            color: #ffab91; border-bottom: 2px solid #ffab91;
-        }
-        
-        body.dark-mode .form-group label { color: #e0e0e0; }
-        body.dark-mode input[type="text"], body.dark-mode input[type="number"], body.dark-mode input[type="password"], body.dark-mode select {
-            background-color: #37474f;
-            border: 1px solid #455a64;
-            color: #e0e0e0;
-        }
-
-        body.dark-mode .submit-btn {
-            background-color: #ff7043;
-        }
-        body.dark-mode .submit-btn:hover {
-            background-color: #f4511e;
-        }
-
-        body.dark-mode .subsection-header {
-            color: #ffab91;
-            border-bottom: 1px dashed #455a64;
-        }
-        
-        body.dark-mode .goal-entry {
-            background-color: #37474f;
-            border: 1px solid #ffab91;
-        }
-        body.dark-mode .goal-entry label {
-            color: #ffab91;
-        }
-        body.dark-mode .goal-scorer-select {
-            background-color: #263238;
-            border: 1px solid #ffab91;
-            color: #e0e0e0;
-        }
-    </style>
-</head>
-<body>
-    
-    <div class="header">
-        <h1><i class="fas fa-lock"></i> Panel Administracyjny</h1>
-    </div>
-
-    <div class="content-container" id="login-section">
-        <h2><i class="fas fa-sign-in-alt"></i> Logowanie Admina</h2>
-        <form id="admin-login-form">
-            <div class="form-group">
-                <label for="admin-email">Email:</label>
-                <input type="text" id="admin-email" required>
-            </div>
-            <div class="form-group">
-                <label for="admin-password">Hasło:</label>
-                <input type="password" id="admin-password" required>
-            </div>
-            <button type="submit" class="submit-btn"><i class="fas fa-unlock-alt"></i> Zaloguj</button>
-            <div id="login-message" class="message-area" style="margin-top: 15px;"></div>
-        </form>
-    </div>
-
-    <div id="admin-panel" style="display: none; width: 100%;">
-        
-        <div class="content-container" id="match-score-entry">
-            <h2><i class="fas fa-bullseye"></i> Wprowadź Wynik Meczu i Strzelców</h2>
-
-            <form id="match-form">
-                <div class="form-group">
-                    <label for="match-id">Wybierz Mecz (ID/Nazwy grup):</label>
-                    <select id="match-id" required>
-                        <option value="">-- Ładowanie meczów... --</option>
-                    </select>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group team-score-group">
-                        <label for="home-score" id="home-team-label">Wynik Gospodarzy:</label>
-                        <input type="number" id="home-score" min="0" value="0" required onchange="generateGoalSelectors('home')">
-                    </div>
-                    <div class="form-group team-score-group">
-                        <label for="away-score" id="away-team-label">Wynik Gości:</label>
-                        <input type="number" id="away-score" min="0" value="0" required onchange="generateGoalSelectors('away')">
-                    </div>
-                </div>
-                
-                <h3 class="subsection-header"><i class="fas fa-futbol"></i> Strzelcy Goli dla Gospodarzy</h3>
-                <div id="home-goal-selectors">
-                    </div>
-
-                <h3 class="subsection-header"><i class="fas fa-futbol"></i> Strzelcy Goli dla Gości</h3>
-                <div id="away-goal-selectors">
-                    </div>
-
-                <button type="submit" class="submit-btn" id="submit-match-score"><i class="fas fa-save"></i> Zapisz Wynik i Strzelców</button>
-                
-                <div id="match-message" class="message-area" style="margin-top: 15px;"></div>
-            </form>
-        </div>
-        
-        <div class="content-container" style="text-align: center;">
-            <button id="admin-logout-btn" class="submit-btn" style="background-color: #6c757d;"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
-        </div>
-
-    </div>
-    
-    <div class="footer" style="width: 100%; max-width: 900px; text-align: center; padding: 15px 0; margin-top: 30px; color: #6c757d; border-top: 1px solid #ccc;">
-        <p>© 2025 Panel Admina Puchar Gwiazd.</p>
-    </div>
-
 <script>
     // ===========================================
     // KONFIGURACJA FIREBASE
     // ===========================================
-
     const firebaseConfig = {
         apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
         authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -291,12 +13,14 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+    const auth = firebase.auth(); // PRZYWRÓCONE
     const db = firebase.database();
     
+    // STAŁA: EMAIL ADMINISTRATORA (MUSI ISTNIEĆ W FIREBASE AUTH!)
+    const ADMIN_EMAIL = "admin-email@example.com"; 
+
     // ===========================================
     // STAŁE I ZMIENNE DANYCH
-    // PAMIĘTAJ O POPRAWNYCH ŚCIEŻKACH W BAZIE!
     // ===========================================
     let allTeamsData = {}; 
     let currentMatchTeams = {}; 
@@ -304,7 +28,7 @@
     const TEAMS_PATH_ROOT = "teams/teams"; 
 
     // ===========================================
-    // AUTORYZACJA
+    // AUTORYZACJA (PRZYWRÓCONA)
     // ===========================================
 
     function checkAuth() {
@@ -312,14 +36,12 @@
             const loginSection = document.getElementById('login-section');
             const adminPanel = document.getElementById('admin-panel');
             
-            if (user) {
-                // Użytkownik zalogowany - Pokaż panel
+            // Upewnij się, że zalogowany użytkownik ma POPRAWNY email administracyjny
+            if (user && user.email === ADMIN_EMAIL) {
                 loginSection.style.display = 'none';
                 adminPanel.style.display = 'block';
-                // Ładuj dane dopiero po udanym logowaniu
                 loadMatchAndTeamData(); 
             } else {
-                // Użytkownik wylogowany - Pokaż formularz logowania
                 loginSection.style.display = 'block';
                 adminPanel.style.display = 'none';
             }
@@ -328,7 +50,8 @@
 
     document.getElementById('admin-login-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        const email = document.getElementById('admin-email').value;
+        // Używamy stałego emaila i hasła z pola
+        const email = ADMIN_EMAIL; 
         const password = document.getElementById('admin-password').value;
         const messageArea = document.getElementById('login-message');
         
@@ -336,47 +59,34 @@
             .then(() => {
                 messageArea.textContent = "Zalogowano pomyślnie!";
                 messageArea.className = "message-area success";
-                // checkAuth() obsłuży resztę
             })
             .catch(error => {
-                messageArea.textContent = "Błąd logowania: " + error.message;
+                messageArea.textContent = "Błąd logowania: Błędne hasło."; // Uproszczony komunikat
                 messageArea.className = "message-area error";
             });
     });
 
-    document.getElementById('admin-logout-btn').addEventListener('click', () => {
-        auth.signOut().then(() => {
-            // Wylogowano
-            document.getElementById('login-message').textContent = "Wylogowano.";
-            document.getElementById('login-message').className = "message-area info";
-            // Wyczyść dane strzelców i formularze
-            document.getElementById('match-form').reset();
-            document.getElementById('home-goal-selectors').innerHTML = '';
-            document.getElementById('away-goal-selectors').innerHTML = '';
-        });
-    });
+    // Przycisk Wyloguj (musisz go dodać w HTML, jeśli jest potrzebny)
+    // document.getElementById('admin-logout-btn').addEventListener('click', () => { ... });
 
     // ===========================================
-    // ŁADOWANIE DANYCH MECZÓW I DRUŻYN
+    // ŁADOWANIE DANYCH MECZÓW I DRUŻYN (BEZ ZMIAN)
     // ===========================================
 
     function loadMatchAndTeamData() {
         const matchSelect = document.getElementById('match-id');
         matchSelect.innerHTML = '<option value="">-- Ładowanie meczów... --</option>';
 
-        // 1. Pobierz listę drużyn i zapisz do allTeamsData
         db.ref(TEAMS_PATH_ROOT).once('value').then(snapshot => {
             allTeamsData = snapshot.val() || {};
         }).catch(error => console.error("Błąd ładowania wszystkich drużyn:", error));
 
-        // 2. Ładuj listę meczów
         db.ref(MATCHES_PATH).once('value', snapshot => {
             const matchesData = snapshot.val();
             if (matchesData) {
                 matchSelect.innerHTML = '<option value="">-- Wybierz mecz --</option>';
                 Object.keys(matchesData).forEach(matchId => {
                     const match = matchesData[matchId];
-                    // Zakładamy, że mecz ma pola homeTeamId i awayTeamId
                     const homeName = allTeamsData[match.homeTeamId] ? allTeamsData[match.homeTeamId].name || match.homeTeamId : match.homeTeamId;
                     const awayName = allTeamsData[match.awayTeamId] ? allTeamsData[match.awayTeamId].name || match.awayTeamId : match.awayTeamId;
                     
@@ -392,18 +102,15 @@
             }
         });
         
-        // 3. Listener zmiany wybranego meczu
         matchSelect.addEventListener('change', (e) => {
             const selectedOption = matchSelect.options[matchSelect.selectedIndex];
             const homeId = selectedOption.dataset.home;
             const awayId = selectedOption.dataset.away;
 
-            // Wyczyść poprzednie selektory
             document.getElementById('home-goal-selectors').innerHTML = '';
             document.getElementById('away-goal-selectors').innerHTML = '';
 
             if (homeId && awayId) {
-                // Ustaw dane drużyn bieżącego meczu
                 currentMatchTeams = {
                     home: { 
                         id: homeId, 
@@ -417,11 +124,9 @@
                     }
                 };
                 
-                // Aktualizuj etykiety wyników
                 document.getElementById('home-team-label').textContent = `Wynik ${currentMatchTeams.home.name}:`;
                 document.getElementById('away-team-label').textContent = `Wynik ${currentMatchTeams.away.name}:`;
 
-                // Wywołaj generowanie po zmianie drużyn (aby odświeżyć listy)
                 generateGoalSelectors('home');
                 generateGoalSelectors('away');
 
@@ -434,10 +139,9 @@
     }
 
     // ===========================================
-    // LOGIKA GENEROWANIA I ZAPISU STRZELCÓW
+    // LOGIKA GENEROWANIA I ZAPISU STRZELCÓW (BEZ ZMIAN)
     // ===========================================
 
-    // Generuje listy rozwijane dla strzelców na podstawie wyniku
     function generateGoalSelectors(teamType) {
         const scoreInput = document.getElementById(`${teamType}-score`);
         const score = parseInt(scoreInput.value) || 0;
@@ -455,10 +159,8 @@
         }
 
         const playerArray = Object.values(players);
-        // Sortuj po numerze koszulki
         playerArray.sort((a, b) => (a.number || 999) - (b.number || 999));
 
-        // Stwórz listę opcji zawodników
         let playerOptions = '<option value="">-- Wybierz strzelca --</option>';
         if (playerArray.length > 0) {
             playerOptions += playerArray.map(player => 
@@ -468,7 +170,6 @@
             playerOptions += '<option value="Brak Zawodników">Brak zawodników w składzie</option>';
         }
 
-        // Generuj selektory
         for (let i = 1; i <= score; i++) {
             const goalDiv = document.createElement('div');
             goalDiv.classList.add('form-group', 'goal-entry');
@@ -482,7 +183,6 @@
         }
     }
 
-    // Obsługa zapisu wyniku i strzelców
     document.getElementById('match-form').addEventListener('submit', function(e) {
         e.preventDefault();
         saveMatchScore();
@@ -500,7 +200,6 @@
             return;
         }
         
-        // 1. Zbierz dane o strzelcach i sprawdź, czy wszyscy zostali wybrani
         const scorers = [];
         let isValid = true;
 
@@ -520,25 +219,22 @@
             return;
         }
 
-        // 2. Dane do zapisu w Firebase
         const matchData = {
             homeScore: homeScore,
             awayScore: awayScore,
-            scorers: scorers, // Zapisujemy listę strzelców
+            scorers: scorers, 
             played: true 
         };
 
-        // 3. Zapis do Firebase
         db.ref(MATCHES_PATH).child(matchId).update(matchData)
             .then(() => {
                 messageArea.textContent = `Wynik meczu ${matchId} (${homeScore}-${awayScore}) oraz lista strzelców zapisane pomyślnie.`;
                 messageArea.className = "message-area success";
                 
-                // Reset formularza
                 document.getElementById('match-form').reset();
                 document.getElementById('home-goal-selectors').innerHTML = '';
                 document.getElementById('away-goal-selectors').innerHTML = '';
-                document.getElementById('match-id').value = ""; // Reset wyboru meczu
+                document.getElementById('match-id').value = ""; 
                 document.getElementById('home-team-label').textContent = 'Wynik Gospodarzy:';
                 document.getElementById('away-team-label').textContent = 'Wynik Gości:';
 
@@ -555,5 +251,3 @@
     document.addEventListener('DOMContentLoaded', checkAuth);
 
 </script>
-</body>
-</html>
