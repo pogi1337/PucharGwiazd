@@ -1,113 +1,95 @@
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+// ================================================
+// 🔥 Firebase Cloud Functions - Panel Admina
+// ================================================
 
-async function login(email, password) {
-  const auth = getAuth();
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+// Inicjalizacja Firebase Admin SDK
+admin.initializeApp();
 
-    // 🔹 Wymuś odświeżenie tokena
-    const idTokenResult = await user.getIdTokenResult(true);
+// ======================================================
+// 1️⃣ Funkcja: Tworzenie użytkownika drużyny (team manager)
+// ======================================================
 
-    console.log("✅ Zalogowano jako:", user.email);
-    console.log("📦 Custom claims:", idTokenResult.claims);
-
-    if (idTokenResult.claims.admin) {
-      alert("Jesteś ADMINEM 🧑‍💼");
-    } else if (idTokenResult.claims.role === "teamManager") {
-      alert(`Zalogowano jako drużyna: ${idTokenResult.claims.teamId}`);
-    } else {
-      alert("❌ Nie masz uprawnień — brak claimów");
-    }
-
-  } catch (error) {
-    console.error("Błąd logowania:", error);
-  }
-}
-
-
-// Funkcja logowania użytkownika (np. drużyny)
-async function login(email, password) {
-  const auth = getAuth();
-
-  try {
-    // 🔹 Logowanie użytkownika
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    console.log("Zalogowano jako:", user.email);
-
-    // 🔹 Wymuszenie odświeżenia tokena (żeby pobrać aktualne uprawnienia)
-    await user.getIdToken(true);
-
-    console.log("✅ Token odświeżony — użytkownik ma aktualne uprawnienia!");
-
-    // 🔹 Pobranie claimów (opcjonalne)
-    const idTokenResult = await user.getIdTokenResult();
-    console.log("Custom claims:", idTokenResult.claims);
-
-    // 🔹 Przekierowanie po zalogowaniu
-    if (idTokenResult.claims.role === "teamManager") {
-      console.log("Witaj, menedżerze drużyny!");
-      // np. window.location.href = "/panel-druzyny";
-    } else if (idTokenResult.claims.admin === true) {
-      console.log("Witaj, adminie!");
-      // np. window.location.href = "/admin";
-    } else {
-      alert("Nie masz uprawnień do tego panelu.");
-    }
-
-  } catch (error) {
-    console.error("❌ Błąd logowania:", error.code, error.message);
-    alert("Błąd logowania: " + error.message);
-  }
-}
-
-// 🔸 Przykład użycia (np. po kliknięciu przycisku „Zaloguj”)
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  await login(email, password);
-});
-// Funkcja do ustawiania uprawnień admina (wywoływana przez Ciebie raz)
-exports.setAdmin = functions.https.onCall(async (data, context) => {
-  // Zabezpieczenie — tylko inny admin może ustawić admina
+exports.createTeamUser = functions.https.onCall(async (data, context) => {
+  // Sprawdzenie, czy wywołujący ma uprawnienia admina
   if (!context.auth || context.auth.token.admin !== true) {
-    return { success: false, error: 'Brak uprawnień (musisz być adminem)' };
+    return {
+      success: false,
+      error: "Brak uprawnień administracyjnych do tworzenia kont.",
+    };
   }
 
-  const { email } = data;
-  if (!email) {
-    return { success: false, error: 'Nie podano adresu e-mail' };
-  }
+  const { teamId, email, password } = data;
 
-  try {
-    const user = await admin.auth().getUserByEmail(email);
-    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
-    return { success: true, message: `Użytkownik ${email} został ustawiony jako admin.` };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
-});
-exports.setAdmin = functions.https.onCall(async (data, context) => {
-  if (!context.auth || context.auth.token.admin !== true) {
-    return { success: false, error: 'Brak uprawnień (musisz być adminem)' };
-  }
-
-  const { email } = data;
-  if (!email) {
-    return { success: false, error: 'Nie podano adresu e-mail' };
+  if (!teamId || !email || !password || password.length < 6) {
+    return {
+      success: false,
+      error:
+        "Nieprawidłowe dane wejściowe (wymagane ID drużyny, email i hasło min. 6 znaków).",
+    };
   }
 
   try {
-    const user = await admin.auth().getUserByEmail(email);
-    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
-    return { success: true, message: `Użytkownik ${email} został ustawiony jako admin.` };
-  } catch (err) {
-    return { success: false, error: err.message };
+    // Utworzenie użytkownika w Firebase Authentication
+    const userRecord = await admin.auth().createUser({
+      email: email,
+      password: password,
+      displayName: teamId,
+      emailVerified: true,
+    });
+
+    // Ustawienie niestandardowych claimów (rola drużyny)
+    await admin.auth().setCustomUserClaims(userRecord.uid, {
+      teamId: teamId,
+      role: "teamManager",
+    });
+
+    return {
+      success: true,
+      message: `Konto dla drużyny ${teamId} zostało utworzone pomyślnie.`,
+    };
+  } catch (error) {
+    console.error("Błąd tworzenia użytkownika:", error);
+    return {
+      success: false,
+      error: error.message || "Nieznany błąd serwera.",
+    };
   }
 });
 
+// ======================================================
+// 2️⃣ Funkcja: Nadawanie uprawnień administratora
+// ======================================================
 
+exports.setAdminRole = functions.https.onCall(async (data, context) => {
+  // Sprawdź, czy użytkownik wywołujący ma rolę admina
+  if (!context.auth?.token?.admin) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Tylko administrator może nadawać role."
+    );
+  }
+
+  const email = data.email;
+  if (!email) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Adres e-mail jest wymagany."
+    );
+  }
+
+  try {
+    // Pobranie użytkownika po adresie e-mail
+    const user = await admin.auth().getUserByEmail(email);
+
+    // Nadanie roli administratora
+    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+
+    return { message: `Użytkownik ${email} został administratorem.` };
+  } catch (error) {
+    console.error("Błąd nadawania uprawnień:", error);
+    throw new functions.https.HttpsError("unknown", error.message);
+  }
+});
