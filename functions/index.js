@@ -71,3 +71,24 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const password = document.getElementById("password").value;
   await login(email, password);
 });
+// Funkcja do ustawiania uprawnień admina (wywoływana przez Ciebie raz)
+exports.setAdmin = functions.https.onCall(async (data, context) => {
+  // Zabezpieczenie — tylko inny admin może ustawić admina
+  if (!context.auth || context.auth.token.admin !== true) {
+    return { success: false, error: 'Brak uprawnień (musisz być adminem)' };
+  }
+
+  const { email } = data;
+  if (!email) {
+    return { success: false, error: 'Nie podano adresu e-mail' };
+  }
+
+  try {
+    const user = await admin.auth().getUserByEmail(email);
+    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+    return { success: true, message: `Użytkownik ${email} został ustawiony jako admin.` };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
