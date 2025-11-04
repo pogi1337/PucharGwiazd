@@ -23,18 +23,21 @@
 </div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "puchargwiazd-bdaa4",
-        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-        messagingSenderId: "890734185883",
-        appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-    };
+        // Konfiguracja Firebase (Używamy Twojej)
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            // <--- TUTAJ MUSISZ POPRAWIĆ ADRES
+            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
+            // <--- KONIEC POPRAWKI
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+        };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
     function login() {
         const teamId = document.getElementById("teamId").value.trim();
@@ -69,3 +72,4 @@
 
 </body>
 </html>
+
