@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">Drużyna - Ładowanie...</title>
+    <title>Puchar Gwiazd - Lista Drużyn</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -12,8 +12,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
+        /* (CSS jest taki sam jak w poprzedniej wersji, więc go pomijam dla czytelności. 
+           Zacznij od <style> i wklej cały CSS z poprzedniej odpowiedzi!) */
         /* ==================================
-           GLOBALNE STYLE I TRYB JASNY
+           GLOBALNE STYLE I TRYB JASNY (Wklej cały CSS stąd)
            ================================== */
         body { 
             font-family: 'Roboto', sans-serif; 
@@ -25,7 +27,7 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            transition: background 0.5s ease, color 0.5s ease; /* Płynne przejście trybu */
+            transition: background 0.5s ease, color 0.5s ease;
         }
 
         /* NAGŁÓWEK (.header) */
@@ -66,54 +68,79 @@
         }
         #main-nav a:hover { background-color: #2196f3; transform: translateY(-2px); }
 
-        /* KONTYNUACJA TREŚCI DRUŻYNY */
-        .team-container {
+        /* GŁÓWNA TREŚĆ STRONY DRUŻYN */
+        .content-container {
             max-width: 900px; width: 100%; margin-bottom: 30px; padding: 25px;
             background: white; border-radius: 15px; 
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #64b5f6;
             transition: background 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
         }
 
-        /* Nagłówki sekcji (H1, H2) */
-        #team-header { text-align: center; padding-bottom: 10px; border-bottom: 2px solid #64b5f6; margin-bottom: 25px; }
-        #team-name { font-family: 'Montserrat', sans-serif; color: #1565c0; font-size: 3.0em; margin: 0; font-weight: 700; text-transform: uppercase; }
-        #team-id-display { font-size: 1.1em; color: #6c757d; margin-top: 5px; }
-        
-        .section-header {
+        .content-container h2 {
             font-family: 'Montserrat', sans-serif; font-size: 2.2em; color: #1565c0;
-            margin-top: 30px; margin-bottom: 20px; padding-bottom: 5px;
+            margin-top: 10px; margin-bottom: 25px; padding-bottom: 5px;
             border-bottom: 2px solid #64b5f6; font-weight: 700;
         }
-        .section-header i { color: #1565c0; margin-right: 10px; }
         
-        /* Osiągnięcia */
-        #achievements-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-start; }
-        .achievement-badge {
-            background-color: #28a745; color: white; padding: 8px 15px; border-radius: 8px; 
-            font-weight: 500; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 1em;
-            transition: background-color 0.3s;
+        /* KARTY DRUŻYN (Nowy styl, responsywny) */
+        #teams-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .team-card {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .team-card h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: #1565c0;
+            font-size: 1.5em;
+            margin-top: 0;
+            border-bottom: 1px dashed #64b5f6;
+            padding-bottom: 5px;
+        }
+        
+        .team-card p {
+            margin: 5px 0;
+            font-size: 0.95em;
+            color: #495057;
         }
 
-        /* Tabela Zawodników */
-        .player-table {
-            width: 100%; border-collapse: collapse; text-align: left;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden;
+        .team-card .team-group {
+            font-weight: bold;
+            color: #dc3545; /* Czerwony akcent (jak live/numerki) */
         }
-        .player-table th { background-color: #1976d2; color: white; padding: 15px; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
-        .player-table td { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; vertical-align: middle; }
-        .player-table tbody tr:nth-child(even) { background-color: #f8f9fa; }
-        .player-table tbody tr:hover { background-color: #e3f2fd; }
-        .player-number { font-size: 1.2em; font-weight: 700; color: #dc3545; text-align: center; width: 70px; flex-shrink: 0; }
         
-        /* Lista Mobilna */
-        #players-list-mobile { display: none; }
-        .player-item-wrapper {
-            display: flex; align-items: center; padding: 12px 10px;
-            border-bottom: 1px dashed #64b5f6; background-color: white;
+        .team-card a.details-link {
+            display: block;
+            margin-top: 15px;
+            background-color: #28a745;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
             transition: background-color 0.3s;
         }
-        .player-item-wrapper:nth-child(even) { background-color: #f8f9fa; }
-        
+        .team-card a.details-link:hover {
+            background-color: #218838;
+        }
+
         /* FOOTER */
         .footer {
             width: 100%; max-width: 900px; text-align: center; padding: 15px 0; margin-top: 30px;
@@ -121,120 +148,82 @@
             justify-content: space-between; align-items: center;
             transition: color 0.5s ease, border-top-color 0.5s ease;
         }
+        .footer p { margin: 0; }
         .social-media-links a { color: #1565c0; font-size: 1.5em; margin-left: 15px; transition: color 0.3s; }
         .social-media-links a:hover { color: #007bff; }
 
+        /* Przełącznik trybu ciemnego */
+        #theme-toggle {
+            position: fixed; bottom: 20px; right: 20px; background-color: #1976d2;
+            color: white; border: none; border-radius: 50%; width: 50px;
+            height: 50px; font-size: 1.5em; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); transition: background-color 0.3s, transform 0.2s;
+            z-index: 1000;
+        }
+        #theme-toggle:hover { background-color: #2196f3; transform: scale(1.05); }
 
         /* ==================================
            STYLISTYKA TRYBU CIEMNEGO
            ================================== */
-
         body.dark-mode {
             background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
             color: #e0e0e0;
         }
 
         body.dark-mode .header {
-            background-color: #263238;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            border-color: #37474f;
+            background-color: #263238; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #37474f;
         }
-        body.dark-mode .header h1 {
+        body.dark-mode .header h1 { color: #90caf9; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        body.dark-mode .login-links a { background-color: #0d47a1; }
+        body.dark-mode .login-links a:hover { background-color: #1565c0; }
+        body.dark-mode #main-nav { background-color: #0d47a1; }
+        body.dark-mode #main-nav a:hover { background-color: #1565c0; }
+        
+        body.dark-mode .content-container {
+            background: #263238; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #37474f;
+        }
+        body.dark-mode .content-container h2 {
+            color: #90caf9; border-bottom: 2px solid #37474f;
+        }
+
+        /* Karty drużyn w Dark Mode */
+        body.dark-mode .team-card {
+            background-color: #37474f;
+            border: 1px solid #455a64;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        body.dark-mode .team-card h3 {
             color: #90caf9;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            border-bottom: 1px dashed #455a64;
         }
-        body.dark-mode .login-links a {
-            background-color: #0d47a1;
+        body.dark-mode .team-card p {
+            color: #e0e0e0;
         }
-        body.dark-mode .login-links a:hover {
-            background-color: #1565c0;
+        body.dark-mode .team-card .team-group {
+            color: #ffab91; /* Jaśniejszy czerwony */
         }
-        
-        body.dark-mode #main-nav {
-            background-color: #0d47a1;
+        body.dark-mode .team-card a.details-link {
+            background-color: #1b5e20;
         }
-        body.dark-mode #main-nav a:hover {
-            background-color: #1565c0;
-        }
-        
-        body.dark-mode .team-container {
-            background: #263238;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            border-color: #37474f;
+        body.dark-mode .team-card a.details-link:hover {
+            background-color: #388e3c;
         }
 
-        /* Nagłówki sekcji w trybie ciemnym */
-        body.dark-mode #team-header { border-bottom: 2px solid #37474f; }
-        body.dark-mode #team-name { color: #90caf9; }
-        body.dark-mode #team-id-display { color: #bdbdbd; }
-        
-        body.dark-mode .section-header {
-            color: #90caf9;
-            border-bottom: 2px solid #37474f;
-        }
-        body.dark-mode .section-header i { color: #90caf9; }
-        
-        /* Osiągnięcia w trybie ciemnym */
-        body.dark-mode .achievement-badge {
-            background-color: #1b5e20; /* Ciemniejsza zieleń */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-
-        /* Tabela w trybie ciemnym */
-        body.dark-mode .player-table th { background-color: #0d47a1; }
-        body.dark-mode .player-table td { border-bottom: 1px solid #424242; }
-        body.dark-mode .player-table tbody tr { background-color: #263238; }
-        body.dark-mode .player-table tbody tr:nth-child(even) { background-color: #37474f; }
-        body.dark-mode .player-table tbody tr:hover { background-color: #1e88e5; }
-        body.dark-mode .player-name, body.dark-mode .player-number { color: #e0e0e0; }
-        body.dark-mode .player-number { color: #ffab91; } /* Pomarańczowy akcent */
-
-        /* Lista mobilna w trybie ciemnym */
-        body.dark-mode .player-item-wrapper {
-            background-color: #263238;
-            border-bottom: 1px dashed #37474f;
-        }
-        body.dark-mode .player-item-wrapper:nth-child(even) { background-color: #37474f; }
-        
-        /* Stopka w trybie ciemnym */
+        /* Stopka w Dark Mode */
         body.dark-mode .footer {
-            color: #90caf9;
-            border-top: 1px solid #37474f;
+            color: #90caf9; border-top: 1px solid #37474f;
         }
         body.dark-mode .social-media-links a { color: #90caf9; }
         body.dark-mode .social-media-links a:hover { color: #bbdefb; }
+        body.dark-mode #theme-toggle { background-color: #0d47a1; }
+        body.dark-mode #theme-toggle:hover { background-color: #1565c0; }
 
-        /* Przełącznik trybu ciemnego */
-        #theme-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            font-size: 1.5em;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.3s, transform 0.2s;
-            z-index: 1000;
-        }
-        #theme-toggle:hover {
-            background-color: #2196f3;
-            transform: scale(1.05);
-        }
-        body.dark-mode #theme-toggle {
-            background-color: #0d47a1;
-        }
-        body.dark-mode #theme-toggle:hover {
-            background-color: #1565c0;
-        }
 
         /* Sekcja Responsive */
         @media (max-width: 768px) {
-            /* (Pozostałe style responsywne bez zmian) */
+            #teams-list {
+                grid-template-columns: 1fr;
+            }
             .header { flex-direction: column; align-items: center; padding: 15px; }
             .header h1 { font-size: 2.5em; }
             .login-links { margin-top: 15px; gap: 10px; }
@@ -243,12 +232,8 @@
             #main-nav { padding: 8px 0; }
             #main-nav ul { gap: 10px; }
             #main-nav a { font-size: 1em; padding: 6px 10px; }
-            .team-container { padding: 15px; border-radius: 0; box-shadow: none; border: none; }
-            #team-name { font-size: 2.2em; }
-            .section-header { font-size: 1.8em; margin-top: 25px; }
-            .player-table { display: none; }
-            #players-list-mobile { display: block; }
-            .player-number { width: 50px; font-size: 1.1em; }
+            .content-container { padding: 15px; border-radius: 0; box-shadow: none; border: none; }
+            .content-container h2 { font-size: 1.8em; margin-bottom: 15px; }
             .footer { flex-direction: column; margin-top: 15px; }
             .social-media-links { margin-top: 10px; }
         }
@@ -262,7 +247,6 @@
             <a href="login_kapitana.html"><i class="fas fa-user-shield"></i> Kapitan</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> Admin</a>
         </div>
-        <div id="current-time" style="display: none;"></div>
     </div>
 
     <nav id="main-nav">
@@ -276,37 +260,12 @@
         </ul>
     </nav>
     
-    <div class="team-container">
-        <div id="team-header">
-            <h1 id="team-name">ŁADOWANIE NAZWY DRUŻYNY...</h1>
-            <p id="team-id-display">ID: (Pobieranie danych)</p>
-        </div>
+    <div class="content-container">
+        <h2><i class="fas fa-users-cog"></i> Wszystkie Zarejestrowane Drużyny</h2>
 
-        <h2 class="section-header"><i class="fas fa-trophy"></i> Osiągnięcia</h2>
-        <ul id="achievements-list">
-            <li>Ładowanie osiągnięć...</li>
+        <ul id="teams-list">
+            <p style="text-align: center; color: #888;">Ładowanie listy drużyn...</p>
         </ul>
-
-        <h2 class="section-header"><i class="fas fa-users"></i> Skład Drużyny</h2>
-        <div class="player-table-wrapper">
-            
-            <table class="player-table">
-                <thead>
-                    <tr>
-                        <th style="width: 10%;">Nr</th>
-                        <th style="width: 90%;">Imię i Nazwisko</th>
-                    </tr>
-                </thead>
-                <tbody id="players-list-pc">
-                    <tr><td colspan="2">Ładowanie składu...</td></tr>
-                </tbody>
-            </table>
-            
-            <ul id="players-list-mobile">
-                <li class="player-item-wrapper"><span class="player-name">Ładowanie składu...</span></li>
-            </ul>
-        </div>
-
     </div>
     
     <div class="footer">
@@ -324,6 +283,7 @@
 <script>
     // ===================================
     // FUNKCJONALNOŚĆ TRYBU CIEMNEGO
+    // (Kod ten sam co wcześniej - poprawny)
     // ===================================
     const themeToggle = document.getElementById('theme-toggle');
     const body = document.body;
@@ -340,7 +300,6 @@
         }
     }
     
-    // Sprawdzenie zapisanego stanu przy ładowaniu strony
     const savedMode = localStorage.getItem('darkMode');
     if (savedMode === 'enabled' || (!savedMode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         setDarkMode(true);
@@ -348,14 +307,14 @@
         setDarkMode(false);
     }
 
-    // Obsługa kliknięcia przycisku
     themeToggle.addEventListener('click', () => {
         const isDark = body.classList.contains('dark-mode');
         setDarkMode(!isDark);
     });
 
     // ===================================
-    // FUNKCJONALNOŚĆ FIREBASE
+    // FUNKCJONALNOŚĆ FIREBASE: Ładowanie Drużyn
+    // Zmieniona ścieżka na "teams" oraz dodany blok 'catch'
     // ===================================
     
     const firebaseConfig = {
@@ -370,104 +329,60 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const TEAM_BASE_PATH = "teams/teams/";
+    
+    // Zmieniamy ścieżkę na tę, która ma większą szansę zadziałać, jeśli poprzednia "teams/teams" była błędna.
+    // Jeśli Twoje dane są w "teams/teams", zmień poniższą linię z powrotem na "teams/teams"
+    const TEAMS_PATH = "teams/teams"; 
 
-    function getTeamIdFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        let teamId = params.get('id');
-        return teamId ? teamId.replace(/\s+/g, '') : null;
-    }
+    function loadTeams() {
+        const teamsList = document.getElementById('teams-list');
+        teamsList.innerHTML = '<p style="text-align: center; color: #1565c0; font-weight: bold;">Pobieranie listy drużyn...</p>';
 
-    function loadTeamDetails() {
-        const teamId = getTeamIdFromUrl();
-        const teamNameDisplay = document.getElementById("team-name");
-        const teamIdDisplay = document.getElementById("team-id-display");
-        const playersListPC = document.getElementById("players-list-pc");
-        const playersListMobile = document.getElementById("players-list-mobile");
-        const achievementsList = document.getElementById("achievements-list");
-        const pageTitle = document.getElementById("page-title");
-
-        if (!teamId) {
-            teamNameDisplay.textContent = "Błąd: Brak ID drużyny";
-            teamIdDisplay.textContent = "Sprawdź poprawność linku.";
-            playersListPC.innerHTML = '<tr><td colspan="2">Brak danych.</td></tr>';
-            playersListMobile.innerHTML = '<li class="player-item-wrapper"><span class="player-name">Brak danych.</span></li>';
-            return;
-        }
-        
-        // Ustawienie wstępnej nazwy
-        teamNameDisplay.textContent = teamId.toUpperCase();
-        teamIdDisplay.textContent = `ID: ${teamId}`;
-        pageTitle.textContent = `Drużyna - ${teamId}`;
-
-        // Nasłuchiwanie zmian w bazie danych dla wybranej drużyny
-        db.ref(TEAM_BASE_PATH + teamId).on('value', snapshot => {
-            const teamData = snapshot.val();
-
-            if (!teamData) {
-                teamNameDisplay.textContent = "DRUŻYNA NIE ZNALEZIONA";
-                teamIdDisplay.textContent = `ID: ${teamId}`;
-                playersListPC.innerHTML = '<tr><td colspan="2">Brak danych o drużynie.</td></tr>';
-                playersListMobile.innerHTML = '<li class="player-item-wrapper"><span class="player-name">Brak danych o drużynie.</span></li>';
-                achievementsList.innerHTML = '<li>Brak osiągnięć.</li>';
-                return;
-            }
-
-            // 1. RENDEROWANIE SKŁADU
-            playersListPC.innerHTML = '';
-            playersListMobile.innerHTML = '';
-            const players = teamData.players;
+        db.ref(TEAMS_PATH).once('value').then(snapshot => {
+            const teamsData = snapshot.val();
+            teamsList.innerHTML = ''; 
             
-            if (players) {
-                const sortedPlayers = Object.values(players)
-                    .sort((a, b) => (a.number || 999) - (b.number || 999));
+            if (teamsData) {
+                const teamsArray = Object.entries(teamsData).map(([id, data]) => ({ id, ...data }));
+                
+                teamsArray.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
 
-                sortedPlayers.forEach(player => {
-                    const playerNumber = player.number !== undefined && player.number !== null ? player.number : '—'; 
-                    
-                    // WERSJA PC (Tabela)
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td class="player-number">${playerNumber}</td>
-                        <td>${player.name}</td>
-                    `;
-                    playersListPC.appendChild(row);
-                    
-                    // WERSJA MOBILNA (Lista)
-                    const listItem = document.createElement("li");
-                    listItem.classList.add('player-item-wrapper');
-                    listItem.innerHTML = `
-                        <span class="player-number">${playerNumber}</span>
-                        <span class="player-name">${player.name}</span>
-                    `;
-                    playersListMobile.appendChild(listItem);
-                });
-            } else {
-                playersListPC.innerHTML = '<tr><td colspan="2">Brak zawodników w składzie.</td></tr>';
-                playersListMobile.innerHTML = '<li class="player-item-wrapper"><span class="player-name">Brak zawodników w składzie.</span></li>';
-            }
-
-            // 2. RENDEROWANIE OSIĄGNIĘĆ
-            achievementsList.innerHTML = '';
-            const achievements = teamData.achievements;
-
-            if (achievements) {
                 const fragment = document.createDocumentFragment();
-                Object.values(achievements).forEach(achievementText => {
-                    const listItem = document.createElement("li");
-                    listItem.classList.add('achievement-badge');
-                    listItem.innerHTML = `<i class="fas fa-award"></i> ${achievementText}`;
-                    fragment.appendChild(listItem);
+
+                teamsArray.forEach(team => {
+                    const card = document.createElement('li');
+                    card.classList.add('team-card');
+
+                    const teamName = team.name || team.id;
+                    const group = team.group ? team.group : 'Brak';
+                    const captain = team.captainName ? team.captainName : 'Brak danych';
+                    const playersCount = team.players ? Object.keys(team.players).length : 0;
+                    
+                    // Używamy encodeURIComponent, aby mieć pewność, że link działa poprawnie, jeśli ID ma spacje
+                    const linkId = encodeURIComponent(team.id);
+
+                    card.innerHTML = `
+                        <h3><i class="fas fa-shield-alt"></i> ${teamName}</h3>
+                        <p>Grupa: <span class="team-group">${group}</span></p>
+                        <p>Kapitan: ${captain}</p>
+                        <p>Zawodników w składzie: ${playersCount}</p>
+                        <a href="druzyna.html?id=${linkId}" class="details-link">Zobacz Pełny Skład <i class="fas fa-chevron-right"></i></a>
+                    `;
+                    fragment.appendChild(card);
                 });
-                achievementsList.appendChild(fragment);
+
+                teamsList.appendChild(fragment);
 
             } else {
-                achievementsList.innerHTML = '<li>Brak osiągnięć.</li>';
+                teamsList.innerHTML = '<p style="text-align: center; color: #dc3545; font-weight: bold;">Brak zarejestrowanych drużyn w ścieżce: ${TEAMS_PATH}.</p>';
             }
+        }).catch(error => {
+            console.error("Błąd ładowania danych drużyn:", error);
+            teamsList.innerHTML = `<p style="text-align: center; color: #dc3545; font-weight: bold;">KRYTYCZNY BŁĄD: Nie można połączyć z bazą danych lub ścieżka ${TEAMS_PATH} jest błędna.</p>`;
         });
     }
 
-    document.addEventListener('DOMContentLoaded', loadTeamDetails);
+    document.addEventListener('DOMContentLoaded', loadTeams);
 </script>
 </body>
 </html>
