@@ -11,21 +11,83 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-
+    
     <style>
-        .header {
+        /* GLOBALNE STYLE */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #e0f2f7 0%, #bbdefb 100%);
+            color: #212121;
+            margin: 0;
+            padding: 20px;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+            color: #e0e0e0;
+        }
+
+        /* NAGŁÓWEK (.header) - style z obu źródeł */
+        .header {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            border: 2px solid #64b5f6;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeInTop 1s ease-out forwards;
+            position: relative;
+            transition: background-color 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
+            
+            /* Domyślny układ dla PC */
+            display: flex; 
             justify-content: space-between;
             align-items: center;
-            padding: 10px 20px;
         }
+
+        @keyframes fadeInTop {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body.dark-mode .header {
+            background-color: #263238;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border-color: #37474f;
+        }
+        
+        .header h1 {
+            font-family: 'Montserrat', sans-serif;
+            color: #1565c0;
+            font-size: 3.2em;
+            margin-bottom: 0; /* Zmienione na 0, bo logowanie jest obok */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+            transition: color 0.5s ease, text-shadow 0.5s ease;
+        }
+        body.dark-mode .header h1 {
+            color: #90caf9;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* LINKI LOGOWANIA (.login-links) */
         .login-links {
             display: flex;
             gap: 15px;
         }
         .login-links a {
-            color: white;
+            color: white; /* Domyślny kolor linków z HTMLa, ale powinien być ustalony w CSS */
+            background-color: #1976d2; /* Dodany kolor tła dla lepszej widoczności linków */
             text-decoration: none;
             font-weight: bold;
             padding: 8px 12px;
@@ -33,131 +95,191 @@
             transition: background-color 0.3s;
         }
         .login-links a:hover {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: #2196f3;
         }
-        
-        /* Zmiana szerokości kontenerów */
+        body.dark-mode .login-links a {
+            background-color: #0d47a1;
+        }
+        body.dark-mode .login-links a:hover {
+            background-color: #1565c0;
+        }
+
+        /* NAWIGACJA (NAV) */
+        #main-nav {
+            width: 100%;
+            max-width: 900px;
+            background-color: #1976d2;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            padding: 10px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            transition: background-color 0.5s ease, box-shadow 0.5s ease;
+        }
+        #main-nav ul {
+            list-style: none; margin: 0; padding: 0; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+        }
+        #main-nav a {
+            color: #ffffff; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.1em;
+            padding: 8px 15px; border-radius: 8px; transition: background-color 0.3s ease, transform 0.2s ease, color 0.3s ease;
+        }
+        #main-nav a:hover {
+            background-color: #2196f3; transform: translateY(-2px);
+        }
+        body.dark-mode #main-nav {
+            background-color: #0d47a1;
+        }
+        body.dark-mode #main-nav a:hover {
+            background-color: #1565c0;
+        }
+
+        /* SEKCJA MECZOWA */
         .stats-summary {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-around;
-            gap: 15px; /* Mniejszy odstęp między kolumnami */
+            gap: 15px;
             margin-top: 20px;
             width: 100%;
         }
-        
         .stats-column {
             background-color: #fff;
-            padding: 10px; /* Mniejszy padding wewnątrz kolumny */
+            padding: 10px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 100%; 
+            max-width: 100%;
             box-sizing: border-box;
-            flex: 1; 
-            min-width: 300px; 
+            flex: 1;
+            min-width: 300px;
         }
-        
+        body.dark-mode .stats-column {
+            background-color: #37474f;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
         .stats-column h3 {
             color: #007bff;
             border-bottom: 2px solid #007bff;
             padding-bottom: 5px;
             text-align: center;
-            font-size: 1.2em; /* Mniejszy nagłówek kolumny */
+            font-size: 1.2em;
+        }
+        body.dark-mode .stats-column h3 {
+            color: #90caf9;
+            border-bottom-color: #90caf9;
         }
         
-        /* OSTATECZNE POPRAWKI DLA WYŚWIETLANIA MECZU */
-        .match-item {
-            display: flex;
-            align-items: center;
-            padding: 5px 0; /* Mniejszy padding pionowy */
-            border-bottom: 1px dashed #eee;
-            font-size: 0.85em; /* Mała czcionka dla oszczędności miejsca */
-        }
-        
-        .team-name {
-            font-weight: 700;
-            flex-grow: 1; 
-            min-width: 30px; /* Minimalna szerokość obniżona */
-            overflow: hidden; 
-            text-overflow: ellipsis; /* KLUCZOWE: Ucinaj i dodaj "..." */
-            white-space: nowrap; 
-            padding: 0 3px; /* Minimalny padding poziomy */
-            text-align: right; 
-        }
-        
-        .team-name:last-of-type {
-             text-align: left; 
-        }
+        /* OSTATECZNE POPRAWKI DLA WYŚWIETLANIA MECZU (z pierwszego bloku) */
+        .match-item { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px dashed #eee; font-size: 0.85em; }
+        body.dark-mode .match-item { border-bottom: 1px dashed #444; }
 
+        .team-name { font-weight: 700; flex-grow: 1; min-width: 30px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 3px; text-align: right; }
+        .team-name:last-of-type { text-align: left; }
         .score-box-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 50px; /* BARDZO ŚCISŁA szerokość dla wyniku */
-            flex-shrink: 0; 
-            font-size: 1em; 
-            font-weight: 900;
-            color: #000; /* 🔥 ZMIANA KOLORU CZCIONKI NA CZARNY 🔥 */
+            display: flex; align-items: center; justify-content: center; width: 50px; flex-shrink: 0;
+            font-size: 1em; font-weight: 900; color: #000;
         }
-        
+        body.dark-mode .score-box-container { color: #fff; }
+
         .status-tag {
-            font-size: 0.6em; /* Bardzo mała czcionka tagu */
-            font-weight: bold;
-            padding: 2px 4px; /* Minimalny padding tagu */
-            border-radius: 4px;
-            flex-shrink: 0; 
-            margin-left: 3px; /* Minimalny margines */
-            text-align: center;
+            font-size: 0.6em; font-weight: bold; padding: 2px 4px; border-radius: 4px; flex-shrink: 0;
+            margin-left: 3px; text-align: center;
         }
-        
-        /* Style statusów */
         .scheduled { background-color: #ffc107; color: #333; }
         .live { background-color: #dc3545; color: white; animation: pulse 1.5s infinite; }
         .finished { background-color: #28a745; color: white; }
-        
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
             100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
         }
+
+        /* HERO BANNER i ODLICZANIE */
         .hero-banner {
-            text-align: center;
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            color: white;
-            padding: 50px 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
+            text-align: center; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white; padding: 50px 20px; border-radius: 10px; margin-bottom: 30px;
         }
-        
-        /* Styl dla odliczania (zaciągnięty z style.css) */
         .countdown {
-            font-size: 2.2em;
-            font-weight: bold;
-            color: #e64a19;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px; 
-            text-align: center;
+            font-size: 2.2em; font-weight: bold; color: #e64a19; margin-bottom: 20px;
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; text-align: center;
         }
-
         .countdown div {
-            margin: 0 10px;
-            background-color: #ffccbc;
-            padding: 10px 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            min-width: 80px; 
-            text-align: center;
+            margin: 0 10px; background-color: #ffccbc; padding: 10px 15px;
+            border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); min-width: 80px; text-align: center;
         }
-
         .countdown span {
-            display: block;
-            font-size: 0.5em;
-            color: #d84315;
-            margin-top: 5px;
+            display: block; font-size: 0.5em; color: #d84315; margin-top: 5px;
+        }
+        body.dark-mode .countdown { color: #ff7043; }
+        body.dark-mode .countdown div { background-color: #5d4037; }
+        body.dark-mode .countdown span { color: #ffab91; }
+
+
+        /* SEKCJA RESPONSIVE DLA TELEFONÓW */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+
+            .header, .content-section, .footer, #main-nav {
+                padding: 15px;
+                margin-left: 0;
+                margin-right: 0;
+            }
+            
+            /* 🔥 KLUCZOWE POPRAWKI DLA LOGOWANIA NA TELEFONIE 🔥 */
+            .header {
+                /* Ustawia tytuł i linki jeden pod drugim na telefonie */
+                flex-direction: column; 
+                align-items: center;
+                display: flex; 
+            }
+
+            .login-links {
+                margin-top: 15px; /* Dodatkowy odstęp od H1 */
+                gap: 15px;
+            }
+
+            /* Ukrycie tekstu ("Kapitan", "Admin") i pozostawienie samych ikon */
+            .login-links a {
+                font-size: 0; 
+                padding: 10px; /* Zwiększony obszar do kliknięcia */
+                min-width: 30px; 
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            /* Upewnienie się, że ikony są widoczne i mają odpowiedni rozmiar */
+            .login-links a i {
+                font-size: 1.4rem; /* Większy rozmiar ikony na telefonie */
+                margin: 0;
+            }
+            /* Koniec kluczowych poprawek */
+
+            /* Zmniejszenie rozmiaru nagłówków na telefonie */
+            .header h1 {
+                font-size: 2.5em;
+            }
+            .content-section h2 {
+                font-size: 2em;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+            }
+            #main-nav a {
+                font-size: 1em;
+                padding: 6px 10px;
+            }
+
+            .team-card {
+                min-width: 100%; /* Pełna szerokość na telefonie */
+            }
+
+            .stats-column {
+                min-width: 100%; /* Pełna szerokość na telefonie */
+            }
         }
     </style>
 </head>
@@ -168,7 +290,7 @@
             <a href="login_kapitan.html"><i class="fas fa-user-shield"></i> Kapitan</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> Admin</a>
         </div>
-        <div id="current-time" style="display: none;"></div> 
+        <div id="current-time" style="display: none;"></div>
     </div>
 
     <nav id="main-nav">
@@ -299,7 +421,6 @@
             }
         }
 
-        // Funkcja generująca HTML meczu
         function createMatchHtml(match) {
             const statusClass = match.status;
             let scoreContent;
@@ -331,18 +452,15 @@
             `;
         }
 
-        // Funkcja Odliczania
         function startCountdown() {
             // Data i czas docelowy: 14 grudnia 2025, 10:00:00 CET
             const countDownDate = new Date("Dec 14, 2025 10:00:00").getTime();
             const countdownElement = document.getElementById("countdown");
 
-            // Aktualizacja co 1 sekundę
             const x = setInterval(function() {
                 const now = new Date().getTime();
                 const distance = countDownDate - now;
 
-                // Obliczenia czasu dla dni, godzin, minut i sekund
                 const days = Math.floor(distance / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
