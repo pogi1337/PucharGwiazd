@@ -7,96 +7,142 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
-        /* GLOBALNE STYLE PANELU KAPITANÓW */
+        /* GLOBALNE STYLE I TYPOGRAFIA */
         body { 
-            font-family: 'Roboto', sans-serif; 
+            font-family: 'Montserrat', sans-serif; 
             padding: 10px; 
-            background-color: #e0f2f7; /* Jasny niebieski */
+            background: linear-gradient(135deg, #e0f2f7 0%, #bbdefb 100%);
             color: #212121;
+            min-height: 100vh;
         }
 
         .section { 
             max-width: 600px; 
             margin: 20px auto; 
-            padding: 20px; 
+            padding: 25px; 
             border: 1px solid #64b5f6; 
             background-color: white; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); /* Większy, ładniejszy cień */
         }
         
-        h1, h2 { color: #1565c0; text-align: center; }
-        h3 { color: #007bff; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        h1, h2 { 
+            color: #1565c0; 
+            text-align: center; 
+            font-weight: 700;
+        }
+        h2 { font-size: 1.5em; margin-bottom: 20px; }
+        h3 { 
+            color: #007bff; 
+            margin-top: 25px; 
+            border-bottom: 2px solid #e0e0e0; 
+            padding-bottom: 8px; 
+            font-weight: 700;
+        }
 
-        /* Pola input i przyciski */
+        /* POLA FORMULARZA */
         input, button {
-            padding: 12px;
+            padding: 14px; /* Zwiększony padding dla łatwiejszego klikania/dotyku */
             margin: 5px 0;
-            border-radius: 6px;
-            border: 1px solid #ccc;
+            border-radius: 8px;
+            border: 1px solid #bdbdbd;
             width: 100%;
             box-sizing: border-box;
             font-size: 1em;
+            transition: border-color 0.3s;
         }
-        
-        /* Ustawienie szerokości dla PC */
+        input:focus {
+            border-color: #2196f3;
+            outline: none;
+            box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+        }
+
+        /* Układ pól dodawania zawodnika na PC/dużych ekranach */
         #player-number-input {
-            font-weight: bold;
+            font-weight: 700;
             text-align: center;
-            width: 40%; 
+            width: 30%; /* Mniejsza szerokość na PC */
             margin-right: 1%; 
             display: inline-block;
+            background-color: #e3f2fd; /* Lekkie tło */
         }
         #player-name-input {
-            width: 59%; 
+            width: 69%; 
             display: inline-block;
         }
 
+        /* PRZYCISKI */
         button { 
-            background-color: #28a745; 
+            background-color: #4caf50; /* Zadbana zieleń */
             color: white; 
             cursor: pointer; 
             border: none; 
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 15px;
+            font-weight: 700;
         }
         button:hover {
-            background-color: #1e7e34;
+            background-color: #388e3c;
+            transform: translateY(-2px);
         }
         .delete-btn { 
-            background-color: #dc3545; 
-            width: 80px; 
-            padding: 8px;
+            background-color: #f44336; /* Czerwony dla usuwania */
+            width: 90px; 
+            padding: 10px;
             margin: 0;
             flex-shrink: 0;
         }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
         .logout-btn {
-            background-color: #6c757d;
-            margin-top: 20px;
+            background-color: #757575;
+            margin-top: 30px;
+        }
+        .logout-btn:hover {
+             background-color: #5d5d5d;
         }
 
-        /* Lista zawodników */
+        /* LISTA ZAWODNIKÓW */
         .player-list { list-style: none; padding: 0; }
         .player-list li { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 10px 0; 
-            border-bottom: 1px dashed #e0e0e0;
+            padding: 12px 5px; /* Większy padding */
+            border-bottom: 1px solid #f0f0f0;
             font-size: 1.1em;
+        }
+        .player-list li:hover {
+            background-color: #f9f9f9;
         }
         .player-list li span {
             flex-grow: 1;
-            padding-right: 10px;
-        }
-        .player-info {
-            font-weight: bold;
-            color: #333;
+            padding-right: 15px;
         }
         
+        .player-info {
+            /* Nowy styl dla numeru i nazwy */
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            color: #333;
+        }
+        .player-number {
+            font-size: 1.2em; /* Większy numer */
+            font-weight: 700;
+            color: #1976d2; /* Niebieski */
+            margin-right: 10px;
+            min-width: 30px;
+            text-align: left;
+        }
+
         /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (MAX SZEROKOŚĆ 600px) --- */
         @media (max-width: 600px) {
             
@@ -114,17 +160,24 @@
 
             /* Układ listy zawodników */
             .player-list li {
-                flex-wrap: wrap; 
+                flex-direction: column; /* Ułożenie pionowe */
+                align-items: stretch;
                 padding-bottom: 15px;
                 padding-top: 15px;
             }
             
             /* Nazwa zawodnika zajmuje pełny wiersz */
-            .player-list li span {
+            .player-list li .player-info {
                 width: 100%;
-                margin-bottom: 8px;
+                margin-bottom: 10px;
                 padding-right: 0;
-                font-size: 1.2em;
+                font-size: 1.3em;
+            }
+
+            .player-list li .player-number {
+                font-size: 1.5em; /* Duży numer na telefonie */
+                margin-right: 15px;
+                min-width: 40px;
             }
 
             /* Przycisk usuwania na pełnej szerokości */
@@ -142,16 +195,16 @@
 <div class="section" id="player-management" style="display: none;">
     <h2 id="team-name-display">Edycja Składu dla: --</h2>
     
-    <h3>Dodaj Nowego Zawodnika</h3>
-    <input id="player-number-input" type="number" min="1" max="99" placeholder="Numer zawodnika (Wymagany)" required>
+    <h3><i class="fas fa-user-plus"></i> Dodaj Nowego Zawodnika</h3>
+    <input id="player-number-input" type="number" min="1" max="99" placeholder="Numer zawodnika (1-99)" required>
     <input id="player-name-input" placeholder="Imię i Nazwisko Zawodnika">
-    <button onclick="addPlayer()">Dodaj Zawodnika</button>
+    <button onclick="addPlayer()"><i class="fas fa-check"></i> Dodaj Zawodnika</button>
     
-    <h3>Aktualny Skład</h3>
+    <h3><i class="fas fa-users"></i> Aktualny Skład</h3>
     <ul id="player-list" class="player-list">
         <li>Ładowanie składu...</li>
     </ul>
-    <button onclick="logout()" class="logout-btn">Wyloguj</button>
+    <button onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
 </div>
 
 <div id="access-denied" style="display: none; text-align: center;">
@@ -198,7 +251,7 @@
         playerList.innerHTML = "";
 
         if (!playersData) {
-            playerList.innerHTML = "<li>Skład nieuzupełniony. Dodaj pierwszego zawodnika!</li>";
+            playerList.innerHTML = '<li><i class="fas fa-info-circle"></i> Skład nieuzupełniony. Dodaj pierwszego zawodnika!</li>';
             return;
         }
 
@@ -210,11 +263,14 @@
 
         sortedPlayers.forEach(player => {
             const listItem = document.createElement("li");
-            const playerNumber = player.number !== undefined && player.number !== null ? `[${player.number}] ` : ''; 
+            const playerNumber = player.number !== undefined && player.number !== null ? player.number : '—'; 
             
             listItem.innerHTML = `
-                <span class="player-info">${playerNumber}${player.name}</span>
-                <button class="delete-btn" onclick="deletePlayer('${player.id}')">Usuń</button>
+                <span class="player-info">
+                    <span class="player-number">${playerNumber}</span>
+                    ${player.name}
+                </span>
+                <button class="delete-btn" onclick="deletePlayer('${player.id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
             `;
             playerList.appendChild(listItem);
         });
@@ -228,7 +284,7 @@
         const playerNumber = parseInt(playerNumberInput.value.trim());
 
         if (!currentTeamId) return alert("Błąd sesji.");
-        if (!playerName) return alert("Podaj imię i nazwisko zawodnika.");
+        if (!playerName) return alert("⚠️ Podaj imię i nazwisko zawodnika.");
         
         // WALIDACJA NUMERU ZAWODNIKA
         if (isNaN(playerNumber) || playerNumber < 1 || playerNumber > 99) {
