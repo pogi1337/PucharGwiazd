@@ -8,8 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght=500;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script> <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght=500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
@@ -56,6 +55,9 @@
         /* =========================================== */
         /* STYLY AKORDEONU (UŁATWIENIE OBSŁUGI) */
         /* =========================================== */
+        .accordion-item:last-child > .accordion-header {
+            border-bottom: none;
+        }
         .accordion-header {
             padding: 20px 25px; cursor: pointer;
             background-color: #212529; /* Ciemniejszy pasek */
@@ -360,6 +362,38 @@
                 </form>
             </div>
         </div>
+        
+        <div class="content-container accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion('team-account-content')">
+                <h2><i class="fas fa-key"></i> 4. Stwórz Konto Logowania dla Drużyny</h2>
+                <i class="fas fa-chevron-down arrow"></i>
+            </div>
+            <div id="team-account-content" class="accordion-content">
+                <form id="create-team-account-form">
+                    <div class="form-group">
+                        <label for="team-id-account">Wybierz Drużynę (ID konta będzie takie samo):</label>
+                        <select id="team-id-account" required>
+                            <option value="">-- Wybierz drużynę --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="team-email">Email do logowania (login):</label>
+                        <input type="email" id="team-email" required placeholder="np. nazwa_druzyny@turniej.pl">
+                    </div>
+                    <div class="form-group">
+                        <label for="team-password">Hasło:</label>
+                        <input type="password" id="team-password" required placeholder="Minimum 6 znaków">
+                    </div>
+                    <button type="submit" class="submit-btn"><i class="fas fa-user-plus"></i> Stwórz Konto Drużyny</button>
+                    <div id="create-account-message" class="message-area"></div>
+                </form>
+                
+                <h3 class="subsection-header" style="margin-top: 40px;"><i class="fas fa-info-circle"></i> Ważna Informacja</h3>
+                <p style="color: var(--secondary-color);">
+                    Ta funkcja wymaga wdrożenia Firebase **Cloud Function** (`createTeamUser`). Bez wdrożenia tej funkcji, tworzenie kont **nie zadziała**.
+                </p>
+            </div>
+        </div>
 
         <div class="content-container" style="text-align: center; padding: 25px;">
             <button id="admin-logout-btn" class="submit-btn" style="background-color: #6c757d;"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
@@ -418,9 +452,9 @@
     // ===========================================
 
     const firebaseConfig = {
-        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        databaseURL: "puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/", 
+        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo", // ZMIEŃ NA SWÓJ KLUCZ!
+        authDomain: "puchargwiazd-bdaa4.firebaseapp.com", // ZMIEŃ NA SWÓJ DOMENĘ!
+        databaseURL: "puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/", // ZMIEŃ NA SWÓJ URL!
         projectId: "puchargwiazd-bdaa4",
         storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
         messagingSenderId: "890734185883",
@@ -487,13 +521,11 @@
                 switch(error.code) {
                     case 'auth/user-not-found':
                     case 'auth/wrong-password':
+                    case 'auth/invalid-credential':
                         displayMessage = "Błąd: Błędny email lub hasło. Sprawdź, czy konto jest aktywne w Firebase Authentication.";
                         break;
                     case 'auth/network-request-failed':
                         displayMessage = "Błąd: Brak połączenia z internetem lub problem z serwerem Firebase.";
-                        break;
-                    case 'auth/invalid-credential':
-                        displayMessage = "Błąd: Nieprawidłowe dane logowania (zwykle oznacza to błąd hasła lub emaila).";
                         break;
                     default:
                         displayMessage = "Błąd logowania: " + error.message + " (Kod błędu: " + error.code + ")."; 
@@ -512,7 +544,7 @@
     });
 
     // ===========================================
-    // LOGIKA APLIKACJI (NIEZMIENIONA, Z WYJĄTKIEM AKORDEONU)
+    // FUNKCJE WSPOMAGAJĄCE
     // ===========================================
 
     function loadMatchAndTeamData() {
@@ -536,7 +568,12 @@
     }
 
     function populateTeamSelects() {
-        const selects = ['new-home-team', 'new-away-team', 'edit-home-team', 'edit-away-team'];
+        // Selektory dla sekcji 2 (Zarządzanie Meczami) i 3 (Edycja Drużyn)
+        const selects = ['new-home-team', 'new-away-team', 'edit-home-team', 'edit-away-team', 'select-team-manage'];
+        
+        // NOWY SELEKTOR dla sekcji 4 (Tworzenie Kont)
+        const teamAccountSelect = document.getElementById('team-id-account'); 
+        
         const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
         Object.keys(allTeamsData).forEach(teamId => {
             const teamName = allTeamsData[teamId]?.name || teamId;
@@ -547,6 +584,11 @@
             const select = document.getElementById(id);
             if (select) select.innerHTML = teamOptions.join('');
         });
+
+        // Wypełnienie nowego selektora
+        if (teamAccountSelect) {
+             teamAccountSelect.innerHTML = teamOptions.join('');
+        }
     }
 
     function populateMatchSelects() {
@@ -593,6 +635,10 @@
         document.getElementById('match-id').removeEventListener('change', handleMatchScoreSelect);
         document.getElementById('match-id').addEventListener('change', handleMatchScoreSelect);
     }
+    
+    // ===========================================
+    // SEKCJA 1: WYNIKI I STRZELCY
+    // ===========================================
 
     function filterMatchSelect(selectId, groupFilter) {
         const select = document.getElementById(selectId);
@@ -784,6 +830,10 @@
                 messageArea.className = "message-area error";
             });
     }
+
+    // ===========================================
+    // SEKCJA 2: ZARZĄDZANIE MECZAMI
+    // ===========================================
 
     document.getElementById('add-match-form').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -1002,6 +1052,10 @@
             });
     });
 
+    // ===========================================
+    // SEKCJA 3: ZARZĄDZANIE DRUŻYNAMI
+    // ===========================================
+
     function loadTeamsForManagement() {
         const teamSelect = document.getElementById('select-team-manage');
         const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
@@ -1108,6 +1162,54 @@
             .catch(error => {
                 messageArea.textContent = "Błąd zapisu danych drużyny: " + error.message;
                 messageArea.className = "message-area error";
+            });
+    });
+
+    // ===========================================
+    // SEKCJA 4: TWORZENIE KONT DRUŻYN
+    // ===========================================
+
+    document.getElementById('create-team-account-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const teamId = document.getElementById('team-id-account').value;
+        const email = document.getElementById('team-email').value;
+        const password = document.getElementById('team-password').value;
+        const messageArea = document.getElementById('create-account-message');
+        
+        if (!teamId || !email || !password || password.length < 6) {
+             messageArea.textContent = "Uzupełnij poprawnie wszystkie pola (hasło min. 6 znaków).";
+             messageArea.className = "message-area error";
+             return;
+        }
+
+        messageArea.textContent = "Trwa tworzenie konta...";
+        messageArea.className = "message-area info";
+
+        // WYWOŁANIE CLOUD FUNCTION (wymaga wdrożenia kodu na serwerze!)
+        const createTeamUser = firebase.functions().httpsCallable('createTeamUser');
+
+        createTeamUser({ teamId: teamId, email: email, password: password })
+            .then(result => {
+                if (result.data.success) {
+                    messageArea.textContent = `Pomyślnie utworzono konto dla drużyny ${teamId} (Login: ${email}).`;
+                    messageArea.className = "message-area success";
+                    document.getElementById('create-team-account-form').reset();
+                } else {
+                    throw new Error(result.data.error || 'Nieznany błąd.');
+                }
+            })
+            .catch(error => {
+                let displayMessage = "Błąd: Nie udało się utworzyć konta. ";
+                if (error.code === 'not-found') {
+                    displayMessage += "Brak Cloud Function o nazwie 'createTeamUser' (sprawdź wdrożenie).";
+                } else if (error.message.includes('auth/email-already-in-use')) {
+                    displayMessage = "Błąd: Podany email jest już zajęty.";
+                } else {
+                    displayMessage += error.message;
+                }
+                messageArea.textContent = displayMessage;
+                messageArea.className = "message-area error";
+                console.error("Cloud Function Error:", error);
             });
     });
 
