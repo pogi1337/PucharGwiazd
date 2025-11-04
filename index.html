@@ -21,10 +21,10 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .group-title { 
-            background-color: #007bff; /* Kolor nagłówka grupy */
+            background-color: #007bff;
             color: white; 
             padding: 8px; 
-            margin: -10px -10px 10px -10px; /* Rozciąga na szerokość sekcji */
+            margin: -10px -10px 10px -10px; 
             font-size: 1.2em; 
             font-weight: bold; 
             text-align: center;
@@ -47,8 +47,28 @@
         .score {
             font-weight: 700;
             font-size: 1.1em;
-            color: #dc3545; /* Czerwony kolor dla wyniku */
+            color: #dc3545;
             margin: 0 10px;
+        }
+        .match-status {
+            font-style: italic;
+            color: #5cb85c;
+        }
+        
+        /* NOWE STYLE DLA LOGINÓW W STOPCE */
+        .login-links {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #444;
+        }
+        .login-links a {
+            color: #007bff;
+            margin-left: 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .login-links a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -75,22 +95,18 @@
         <div id="countdown" class="countdown"></div>
 
         <h2>Nadchodzące Mecze</h2>
-        <div class="match-schedule">
-            <ul>
-                <li>
-                    <span>Drużyna A vs Drużyna B</span>
-                    <strong>XX - XX</strong>
-                </li>
-                <li>
-                    <span>Drużyna C vs Drużyna D</span>
-                    <strong>XX - XX</strong>
-                </li>
-            </ul>
-        </div>
+        <div id="scheduled-matches">
+            <p style="text-align: center;">Ładowanie nadchodzących meczów...</p>
+        </div>
 
         <h2>Wyniki Na Żywo</h2>
         <div id="live-matches">
-            <p style="text-align: center;">Ładowanie wyników...</p>
+            <p style="text-align: center;">Brak meczów na żywo.</p>
+        </div>
+        
+        <h2>Zakończone Mecze</h2>
+        <div id="finished-matches">
+            <p style="text-align: center;">Ładowanie zakończonych meczów...</p>
         </div>
 
         <h2>Aktualności</h2>
@@ -112,6 +128,12 @@ Puchar Gwiazd czeka na nowe talenty. Dołącz do rywalizacji i pokaż, na co Ci�
     </section>
 
     <div class="footer">
+        <div class="login-links">
+            <i class="fas fa-lock"></i> **Panele Logowania:**
+            <a href="admin.html">Admin</a>
+            <a href="login_kapitan.html">Kapitanowie</a>
+        </div>
+
         <div class="social-media-links">
             <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
             <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
@@ -125,7 +147,8 @@ Puchar Gwiazd czeka na nowe talenty. Dołącz do rywalizacji i pokaż, na co Ci�
     <script src="script.js"></script>
 
     <script>
-    // Konfiguracja Firebase jest już w pliku
+    // ... (Cały kod Firebase JavaScript pozostaje bez zmian)
+    // Poniżej znajduje się tylko kod Firebase. Załóżmy, że powyższy kod HTML jest w całości.
     const firebaseConfig = {
         apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
         authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -138,53 +161,85 @@ Puchar Gwiazd czeka na nowe talenty. Dołącz do rywalizacji i pokaż, na co Ci�
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    
+    function renderMatchesByStatus(allMatches) {
+        const scheduled = {};
+        const live = {};
+        const finished = {};
 
-    // ✅ POBIERANIE I GRUPOWANIE MECZÓW
-    db.ref("matches").on("value", snap => {
-        const data = snap.val();
-        const box = document.getElementById("live-matches");
-        box.innerHTML = ""; // Czyścimy poprzednie wyniki
+        Object.entries(allMatches).forEach(([id, match]) => {
+            const groupName = match.group || 'Inne';
+            
+            if (match.status === 'scheduled') {
+                if (!scheduled[groupName]) scheduled[groupName] = [];
+                scheduled[groupName].push({ id, ...match });
+            } else if (match.status === 'live') {
+                if (!live[groupName]) live[groupName] = [];
+                live[groupName].push({ id, ...match });
+            } else if (match.status === 'finished') {
+                if (!finished[groupName]) finished[groupName] = [];
+                finished[groupName].push({ id, ...match });
+            }
+        });
 
-        if (!data) {
-            box.innerHTML = "<p style='text-align: center;'>Brak aktywnych meczów do wyświetlenia.</p>";
-            return;
-        }
+        renderSection('scheduled-matches', scheduled, 'Brak nadchodzących meczów.');
+        renderSection('live-matches', live, 'Brak meczów na żywo.');
+        renderSection('finished-matches', finished, 'Brak zakończonych meczów.');
+    }
 
-        // Krok 1: Grupujemy mecze po nazwie grupy
-        const groupedMatches = {};
-        Object.entries(data).forEach(([id, match]) => {
-            // Używamy pola 'group' lub 'Inne' jako klucza
-            const groupName = match.group || 'Inne'; 
-            if (!groupedMatches[groupName]) {
-                groupedMatches[groupName] = [];
-            }
-            groupedMatches[groupName].push({ id, ...match });
-        });
+    function renderSection(elementId, groupedMatches, emptyMessage) {
+        const box = document.getElementById(elementId);
+        box.innerHTML = '';
+        
+        const groupNames = Object.keys(groupedMatches);
+        
+        if (groupNames.length === 0) {
+            box.innerHTML = `<p style="text-align: center;">${emptyMessage}</p>`;
+            return;
+        }
 
-        // Krok 2: Iterujemy po grupach (sortując je) i wyświetlamy
-        const sortedGroupNames = Object.keys(groupedMatches).sort();
+        const sortedGroupNames = groupNames.sort();
         let finalHtml = '';
 
-        sortedGroupNames.forEach(groupName => {
-            let groupHtml = `<div class="group-section">`;
-            groupHtml += `<div class="group-title">GRUPA ${groupName}</div>`;
-            
-            // Iteracja po meczach w danej grupie
-            groupedMatches[groupName].forEach(match => {
-                groupHtml += `
-                  <div class="match-box">
-                      <span class="team-name">${match.teamA}</span> 
-                      <span class="score">${match.scoreA} : ${match.scoreB}</span>
-                      <span class="team-name" style="text-align: right;">${match.teamB}</span>
-                  </div>
-                `;
-            });
-            
-            groupHtml += `</div>`;
-            finalHtml += groupHtml;
-        });
-        
+        sortedGroupNames.forEach(groupName => {
+            let groupHtml = `<div class="group-section">`;
+            groupHtml += `<div class="group-title">GRUPA ${groupName}</div>`;
+            
+            groupedMatches[groupName].forEach(match => {
+                const statusInfo = match.status === 'scheduled' ? `<span class="match-status">(Oczekuje)</span>` :
+                                   match.status === 'finished' ? `<span style="color: grey;">(Zakończony)</span>` : '';
+                                   
+                const scoreDisplay = (match.status === 'live' || match.status === 'finished') 
+                                     ? `<span class="score">${match.scoreA} : ${match.scoreB}</span>`
+                                     : statusInfo;
+                
+                groupHtml += `
+                    <div class="match-box">
+                        <span class="team-name">${match.teamA}</span> 
+                        ${scoreDisplay}
+                        <span class="team-name" style="text-align: right;">${match.teamB}</span>
+                    </div>
+                `;
+            });
+            
+            groupHtml += `</div>`;
+            finalHtml += groupHtml;
+        });
+
         box.innerHTML = finalHtml;
+    }
+
+
+    db.ref("matches").on("value", snap => {
+        const data = snap.val();
+        
+        if (data) {
+            renderMatchesByStatus(data);
+        } else {
+            document.getElementById('scheduled-matches').innerHTML = '<p style="text-align: center;">Brak danych w bazie.</p>';
+            document.getElementById('live-matches').innerHTML = '<p style="text-align: center;">Brak danych w bazie.</p>';
+            document.getElementById('finished-matches').innerHTML = '<p style="text-align: center;">Brak danych w bazie.</p>';
+        }
     });
     </script>
     
