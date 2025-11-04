@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Drużyny - Puchar Gwiazd</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* =========================================== */
+        /* ZMIENNE KOLORYSTYCZNE (CZARNO-NIEBIESKIE) */
+        /* =========================================== */
+        :root {
+            --primary-color: #007bff; /* Główny niebieski */
+            --secondary-color: #adb5bd; /* Jasnoszary dla tekstu/ikon */
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --background-start: #0d1a26; /* Bardzo ciemny/prawie czarny */
+            --background-end: #212121; /* Ciemny szary */
+            --card-bg: #343a40; /* Ciemne tło kart */
+            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        body { 
+            font-family: 'Roboto', sans-serif; margin: 0; padding: 20px 10px; 
+            background: linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%); 
+            color: #f8f9fa; min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+        }
+        .container {
+            max-width: 600px; width: 100%; margin-top: 50px; padding: 25px;
+            background: var(--card-bg); border-radius: 15px; 
+            box-shadow: var(--card-shadow); border: 2px solid var(--primary-color);
+        }
+        h1 { font-family: 'Montserrat', sans-serif; color: var(--primary-color); text-align: center; margin-bottom: 25px; }
+        
+        /* Formularz i inputy */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: var(--secondary-color); font-weight: 500;}
+        input[type="email"], input[type="password"], input[type="text"], input[type="number"] {
+            width: 100%; padding: 10px; border: 1px solid #495057; border-radius: 5px;
+            background-color: #2b3035; color: #f8f9fa; box-sizing: border-box;
+        }
+        .submit-btn {
+            background-color: var(--primary-color); color: white; padding: 12px 20px; border: none;
+            border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;
+            transition: background-color 0.3s; width: 100%; margin-top: 10px;
+        }
+        .submit-btn:hover { background-color: #0056b3; }
+        
+        /* Komunikaty */
+        .message-area { padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; }
+        .message-area.success { background-color: #1e4d2b; color: #c3e6cb; border: 1px solid #1c7430; }
+        .message-area.error { background-color: #58151c; color: #f5c6cb; border: 1px solid #721c24; }
+        .message-area.info { background-color: #004085; color: #b8daff; border: 1px solid #0056b3; }
+
+
+        /* Style dla graczy w panelu */
+        h3 { color: var(--secondary-color); border-bottom: 1px dashed #495057; padding-bottom: 5px; margin-top: 25px;}
+        .player-entry { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .player-entry input[type="number"] { flex: 0 0 60px; text-align: center; }
+        .player-entry input[type="text"] { flex: 1; }
+        .add-player-btn { background-color: #6c757d !important; width: auto !important; margin-top: 15px; }
+        .remove-player-btn { 
+            background-color: var(--danger-color); color: white; border: none; border-radius: 5px; 
+            padding: 10px; cursor: pointer; width: auto; 
+            transition: background-color 0.2s;
+        }
+        .remove-player-btn:hover { background-color: #bd2130; }
+
+        @media (max-width: 600px) {
+            .player-entry { flex-wrap: wrap; }
+            .player-entry input[type="number"] { flex: 0 0 50px; }
+            .player-entry input[type="text"] { flex: 1 1 calc(100% - 70px); }
+            .remove-player-btn { flex: 1 1 100%; padding: 8px; font-size: 0.9em; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container" id="login-section">
+        <h1><i class="fas fa-sign-in-alt"></i> Logowanie Kapitanów</h1>
+        <form id="team-login-form">
+            <div class="form-group">
+                <label for="team-email">Email:</label>
+                <input type="email" id="team-email" required>
+            </div>
+            <div class="form-group">
+                <label for="team-password">Hasło:</label>
