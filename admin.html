@@ -1,30 +1,29 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>Panel Admina - Wyniki na żywo</title>
+  <meta charset="UTF-8">
+  <title>Panel Admina - Wyniki na żywo</title>
 
-  <!-- Firebase COMPAT -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    input { margin: 5px; padding: 6px; }
-    button { padding: 6px 12px; cursor: pointer; }
-    .match-box { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
-  </style>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { margin: 5px; padding: 6px; }
+    button { padding: 6px 12px; cursor: pointer; margin-left: 5px; }
+    .match-box { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
+    .delete-btn { background-color: #f44336; color: white; border: none; } /* Styl dla przycisku usuń */
+  </style>
 </head>
 <body>
 
-<!-- ✅ HASŁO — musi być tutaj -->
 <script>
-    const password = prompt("Podaj hasło administratora:");
+    const password = prompt("Podaj hasło administratora:");
 
-    if (password !== "Kowalski12") {
-        document.body.innerHTML = "<h1>Brak dostępu</h1>";
-        throw new Error("Access denied");
-    }
+    if (password !== "Kowalski12") {
+        document.body.innerHTML = "<h1>Brak dostępu</h1>";
+        throw new Error("Access denied");
+    }
 </script>
 
 <h1>Panel Admina – Wyniki na żywo</h1>
@@ -39,71 +38,87 @@
 
 <script>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-    databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
-    projectId: "puchargwiazd-bdaa4",
-    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-    messagingSenderId: "890734185883",
-    appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-  };
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+    databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
+    projectId: "puchargwiazd-bdaa4",
+    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+    messagingSenderId: "890734185883",
+    appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+  };
 
-  // ✅ START Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  // ✅ START Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-  // ✅ DODAWANIE MECZU
-  function addMatch() {
-    const a = document.getElementById("teamA").value;
-    const b = document.getElementById("teamB").value;
-    if (!a || !b) return alert("Podaj obie drużyny!");
+  // ✅ DODAWANIE MECZU
+  function addMatch() {
+    const a = document.getElementById("teamA").value;
+    const b = document.getElementById("teamB").value;
+    if (!a || !b) return alert("Podaj obie drużyny!");
 
-    const ref = db.ref("matches").push();
-    ref.set({
-      teamA: a,
-      teamB: b,
-      scoreA: 0,
-      scoreB: 0
-    });
+    const ref = db.ref("matches").push();
+    ref.set({
+      teamA: a,
+      teamB: b,
+      scoreA: 0,
+      scoreB: 0
+    });
 
-    document.getElementById("teamA").value = "";
-    document.getElementById("teamB").value = "";
-  }
+    document.getElementById("teamA").value = "";
+    document.getElementById("teamB").value = "";
+  }
 
-  // ✅ WYŚWIETLANIE MECZÓW
-  db.ref("matches").on("value", snap => {
-    const data = snap.val();
-    const box = document.getElementById("matches");
-    box.innerHTML = "";
+  // ✅ WYŚWIETLANIE MECZÓW
+  db.ref("matches").on("value", snap => {
+    const data = snap.val();
+    const box = document.getElementById("matches");
+    box.innerHTML = "";
 
-    if (!data) {
-      box.innerHTML = "<p>Brak meczów</p>";
-      return;
-    }
+    if (!data) {
+      box.innerHTML = "<p>Brak meczów</p>";
+      return;
+    }
 
-    Object.entries(data).forEach(([id, match]) => {
-      box.innerHTML += `
-        <div class="match-box">
-          <b>${match.teamA}</b> vs <b>${match.teamB}</b><br>
-          <input id="a-${id}" type="number" value="${match.scoreA}">
-          <input id="b-${id}" type="number" value="${match.scoreB}">
-          <button onclick="updateScore('${id}')">Zapisz</button>
-        </div>
-      `;
-    });
-  });
+    Object.entries(data).forEach(([id, match]) => {
+      box.innerHTML += `
+        <div class="match-box">
+          <b>${match.teamA}</b> vs <b>${match.teamB}</b><br>
+          <input id="a-${id}" type="number" value="${match.scoreA}">
+          <input id="b-${id}" type="number" value="${match.scoreB}">
+          <button onclick="updateScore('${id}')">Zapisz</button>
+                    <button class="delete-btn" onclick="deleteMatch('${id}')">Usuń</button>
+        </div>
+      `;
+    });
+  });
 
-  // ✅ AKTUALIZACJA WYNIKÓW
-  function updateScore(id) {
-    const scoreA = Number(document.getElementById("a-" + id).value);
-    const scoreB = Number(document.getElementById("b-" + id).value);
+  // ✅ AKTUALIZACJA WYNIKÓW
+  function updateScore(id) {
+    const scoreA = Number(document.getElementById("a-" + id).value);
+    const scoreB = Number(document.getElementById("b-" + id).value);
 
-    db.ref("matches/" + id).update({
-      scoreA,
-      scoreB
-    });
-  }
+    db.ref("matches/" + id).update({
+      scoreA,
+      scoreB
+    });
+  }
+  
+    
+  // ✅ USUWANIE MECZU
+  function deleteMatch(id) {
+    if (confirm("Czy na pewno chcesz usunąć ten mecz?")) {
+      // Używamy metody .remove() na referencji do konkretnego ID meczu
+      db.ref("matches/" + id).remove()
+        .then(() => {
+          console.log("Mecz usunięty pomyślnie");
+        })
+        .catch(error => {
+          console.error("Błąd usuwania meczu: ", error);
+        });
+    }
+  }
 
 </script>
 
