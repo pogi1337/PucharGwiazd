@@ -48,9 +48,7 @@
         </div>
 
         <h2>Wyniki Na Żywo</h2>
-        <div class="live-scores">
-            <p>Brak aktywnych meczów.</p>
-        </div>
+        <div id="live-matches"></div>
 
         <h2>Aktualności</h2>
         <div class="news-updates">
@@ -82,7 +80,45 @@ Puchar Gwiazd czeka na nowe talenty. Dołącz do rywalizacji i pokaż, na co Ci�
     </button>
 
     <script src="script.js"></script>
+
+    <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+    databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "puchargwiazd-bdaa4",
+    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+    messagingSenderId: "890734185883",
+    appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // ✅ ODBIERANIE MECZÓW NA ŻYWO
+  db.ref("matches").on("value", snap => {
+    const data = snap.val();
+    const box = document.getElementById("live-matches");
+
+    box.innerHTML = ""; // czyszczenie listy
+
+    if (!data) {
+      box.innerHTML = "<p>Brak meczów w bazie</p>";
+      return;
+    }
+
+    Object.entries(data).forEach(([id, match]) => {
+      box.innerHTML += `
+        <div class="match">
+          <strong>${match.teamA}</strong> ${match.scoreA} : ${match.scoreB} <strong>${match.teamB}</strong>
+        </div>
+      `;
+    });
+  });
+</script>
+    
 </body>
 
 </html>
+
 
