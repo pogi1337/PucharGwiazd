@@ -1,124 +1,192 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strona Główna - Puchar Gwiazd</title>
-    <meta name="description" content="Oficjalny harmonogram meczów Pucharu Gwiazd. Sprawdź aktualny czas, śledź wyniki na żywo i bądź na bieżąco z wydarzeniami!">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strona Główna - Puchar Gwiazd</title>
+    <meta name="description" content="Oficjalny harmonogram meczów Pucharu Gwiazd. Sprawdź aktualny czas, śledź wyniki na żywo i bądź na bieżąco z wydarzeniami!">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        .group-section { 
+            margin-top: 20px; 
+            border: 1px solid #ddd; 
+            background-color: #ffffff; 
+            padding: 10px; 
+            border-radius: 6px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .group-title { 
+            background-color: #007bff; /* Kolor nagłówka grupy */
+            color: white; 
+            padding: 8px; 
+            margin: -10px -10px 10px -10px; /* Rozciąga na szerokość sekcji */
+            font-size: 1.2em; 
+            font-weight: bold; 
+            text-align: center;
+            border-radius: 6px 6px 0 0;
+        }
+        .match-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .match-box:last-child {
+            border-bottom: none;
+        }
+        .team-name {
+            font-weight: bold;
+            flex-grow: 1;
+        }
+        .score {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #dc3545; /* Czerwony kolor dla wyniku */
+            margin: 0 10px;
+        }
+    </style>
 </head>
 <body>
-    <div class="header">
-        <img src="logo.png" alt="Puchar Gwiazd Logo" class="logo">
-        <h1>Strona Główna - Puchar Gwiazd</h1>
-        <div id="current-time"></div>
-    </div>
+    <div class="header">
+        <img src="logo.png" alt="Puchar Gwiazd Logo" class="logo">
+        <h1>Strona Główna - Puchar Gwiazd</h1>
+        <div id="current-time"></div>
+    </div>
 
-    <nav id="main-nav">
-        <ul>
-            <li><a href="index.html">Strona Główna</a></li>
-            <li><a href="druzyny.html">Drużyny</a></li>
-            <li><a href="regulamin.html">Regulamin</a></li>
-            <li><a href="tabela.html">Tabele Grup</a></li>
-            <li><a href="onas.html">O Nas</a></li>
-            <li><a href="pusta-strona.html">Pusta Strona</a></li>
-        </ul>
-    </nav>
+    <nav id="main-nav">
+        <ul>
+            <li><a href="index.html">Strona Główna</a></li>
+            <li><a href="druzyny.html">Drużyny</a></li>
+            <li><a href="regulamin.html">Regulamin</a></li>
+            <li><a href="tabela.html">Tabele Grup</a></li>
+            <li><a href="onas.html">O Nas</a></li>
+            <li><a href="pusta-strona.html">Pusta Strona</a></li>
+        </ul>
+    </nav>
 
-    <section class="content-section">
-        <h2>Następny Turniej Rozpoczyna Się Za:</h2>
-        <div id="countdown" class="countdown"></div>
+    <section class="content-section">
+        <h2>Następny Turniej Rozpoczyna Się Za:</h2>
+        <div id="countdown" class="countdown"></div>
 
-        <h2>Nadchodzące Mecze</h2>
-        <div class="match-schedule">
-            <ul>
-                <li>
-                    <span>Drużyna A vs Drużyna B</span>
-                    <strong>XX - XX</strong>
-                </li>
-                <li>
-                    <span>Drużyna C vs Drużyna D</span>
-                    <strong>XX - XX</strong>
-                </li>
-            </ul>
+        <h2>Nadchodzące Mecze</h2>
+        <div class="match-schedule">
+            <ul>
+                <li>
+                    <span>Drużyna A vs Drużyna B</span>
+                    <strong>XX - XX</strong>
+                </li>
+                <li>
+                    <span>Drużyna C vs Drużyna D</span>
+                    <strong>XX - XX</strong>
+                </li>
+            </ul>
+        </div>
+
+        <h2>Wyniki Na Żywo</h2>
+        <div id="live-matches">
+            <p style="text-align: center;">Ładowanie wyników...</p>
         </div>
 
-        <h2>Wyniki Na Żywo</h2>
-        <div id="live-matches"></div>
-
-        <h2>Aktualności</h2>
-        <div class="news-updates">
-            <article>
-                <h3>Witajcie w Pucharze Gwiazd!</h3>
-                <p>To jest oficjalna strona interentowa pucharu gwiazd. Sprawdzisz tu wszystkie informacje.</p>
-            </article>
-            <article>
-                <h3>Ruszają zapisy!</h3>
-                <p>Po sukcesie poprzedniej odsłony, amatorski turniej piłkarski Puchar Gwiazd powraca w jeszcze bardziej prestiżowej formie.</br>
-                Organizatorzy ogłosili właśnie rozpoczęcie zapisów do nowej edycji, w której ponownie zmierzą się zawodnicy reprezentujący lokalne kluby i drużyny.</br>
-                W tym roku wydarzenie ma wnieść rywalizację na wyższy poziom – zarówno pod względem organizacji, jak i sportowych emocji. </br>
-                Uczestnicy mogą liczyć na profesjonalną oprawę, dokładne statystyki meczowe, a także specjalne nagrody dla najlepszych drużyn i indywidualnych gwiazd turnieju.</br>
+        <h2>Aktualności</h2>
+        <div class="news-updates">
+            <article>
+                <h3>Witajcie w Pucharze Gwiazd!</h3>
+                <p>To jest oficjalna strona interentowa pucharu gwiazd. Sprawdzisz tu wszystkie informacje.</p>
+            </article>
+            <article>
+                <h3>Ruszają zapisy!</h3>
+                <p>Po sukcesie poprzedniej odsłony, amatorski turniej piłkarski Puchar Gwiazd powraca w jeszcze bardziej prestiżowej formie.</br>
+                Organizatorzy ogłosili właśnie rozpoczęcie zapisów do nowej edycji, w której ponownie zmierzą się zawodnicy reprezentujący lokalne kluby i drużyny.</br>
+                W tym roku wydarzenie ma wnieść rywalizację na wyższy poziom – zarówno pod względem organizacji, jak i sportowych emocji. </br>
+                Uczestnicy mogą liczyć na profesjonalną oprawę, dokładne statystyki meczowe, a także specjalne nagrody dla najlepszych drużyn i indywidualnych gwiazd turnieju.</br>
 Zapisy są już otwarte, a liczba miejsc jest ograniczona. Jeśli chcesz wziąć udział w jednym z najbardziej prestiżowych amatorskich turniejów w okolicy, zgłoś swoją drużynę jak najszybciej!</br>
 Puchar Gwiazd czeka na nowe talenty. Dołącz do rywalizacji i pokaż, na co Cię stać!</p>
-            </article>
-        </div>
-    </section>
+            </article>
+        </div>
+    </section>
 
-    <div class="footer">
-        <div class="social-media-links">
-            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
+    <div class="footer">
+        <div class="social-media-links">
+            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
 
-    <button id="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
+    <button id="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
 
-    <script src="script.js"></script>
+    <script src="script.js"></script>
 
-    <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-    databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "puchargwiazd-bdaa4",
-    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-    messagingSenderId: "890734185883",
-    appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-  };
+    <script>
+    // Konfiguracja Firebase jest już w pliku
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "puchargwiazd-bdaa4",
+        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+        messagingSenderId: "890734185883",
+        appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  // ✅ ODBIERANIE MECZÓW NA ŻYWO
-  db.ref("matches").on("value", snap => {
-    const data = snap.val();
-    const box = document.getElementById("live-matches");
+    // ✅ POBIERANIE I GRUPOWANIE MECZÓW
+    db.ref("matches").on("value", snap => {
+        const data = snap.val();
+        const box = document.getElementById("live-matches");
+        box.innerHTML = ""; // Czyścimy poprzednie wyniki
 
-    box.innerHTML = ""; // czyszczenie listy
+        if (!data) {
+            box.innerHTML = "<p style='text-align: center;'>Brak aktywnych meczów do wyświetlenia.</p>";
+            return;
+        }
 
-    if (!data) {
-      box.innerHTML = "<p>Brak meczów w bazie</p>";
-      return;
-    }
+        // Krok 1: Grupujemy mecze po nazwie grupy
+        const groupedMatches = {};
+        Object.entries(data).forEach(([id, match]) => {
+            // Używamy pola 'group' lub 'Inne' jako klucza
+            const groupName = match.group || 'Inne'; 
+            if (!groupedMatches[groupName]) {
+                groupedMatches[groupName] = [];
+            }
+            groupedMatches[groupName].push({ id, ...match });
+        });
 
-    Object.entries(data).forEach(([id, match]) => {
-      box.innerHTML += `
-        <div class="match">
-          <strong>${match.teamA}</strong> ${match.scoreA} : ${match.scoreB} <strong>${match.teamB}</strong>
-        </div>
-      `;
-    });
-  });
-</script>
-    
+        // Krok 2: Iterujemy po grupach (sortując je) i wyświetlamy
+        const sortedGroupNames = Object.keys(groupedMatches).sort();
+        let finalHtml = '';
+
+        sortedGroupNames.forEach(groupName => {
+            let groupHtml = `<div class="group-section">`;
+            groupHtml += `<div class="group-title">GRUPA ${groupName}</div>`;
+            
+            // Iteracja po meczach w danej grupie
+            groupedMatches[groupName].forEach(match => {
+                groupHtml += `
+                  <div class="match-box">
+                      <span class="team-name">${match.teamA}</span> 
+                      <span class="score">${match.scoreA} : ${match.scoreB}</span>
+                      <span class="team-name" style="text-align: right;">${match.teamB}</span>
+                  </div>
+                `;
+            });
+            
+            groupHtml += `</div>`;
+            finalHtml += groupHtml;
+        });
+        
+        box.innerHTML = finalHtml;
+    });
+    </script>
+    
 </body>
-
 </html>
-
-
