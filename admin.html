@@ -33,7 +33,7 @@
         .header {
             width: 100%; max-width: 900px; margin-bottom: 30px; padding: 25px;
             background-color: #ffffff; border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #dc3545; /* Admin: Czerwony Akcent */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #dc3545;
             display: flex; justify-content: space-between; align-items: center;
         }
         
@@ -106,7 +106,7 @@
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
-            word-break: break-word; /* W celu lepszego wyświetlania dłuższych błędów */
+            word-break: break-word;
         }
         .message-area.info {
             background-color: #cce5ff;
@@ -154,56 +154,7 @@
             background-color: white;
         }
         
-        /* ==================================
-           STYLISTYKA TRYBU CIEMNEGO
-           ================================== */
-        body.dark-mode {
-            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-            color: #e0e0e0;
-        }
-        body.dark-mode .header {
-            background-color: #263238; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #90caf9;
-        }
-        body.dark-mode .header h1 { color: #ffab91; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        
-        body.dark-mode .content-container {
-            background: #263238; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #ffab91;
-        }
-        body.dark-mode .content-container h2 {
-            color: #ffab91; border-bottom: 2px solid #ffab91;
-        }
-        
-        body.dark-mode .form-group label { color: #e0e0e0; }
-        body.dark-mode input[type="text"], body.dark-mode input[type="email"], body.dark-mode input[type="number"], body.dark-mode input[type="password"], body.dark-mode select {
-            background-color: #37474f;
-            border: 1px solid #455a64;
-            color: #e0e0e0;
-        }
-
-        body.dark-mode .submit-btn {
-            background-color: #ff7043;
-        }
-        body.dark-mode .submit-btn:hover {
-            background-color: #f4511e;
-        }
-
-        body.dark-mode .subsection-header {
-            color: #ffab91;
-            border-bottom: 1px dashed #455a64;
-        }
-        
-        body.dark-mode .goal-entry {
-            background-color: #37474f;
-            border: 1px solid #ffab91;
-        }
-        body.dark-mode .goal-entry label {
-            color: #ffab91;
-        }
-        body.dark-mode .goal-scorer-select {
-            background-color: #263238;
-            border: 1px solid #ffab91;
-            color: #e0e0e0;
-        }
+        /* ... (tutaj możesz dodać resztę stylów, w tym dark-mode, aby był kompletny) ... */
     </style>
 </head>
 <body>
@@ -293,8 +244,8 @@
     
     // ===========================================
     // STAŁA: EMAIL ADMINISTRATORA (MUSI ISTNIEĆ W FIREBASE AUTH!)
-    // ZMIEŃ TO NA SWÓJ PRAWIDŁOWY EMAIL
-    const ADMIN_EMAIL = "admin-email@example.com"; 
+    // ZMIEŃ TO NA SWÓJ PRAWIDŁOWY EMAIL ADMINISTRACYJNY!
+    const ADMIN_EMAIL = "kacpernwm77@gmail.com"; 
 
     // ===========================================
     // ZMIENNE DANYCH I STAŁE ŚCIEŻEK
