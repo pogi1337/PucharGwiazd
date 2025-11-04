@@ -7,28 +7,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         body { font-family: Arial; padding: 50px; text-align: center; background-color: #f7f7f7; }
-        .login-box { 
-            width: 300px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            border: 1px solid #ccc; 
-            background-color: white; 
-            border-radius: 8px; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        input, button { 
-            width: 90%; 
-            padding: 10px; 
-            margin: 10px 0; 
-            border-radius: 4px; 
-            border: 1px solid #ddd;
-        }
-        button { 
-            background-color: #007bff; 
-            color: white; 
-            cursor: pointer; 
-            border: none;
-        }
+        .login-box { width: 300px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; background-color: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        input, button { width: 90%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ddd; }
+        button { background-color: #007bff; color: white; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
@@ -42,7 +23,6 @@
 </div>
 
 <script>
-    // UŻYJ SWOJEJ KONFIGURACJI FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
         authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -67,18 +47,15 @@
             return;
         }
 
-        // 1. Sprawdzamy hasło w gałęzi captains_access
-       db.ref("teams/captains_access/" + teamId).once("value")
-    .then(snapshot => {
-        const correctPassword = snapshot.val();
+        // POPRAWIONA ŚCIEŻKA DOSTĘPU: teams/captains_access
+        db.ref("teams/captains_access/" + teamId).once("value")
+            .then(snapshot => {
+                const correctPassword = snapshot.val();
 
                 if (correctPassword === password) {
                     messageEl.textContent = "Zalogowano pomyślnie! Przekierowanie...";
-                    // 2. W przypadku sukcesu, zapisujemy ID drużyny w sesji
                     sessionStorage.setItem('loggedInTeamId', teamId);
-                    
-                    // 3. Przekierowujemy do panelu edycji
-                    window.location.href = "captian_panel.html"; 
+                    window.location.href = "captain_panel.html"; 
                 } else {
                     messageEl.textContent = "Błędny ID drużyny lub hasło.";
                 }
@@ -91,6 +68,4 @@
 </script>
 
 </body>
-
 </html>
-
