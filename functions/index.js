@@ -1,72 +1,32 @@
-// Kod w pliku functions/index.js
+/**
+ * Import function triggers from their respective submodules:
+ *
+ * const {onCall} = require("firebase-functions/v2/https");
+ * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+ *
+ * See a full list of supported triggers at https://firebase.google.com/docs/functions
+ */
 
-exports.setAdmin = functions.https.onCall(async (data, context) => {
-  // (opcjonalnie) zabezpieczenie: tylko admin może nadawać innym admina
-  // jeśli to Twój pierwszy admin, możesz tymczasowo to wyłączyć
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "Musisz być zalogowany.");
-  }
+const {setGlobalOptions} = require("firebase-functions");
+const {onRequest} = require("firebase-functions/https");
+const logger = require("firebase-functions/logger");
 
-  const { email } = data;
-  if (!email) {
-    throw new functions.https.HttpsError("invalid-argument", "Podaj email użytkownika, któremu chcesz nadać admina.");
-  }
+// For cost control, you can set the maximum number of containers that can be
+// running at the same time. This helps mitigate the impact of unexpected
+// traffic spikes by instead downgrading performance. This limit is a
+// per-function limit. You can override the limit for each function using the
+// `maxInstances` option in the function's options, e.g.
+// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
+// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
+// functions should each use functions.runWith({ maxInstances: 10 }) instead.
+// In the v1 API, each function can only serve one request per container, so
+// this will be the maximum concurrent request count.
+setGlobalOptions({ maxInstances: 10 });
 
-  try {
-    const user = await admin.auth().getUserByEmail(email);
-    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
-    return { success: true, message: `Użytkownik ${email} jest teraz administratorem.` };
-  } catch (error) {
-    console.error("Błąd ustawiania admina:", error);
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-});
+// Create and deploy your first functions
+// https://firebase.google.com/docs/functions/get-started
 
-
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
-
-// Inicjalizacja Admin SDK (upewnij się, że jest włączona w Twoim projekcie)
-admin.initializeApp(); 
-
-// Funkcja wywoływana z panelu admina do tworzenia konta drużyny
-exports.createTeamUser = functions.https.onCall(async (data, context) => {
-    // 1. Sprawdzenie, czy funkcja jest wywoływana przez administratora
-    // To wymaga, by Admin miał w tokenie 'admin: true' (ustawiane przez admina w jego tokenie)
-    if (!context.auth || context.auth.token.admin !== true) {
-        return { success: false, error: 'Błąd: Brak uprawnień administracyjnych do tworzenia kont.' };
-    }
-
-    const { teamId, email, password } = data;
-
-    if (!teamId || !email || !password || password.length < 6) {
-        return { success: false, error: 'Nieprawidłowe dane wejściowe (wymagane ID, email i hasło min. 6 znaków).' };
-    }
-
-    try {
-        // 2. Utworzenie Użytkownika w Firebase Authentication
-        const userRecord = await admin.auth().createUser({
-            email: email,
-            password: password,
-            displayName: teamId, // Nazwa wyświetlana to ID drużyny
-            emailVerified: true,
-        });
-
-        // 3. Ustawienie niestandardowego Claim'u (przypisanie roli/drużyny)
-        // Dzięki temu będziemy wiedzieć, która drużyna się zalogowała
-        await admin.auth().setCustomUserClaims(userRecord.uid, { 
-            teamId: teamId, 
-            role: 'teamManager' 
-        });
-
-        return { 
-            success: true, 
-            message: `Konto dla ${teamId} utworzone pomyślnie.` 
-        };
-
-    } catch (error) {
-        console.error("Błąd tworzenia użytkownika:", error);
-        return { success: false, error: error.message || 'Nieznany błąd serwera.' };
-    }
-
-});
+// exports.helloWorld = onRequest((request, response) => {
+//   logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });
