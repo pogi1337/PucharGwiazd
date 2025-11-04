@@ -112,12 +112,14 @@
 
     <script src="script.js"></script>
     
-    <script>
+<script>
         // Konfiguracja Firebase (Używamy Twojej)
         const firebaseConfig = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasestorage.app",
+            // <--- TUTAJ MUSISZ POPRAWIĆ ADRES
+            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
+            // <--- KONIEC POPRAWKI
             projectId: "puchargwiazd-bdaa4",
             storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
             messagingSenderId: "890734185883",
@@ -202,3 +204,4 @@
     </script>
 </body>
 </html>
+
