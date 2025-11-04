@@ -58,35 +58,38 @@
             text-align: center;
         }
         
-        /* 💡 KLUCZOWE POPRAWKI DLA WYŚWIETLANIA MECZU */
+        /* 💡 KLUCZOWE ZMIANY CSS DLA UKŁADU MECZU */
         .match-item {
             display: flex;
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px dashed #eee;
+            /* Usunięto justify-content: space-between, aby nie wymuszać odstępów */
         }
         
         .team-name {
             font-weight: 700;
-            flex-grow: 1; /* Zajmuje całą dostępną przestrzeń */
+            flex-grow: 1; /* Pozwól na dynamiczne rozciąganie */
+            min-width: 50px; /* Minimalna szerokość, żeby się całkowicie nie zwinęło */
             overflow: hidden; 
             text-overflow: ellipsis;
             white-space: nowrap; /* Upewnij się, że nazwa jest w jednej linii */
-            padding: 0 5px; /* Lekki padding, aby nie dotykało krawędzi */
+            padding: 0 5px; 
+            text-align: right; /* Domyślnie wyrównanie do wyniku */
         }
         
+        .team-name:last-of-type {
+             text-align: left; /* Druga drużyna wyrównana od lewej */
+        }
+
         .score-box-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 70px; /* Stała, mała szerokość na wynik */
-            flex-shrink: 0; /* Nie pozwól, aby ta sekcja się kurczyła */
-        }
-        
-        .score-box {
-            font-weight: 900;
+            width: 60px; /* BARDZO ŚCISŁA szerokość dla wyniku, żeby się zmieścił */
+            flex-shrink: 0; /* Najważniejsze: NIE POZWÓL, aby się kurczyło */
             font-size: 1.1em;
-            color: #333; /* Upewnij się, że wynik ma dobry kontrast */
+            font-weight: 900;
         }
         
         .status-tag {
@@ -94,12 +97,12 @@
             font-weight: bold;
             padding: 3px 6px;
             border-radius: 4px;
-            flex-shrink: 0; /* Nie pozwól, aby tag statusu się kurczył */
+            flex-shrink: 0; /* Najważniejsze: NIE POZWÓL, aby się kurczyło */
             margin-left: 10px;
             text-align: center;
         }
         
-        /* Style statusów */
+        /* Reszta stylów */
         .scheduled { background-color: #ffc107; color: #333; }
         .live { background-color: #dc3545; color: white; animation: pulse 1.5s infinite; }
         .finished { background-color: #28a745; color: white; }
@@ -192,6 +195,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
+        // Zauważ, że Twoja struktura drużyn wygląda na: teams -> teams -> TeamA/TeamB
         const TEAMS_BASE_PATH = "teams/teams"; 
         const MATCHES_PATH = "matches"; 
         
@@ -252,15 +256,15 @@
             }
         }
 
-        // 2. KLUCZOWA ZMIANA W GENEROWANIU HTML: Kontener wyniku
+        // Zmieniona funkcja generująca HTML
         function createMatchHtml(match) {
             const statusClass = match.status;
             let scoreContent;
             
             if (match.status === 'finished' || match.status === 'live') {
-                scoreContent = `<span class="score-box">${match.scoreA} - ${match.scoreB}</span>`;
+                scoreContent = `${match.scoreA} - ${match.scoreB}`;
             } else {
-                scoreContent = `<span class="score-box">vs</span>`;
+                scoreContent = `vs`;
             }
 
             const statusText = {
