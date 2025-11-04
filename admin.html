@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Panel Admina — Puchar Gwiazd</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      background: #111;
+      color: white;
+      padding: 20px;
+    }
+    .match {
+      background: #222;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+    }
+    input {
+      width: 100px;
+      padding: 5px;
+      margin: 5px;
+    }
+    button {
+      padding: 8px 15px;
+      background: #00c853;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Panel Admina — Wyniki na żywo</h2>
+
+<div id="matches"></div>
+
+<script>
+  // 🔥 TWÓJ KONFIG FIREBASE — skopiuj dokładnie to z projektu!
+  const firebaseConfig = {
+    apiKey: "TWOJE",
+    authDomain: "TWOJE",
+    databaseURL: "TWOJE",
+    projectId: "TWOJE",
+    storageBucket: "TWOJE",
+    messagingSenderId: "TWOJE",
+    appId: "TWOJE"
+  };
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  function updateScore(id) {
+    const teamA = document.getElementById(`teamA-${id}`).value;
+    const teamB = document.getElementById(`teamB-${id}`).value;
+    const scoreA = Number(document.getElementById(`scoreA-${id}`).value);
+    const scoreB = Number(document.getElementById(`scoreB-${id}`).value);
+
+    db.ref("matches/" + id).update({
+      teamA,
+      teamB,
+      scoreA,
+      scoreB
+    });
+  }
+
+  db.ref("matches").on("value", snapshot => {
+    const data = snapshot.val();
+    const container = document.getElementById("matches");
+    container.innerHTML = "";
+
+    for (let id in data) {
+      const m = data[id];
+
+      container.innerHTML += `
+        <div class="match">
+          <h3>Mecz: ${id}</h3>
+          <label>Team A: </label>
+          <input id="teamA-${id}" value="${m.teamA}">
+          <label>Team B: </l
