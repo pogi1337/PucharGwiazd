@@ -1,125 +1,195 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drużyny - Puchar Gwiazd</title>
-    <meta name="description" content="Poznaj wszystkie drużyny biorące udział w Pucharze Gwiazd. Informacje o składach i osiągnięciach.">
-    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drużyny - Puchar Gwiazd</title>
+    <meta name="description" content="Poznaj wszystkie drużyny biorące udział w Pucharze Gwiazd. Informacje o składach i osiągnięciach.">
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <style>
+        /* Twoje oryginalne style */
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: #f4f7f8; 
+            color: #333; 
+            padding-bottom: 70px; /* Miejsce na stopkę/przełącznik */
+        }
+        .header h1 {
+            color: #1565c0; 
+            text-align: center;
+            padding: 20px 0;
+        }
+        .content-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 10px;
+        }
+        /* Style dla Dynamicznych Kart */
         .dynamic-teams-container {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-around;
+            justify-content: center; /* Wyśrodkowanie kart */
+            gap: 20px; /* Odstęp między kartami */
         }
         .team-card {
             background-color: #fff;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin: 15px;
-            width: 100%; /* Domyślnie pełna szerokość */
-            max-width: 350px; /* Maksymalna szerokość karty */
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%; 
+            max-width: 380px; 
             overflow: hidden;
-            transition: box-shadow 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .team-card:hover {
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
         .team-name {
             background-color: #007bff;
             color: white;
-            padding: 12px 15px;
+            padding: 15px 20px;
             margin: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            font-size: 1.2em;
+            font-size: 1.3em;
+            font-weight: 700;
         }
         .team-roster {
-            padding: 15px;
+            padding: 0 15px; /* Usuń górny/dolny padding na starcie */
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
         }
         .team-roster.expanded {
-            max-height: 500px; /* Wystarczająco dużo dla skłądu, dostosuj w razie potrzeby */
-            padding: 15px;
+            max-height: 1000px; /* Duża wartość dla płynnej animacji */
+            padding: 15px 20px;
         }
+        
         .team-roster h4 {
-            border-bottom: 2px solid #eee;
+            color: #1565c0;
+            border-bottom: 1px solid #eee;
             padding-bottom: 5px;
-            margin-top: 0;
+            margin-top: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
         }
-        .team-roster ul {
-            list-style: decimal;
-            padding-left: 20px;
+        .team-roster h4 i {
+            margin-right: 8px;
         }
-        .team-roster li {
+
+        /* Lista zawodników */
+        .player-list {
+            list-style: none;
+            padding: 0;
+        }
+        .player-list li {
+            display: flex;
+            justify-content: flex-start;
+            padding: 6px 0;
+            border-bottom: 1px dashed #f0f0f0;
+            font-size: 0.95em;
+        }
+        .player-number {
+            font-weight: 700;
+            color: #d32f2f; /* Czerwony dla numeru */
+            margin-right: 15px;
+            min-width: 30px;
+            text-align: right;
+        }
+
+        /* Lista osiągnięć */
+        .achievements-list {
+            list-style: none;
+            padding: 0;
+        }
+        .achievements-list li {
+            padding: 8px 0;
             margin-bottom: 5px;
+            font-style: italic;
+            color: #2e7d32;
         }
-        .no-players {
+        .achievements-list li i {
+             margin-right: 8px;
+        }
+
+        .no-data {
             font-style: italic;
             color: #888;
+            padding: 5px 0;
         }
+        
+        /* Ikona Rozwijania */
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+        .team-roster.expanded + .team-name .expand-icon,
+        .expand-icon.fa-chevron-up {
+            transform: rotate(180deg);
+        }
+
+        /* Stopka i Nawigacja (Utrzymanie oryginalnej struktury) */
+        .footer, #main-nav {
+            /* Stylizacja stopki i nawigacji z Twojego style.css */
+            /* Zapewnij, że są one odpowiednio umieszczone i stylowane */
+        }
+
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Drużyny - Puchar Gwiazd</h1>
-        <div id="current-time"></div>
-    </div>
+    <div class="header">
+        <h1>Drużyny - Puchar Gwiazd</h1>
+        <div id="current-time"></div>
+    </div>
 
-    <nav id="main-nav">
-        <ul>
-            <li><a href="index.html">Strona Główna</a></li>
-            <li><a href="druzyny.html">Drużyny</a></li>
-            <li><a href="regulamin.html">Regulamin</a></li>
-            <li><a href="tabela.html">Tabele Grup</a></li>
-            <li><a href="onas.html">O Nas</a></li>
-            <li><a href="pusta-strona.html">Pusta Strona</a></li>
-        </ul>
-    </nav>
+    <nav id="main-nav">
+        <ul>
+            <li><a href="index.html">Strona Główna</a></li>
+            <li><a href="druzyny.html">Drużyny</a></li>
+            <li><a href="regulamin.html">Regulamin</a></li>
+            <li><a href="tabela.html">Tabele Grup</a></li>
+            <li><a href="onas.html">O Nas</a></li>
+            <li><a href="pusta-strona.html">Pusta Strona</a></li>
+        </ul>
+    </nav>
 
-    <section class="content-section">
-        <h2>Składy Drużyn</h2>
-        <p>Poniżej znajdziesz aktualne składy drużyn, uzupełnione przez kapitanów.</p>
+    <section class="content-section">
+        <h2><i class="fas fa-list-alt"></i> Składy i Osiągnięcia</h2>
+        <p>Poniżej znajdziesz aktualne składy drużyn oraz ich osiągnięcia, zarządzane przez panel kapitanów i administratorów.</p>
 
-                <div id="dynamic-teams-container" class="dynamic-teams-container">
-                        <p style="width: 100%; text-align: center;">Ładowanie drużyn...</p>
-        </div>
+        <div id="dynamic-teams-container" class="dynamic-teams-container">
+            <p style="width: 100%; text-align: center; color: #1565c0;">Ładowanie drużyn...</p>
+        </div>
 
-    </section>
+    </section>
 
-    <div class="footer">
-        <div class="social-media-links">
-            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
+    <div class="footer">
+        <div class="social-media-links">
+            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
 
-    <button id="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
+    <button id="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
 
-    <script src="script.js"></script>
-    
-<script>
+    <script>
         // Konfiguracja Firebase (Używamy Twojej)
         const firebaseConfig = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            // <--- TUTAJ MUSISZ POPRAWIĆ ADRES
+            // Używamy tego URL, który podałeś jako poprawny
             databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
-            // <--- KONIEC POPRAWKI
             projectId: "puchargwiazd-bdaa4",
             storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
             messagingSenderId: "890734185883",
@@ -129,42 +199,57 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
-        // POPRAWIONA ŚCIEŻKA: teams/teams z powodu Twojej zagnieżdżonej struktury w Firebase
+        // Ścieżka do wszystkich drużyn
         const TEAMS_PATH = "teams/teams";
 
         db.ref(TEAMS_PATH).on("value", snapshot => {
             const teamsData = snapshot.val();
             const container = document.getElementById('dynamic-teams-container');
-            container.innerHTML = ''; // Czyścimy statyczną zawartość
+            container.innerHTML = ''; // Czyścimy zawartość
 
             if (!teamsData) {
-                container.innerHTML = '<p style="width: 100%; text-align: center;">Brak drużyn w bazie danych.</p>';
+                container.innerHTML = '<p class="no-data" style="width: 100%; text-align: center;">Brak drużyn w bazie danych.</p>';
                 return;
             }
 
+            // Przetwarzanie i wyświetlanie danych
             Object.entries(teamsData).forEach(([teamId, team]) => {
-                const teamName = team.name || teamId;
-                const players = team.players;
-                const achievements = team.achievements || "Brak danych o osiągnięciach.";
+                const teamName = teamId; // Używamy ID jako nazwy, jeśli "name" nie jest zdefiniowane
+                const playersData = team.players;
+                const achievementsData = team.achievements;
                 
                 let playersHtml = '';
+                let achievementsHtml = '';
 
-                if (players) {
-                    // Generowanie listy zawodników
-                    playersHtml += '<h4>Skład:</h4><ul class="player-list">';
-                    // Object.values() aby iterować po obiektach zawodników, niezależnie od autogenerowanych kluczy
-                    Object.values(players).forEach(player => {
+                // 1. GENEROWANIE SKŁADU
+                if (playersData) {
+                    // Konwertowanie i sortowanie po numerze zawodnika
+                    const sortedPlayers = Object.values(playersData).sort((a, b) => (a.number || 999) - (b.number || 999));
+                    
+                    playersHtml += '<h4><i class="fas fa-user-friends"></i> Skład:</h4><ul class="player-list">';
+                    sortedPlayers.forEach(player => {
+                        const playerNumber = player.number !== undefined && player.number !== null ? player.number : '—';
                         if (player && player.name) {
-                            playersHtml += `<li>${player.name}</li>`;
+                            playersHtml += `<li><span class="player-number">${playerNumber}</span>${player.name}</li>`;
                         }
                     });
                     playersHtml += '</ul>';
                 } else {
-                    playersHtml = '<h4>Skład:</h4><p class="no-players">Skład nie został jeszcze uzupełniony przez kapitana.</p>';
+                    playersHtml = '<h4><i class="fas fa-user-friends"></i> Skład:</h4><p class="no-data">Skład nie został jeszcze uzupełniony.</p>';
                 }
                 
-                // UWAGA: Osiągnięcia (achievements) nie są obecnie edytowalne przez panel admina/kapitana.
-                // Używamy zmiennej 'achievements' jako statyczny tekst
+                // 2. GENEROWANIE OSIĄGNIĘĆ
+                if (achievementsData) {
+                    achievementsHtml += '<h4><i class="fas fa-trophy"></i> Osiągnięcia:</h4><ul class="achievements-list">';
+                    // Iteracja po wartościach osiągnięć (które są stringami)
+                    Object.values(achievementsData).forEach(achievement => {
+                         achievementsHtml += `<li><i class="fas fa-check-circle"></i>${achievement}</li>`;
+                    });
+                    achievementsHtml += '</ul>';
+                } else {
+                    achievementsHtml = '<h4><i class="fas fa-trophy"></i> Osiągnięcia:</h4><p class="no-data">Brak dodanych osiągnięć.</p>';
+                }
+                
                 const teamHtml = `
                     <div class="team-card" data-team-id="${teamId}">
                         <h3 class="team-name" onclick="toggleRoster(this)">
@@ -173,35 +258,39 @@
                         </h3>
                         <div class="team-roster">
                             ${playersHtml}
-                            <h4>Osiągnięcia:</h4>
-                            <p>${achievements}</p>
+                            ${achievementsHtml}
                         </div>
                     </div>
                 `;
                 
                 container.innerHTML += teamHtml;
             });
-
-            // Dodajemy obsługę statycznych kart (jeśli istnieją), choć zaleca się ich usunięcie
-            // Możesz usunąć statyczne divy z HTML, jeśli chcesz używać tylko danych Firebase
         });
         
-        // Funkcja do rozwijania / zwijania skłądu
+        // Funkcja do rozwijania / zwijania akordeonu
         function toggleRoster(element) {
             const roster = element.nextElementSibling;
-            const icon = element.querySelector('.expand-icon');
             
+            // Zamykanie innych otwartych kart (opcjonalne, ale często poprawia UX)
+            document.querySelectorAll('.team-roster.expanded').forEach(openRoster => {
+                if (openRoster !== roster) {
+                    openRoster.classList.remove('expanded');
+                    openRoster.previousElementSibling.querySelector('.expand-icon').classList.remove('fa-chevron-up');
+                    openRoster.previousElementSibling.querySelector('.expand-icon').classList.add('fa-chevron-down');
+                }
+            });
+
+            // Rozwijanie/zwijanie klikniętej karty
+            roster.classList.toggle('expanded');
+            const icon = element.querySelector('.expand-icon');
             if (roster.classList.contains('expanded')) {
-                roster.classList.remove('expanded');
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
-            } else {
-                roster.classList.add('expanded');
                 icon.classList.remove('fa-chevron-down');
                 icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
             }
         }
     </script>
 </body>
 </html>
-
