@@ -1,5 +1,28 @@
 // Kod w pliku functions/index.js
 
+exports.setAdmin = functions.https.onCall(async (data, context) => {
+  // (opcjonalnie) zabezpieczenie: tylko admin może nadawać innym admina
+  // jeśli to Twój pierwszy admin, możesz tymczasowo to wyłączyć
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Musisz być zalogowany.");
+  }
+
+  const { email } = data;
+  if (!email) {
+    throw new functions.https.HttpsError("invalid-argument", "Podaj email użytkownika, któremu chcesz nadać admina.");
+  }
+
+  try {
+    const user = await admin.auth().getUserByEmail(email);
+    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+    return { success: true, message: `Użytkownik ${email} jest teraz administratorem.` };
+  } catch (error) {
+    console.error("Błąd ustawiania admina:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+
+
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
@@ -45,4 +68,5 @@ exports.createTeamUser = functions.https.onCall(async (data, context) => {
         console.error("Błąd tworzenia użytkownika:", error);
         return { success: false, error: error.message || 'Nieznany błąd serwera.' };
     }
+
 });
