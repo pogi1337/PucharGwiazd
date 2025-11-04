@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Panel Admina - Wyniki</title>
+    <title>Panel Admina - Wyniki i Drużyny</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
         /* Globalne style */
         body { 
             font-family: 'Roboto', sans-serif; 
-            padding: 10px; /* Mniejszy padding globalny */
-            background-color: #e0f2f7; /* Jasny niebieski */
+            padding: 10px; 
+            background-color: #e0f2f7; 
             color: #212121;
         }
 
@@ -30,20 +31,21 @@
         /* Ogólne kontrolki */
         input, select, button { 
             padding: 10px; 
-            margin: 5px 0; /* Zmień marginesy, aby uniknąć problemów z szerokością */
+            margin: 5px 0; 
             border-radius: 6px; 
             border: 1px solid #ccc; 
-            width: 100%; /* Domyślnie pełna szerokość */
+            width: 100%; 
             box-sizing: border-box; 
             font-size: 1em;
         }
         
-        /* Specjalne style dla pól wejściowych w sekcji "Dodaj mecz" */
+        /* Sekcja Meczów (PC) */
         #teamA, #teamB {
             width: 49%; 
             display: inline-block;
         }
 
+        /* Przyciski */
         button { 
             background-color: #007bff; 
             color: white; 
@@ -57,6 +59,7 @@
         }
         .delete-btn { 
             background-color: #dc3545; 
+            width: auto !important;
         }
         .delete-btn:hover {
             background-color: #b02739;
@@ -76,111 +79,55 @@
             display: flex; 
             align-items: center; 
             justify-content: space-between;
-            flex-wrap: nowrap; /* Wersja PC: bez zawijania */
+            flex-wrap: nowrap; 
             border-radius: 6px;
             background-color: #f9f9f9;
         }
 
         .match-box > * { margin: 5px; }
-        
-        /* Ustalona szerokość dla nazw drużyn na PC */
-        .match-box span {
-            min-width: 150px;
-            max-width: 200px; /* Ograniczenie, aby nie zajmowały zbyt dużo miejsca */
-            font-weight: bold;
-            text-align: right;
-            padding-right: 10px;
-        }
-        .match-box span:last-of-type {
-            text-align: left;
-            padding-left: 10px;
-            padding-right: 0;
-        }
+        .match-box span { min-width: 150px; max-width: 200px; font-weight: bold; text-align: right; padding-right: 10px; }
+        .match-box input[type="number"] { width: 40px; text-align: center; margin: 0 2px; padding: 5px; flex-shrink: 0; }
+        .match-box button { padding: 8px 12px; width: auto; margin: 0 2px; flex-shrink: 0; }
+        .match-box select { width: auto; flex-grow: 1; margin: 0 5px; }
 
-        /* Styl dla inputów w match-box (wyniki) */
-        .match-box input[type="number"] { 
-            width: 40px; /* Wystarczająco mały */
-            text-align: center; 
-            margin: 0 2px;
-            padding: 5px;
-            flex-shrink: 0; /* Nie kurczy się */
-        }
 
-        .match-box select {
-            width: auto; /* Nie zajmuje całej szerokości */
-            flex-grow: 1;
-            margin: 0 5px;
+        /* NOWE STYLE DLA ZARZĄDZANIA DRUŻYNAMI */
+        .player-list, .achievements-list { list-style: none; padding: 0; }
+        .player-list li, .achievements-list li { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 8px 0; 
+            border-bottom: 1px dashed #eee; 
         }
-        .match-box button {
-            padding: 8px 12px;
-            width: auto; /* Nie zajmuje całej szerokości */
-            margin: 0 2px;
-            flex-shrink: 0;
-        }
+        .player-number { font-weight: bold; color: #1565c0; margin-right: 10px; }
+        .small-input { width: 49% !important; display: inline-block !important; }
+        .ach-input-group { display: flex; gap: 10px; align-items: center; }
+        .ach-input-group input { margin: 0; }
+        .ach-input-group button { width: auto !important; padding: 8px 12px !important; margin: 0; }
+
 
         /* --- STYLY DLA URZĄDZEŃ MOBILNYCH (MAX SZEROKOŚĆ 600px) --- */
         @media (max-width: 600px) {
-            
-            .login-box, .admin-panel {
-                padding: 15px; /* Mniejszy padding wewnątrz */
-            }
+            .login-box, .admin-panel { padding: 15px; }
+            #teamA, #teamB { width: 100%; }
 
-            /* Układ sekcji 'Dodaj mecz' */
-            #teamA, #teamB {
-                width: 100%; /* Pełna szerokość dla inputów, jeden pod drugim */
-            }
+            /* Układ meczy w panelu zarządzania */
+            .match-box { flex-direction: column; align-items: stretch; }
+            .match-box > * { width: 100%; margin: 5px 0; text-align: center; }
+            .match-box > span { min-width: unset; text-align: center !important; padding: 0; font-size: 1.1em; }
 
-            /* KLUCZOWE: Układ meczy w panelu zarządzania */
-            .match-box {
-                flex-direction: column; /* Wszystko pod sobą */
-                align-items: stretch; /* Rozciągnij elementy na całą szerokość */
-            }
+            /* Pasek Wyników i Zapisz */
+            .score-controls { display: flex; justify-content: center; align-items: center; gap: 5px; width: 100%; margin: 5px 0; }
+            .score-controls input { width: 60px; margin: 0; padding: 10px; }
+            .score-controls button { width: auto; flex-grow: 1; margin: 0; }
+            .match-box select, .match-box button.delete-btn { width: 100%; }
 
-            .match-box > * { 
-                width: 100%; /* Elementy zajmują całą dostępną szerokość */
-                margin: 5px 0; 
-                text-align: center; 
-            }
-
-            /* Ustalenie układu dla nazw drużyn i wyników */
-            .match-box > span {
-                min-width: unset; 
-                text-align: center !important; 
-                padding: 0; 
-                font-size: 1.1em;
-            }
-
-            /* Ujednolicony pasek Wyników i Zapisz */
-            .score-controls {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 5px;
-                width: 100%;
-                margin: 5px 0;
-            }
-            .score-controls input {
-                width: 60px; /* Większe dla dotyku */
-                margin: 0;
-                padding: 10px;
-            }
-            .score-controls button {
-                width: auto;
-                flex-grow: 1;
-                margin: 0;
-            }
-
-            .match-box select, .match-box button.delete-btn {
-                width: 100%;
-            }
-            
-            /* Zmodyfikowanie elementów w match-box, aby ułatwić zarządzanie */
-            .match-box .score-group {
-                display: flex;
-                justify-content: center;
-                gap: 10px;
-                width: 100%;
-            }
+            /* Zarządzanie drużynami (Telefon) */
+            .small-input { width: 100% !important; display: block !important; }
+            .achievements-list li { flex-direction: column; align-items: flex-start; }
+            .achievements-list li button { width: 100%; margin-top: 5px; }
+            .ach-input-group { flex-direction: column; }
         }
     </style>
 </head>
@@ -195,7 +142,9 @@
 <div id="admin-interface" class="admin-panel" style="display: none;">
     <h1>Panel Administracyjny</h1>
 
-    <h2>Dodaj mecz</h2>
+    <h2><i class="fas fa-futbol"></i> Zarządzanie Meczami</h2>
+    
+    <h3>Dodaj mecz</h3>
     <select id="group">
         <option value="A">Grupa A</option>
         <option value="B">Grupa B</option>
@@ -207,21 +156,48 @@
         <option value="live">Na żywo</option>
         <option value="finished">Zakończony</option>
     </select>
-    <input id="teamA" placeholder="ID Drużyny A (np. Team1)" style="width: 49%;">
-    <input id="teamB" placeholder="ID Drużyny B (np. Team2)" style="width: 49%;">
-    <button onclick="addMatch()" style="width: 100%;">Dodaj mecz</button>
+    <input id="teamA" placeholder="ID Drużyny A (np. Team1)" class="small-input">
+    <input id="teamB" placeholder="ID Drużyny B (np. Team2)" class="small-input">
+    <button onclick="addMatch()">Dodaj mecz</button>
 
-    <h2>Zarządzanie Meczami</h2>
+    <h3>Lista meczów</h3>
     <div id="matches-output">
         Ładowanie meczów...
     </div>
+
+    <h2><i class="fas fa-users"></i> Zarządzanie Drużynami</h2>
+    <select id="team-selector" onchange="selectTeamToEdit(this.value)">
+        <option value="" disabled selected>Wybierz drużynę...</option>
+    </select>
+
+    <div id="team-details-editor" style="display: none; border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 15px;">
+        <h3 id="editing-team-title">Edycja: </h3>
+
+        <h4>Osiągnięcia <i class="fas fa-trophy"></i></h4>
+        <div class="ach-input-group">
+            <input id="achievement-input" placeholder="Wpisz osiągnięcie (np. Mistrz Ligi 2024)">
+            <button onclick="addAchievement()">Dodaj</button>
+        </div>
+        <ul id="achievements-output" class="achievements-list"></ul>
+
+        <h4>Skład <i class="fas fa-user-friends"></i></h4>
+        <div class="ach-input-group">
+            <input id="player-number-admin-input" type="number" min="1" max="99" placeholder="Nr" class="small-input">
+            <input id="player-name-admin-input" placeholder="Imię i Nazwisko" class="small-input">
+            <button onclick="addPlayerAdmin()">Dodaj</button>
+        </div>
+        <ul id="players-output" class="player-list"></ul>
+    </div>
+
 </div>
 
 <script>
     // 🔑 HASŁO ADMINISTRATORA 
     const ADMIN_PASSWORD = "Kowalski12"; 
+    const TEAM_BASE_PATH = "teams/teams/";
+    let currentTeamIdAdmin = null;
 
-    // Konfiguracja Firebase (POPRAWIONY URL)
+    // Konfiguracja Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
         authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -235,15 +211,184 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // ===================================
+    // FUNKCJE LOGOWANIA I GŁÓWNE
+    // ===================================
+
     function loginAdmin() {
         const enteredPassword = document.getElementById("admin-password").value;
         if (enteredPassword === ADMIN_PASSWORD) {
             document.getElementById("login-form").style.display = 'none';
             document.getElementById("admin-interface").style.display = 'block';
+            loadAllTeams(); // Ładuj listę drużyn po zalogowaniu
         } else {
             alert("Nieprawidłowe hasło administratora.");
         }
     }
+
+    // ===================================
+    // FUNKCJE ZARZĄDZANIA DRUŻYNAMI
+    // ===================================
+
+    function loadAllTeams() {
+        const teamSelector = document.getElementById("team-selector");
+        teamSelector.innerHTML = '<option value="" disabled selected>Wybierz drużynę...</option>';
+
+        db.ref(TEAM_BASE_PATH).once('value', snapshot => {
+            const teams = snapshot.val();
+            if (!teams) return;
+
+            Object.keys(teams).forEach(teamId => {
+                const option = document.createElement('option');
+                option.value = teamId;
+                option.textContent = teamId;
+                teamSelector.appendChild(option);
+            });
+        });
+    }
+
+    function selectTeamToEdit(teamId) {
+        currentTeamIdAdmin = teamId;
+        if (teamId) {
+            document.getElementById('editing-team-title').textContent = `Edycja: ${teamId}`;
+            document.getElementById('team-details-editor').style.display = 'block';
+            
+            // Uruchom nasłuchiwanie na zmiany w drużynie
+            db.ref(TEAM_BASE_PATH + teamId).on('value', snapshot => {
+                const teamData = snapshot.val();
+                if (teamData) {
+                    renderTeamDetails(teamData.players, teamData.achievements);
+                } else {
+                    renderTeamDetails(null, null);
+                }
+            });
+        } else {
+            document.getElementById('team-details-editor').style.display = 'none';
+        }
+    }
+
+    function renderTeamDetails(playersData, achievementsData) {
+        // RENDEROWANIE ZAWODNIKÓW
+        const playersOutput = document.getElementById("players-output");
+        playersOutput.innerHTML = '';
+        if (playersData) {
+            const sortedPlayers = Object.entries(playersData).map(([id, player]) => ({
+                id,
+                ...player
+            })).sort((a, b) => (a.number || 999) - (b.number || 999));
+
+            sortedPlayers.forEach(player => {
+                const listItem = document.createElement("li");
+                const playerNumber = player.number !== undefined && player.number !== null ? player.number : '—'; 
+                listItem.innerHTML = `
+                    <span class="player-number">[${playerNumber}]</span>
+                    <span>${player.name}</span>
+                    <button class="delete-btn" onclick="deletePlayerAdmin('${player.id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
+                `;
+                playersOutput.appendChild(listItem);
+            });
+        } else {
+             playersOutput.innerHTML = '<li>Brak zawodników.</li>';
+        }
+        
+        // RENDEROWANIE OSIĄGNIĘĆ
+        const achievementsOutput = document.getElementById("achievements-output");
+        achievementsOutput.innerHTML = '';
+        if (achievementsData) {
+            Object.entries(achievementsData).forEach(([id, achievement]) => {
+                const listItem = document.createElement("li");
+                listItem.innerHTML = `
+                    <span>${achievement}</span>
+                    <button class="delete-btn" onclick="deleteAchievement('${id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
+                `;
+                achievementsOutput.appendChild(listItem);
+            });
+        } else {
+             achievementsOutput.innerHTML = '<li>Brak osiągnięć.</li>';
+        }
+    }
+
+    // Dodanie Osiągnięcia
+    function addAchievement() {
+        const achievementInput = document.getElementById("achievement-input");
+        const achievementText = achievementInput.value.trim();
+
+        if (!currentTeamIdAdmin) return alert("Wybierz drużynę.");
+        if (!achievementText) return alert("Wpisz treść osiągnięcia.");
+
+        // Dodanie do podwęzła 'achievements'
+        db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/achievements").push(achievementText)
+            .then(() => achievementInput.value = '')
+            .catch(error => alert("Błąd dodawania osiągnięcia: " + error.message));
+    }
+
+    // Usunięcie Osiągnięcia
+    function deleteAchievement(achievementId) {
+        if (!currentTeamIdAdmin) return alert("Błąd sesji.");
+        
+        if (confirm("Usunąć to osiągnięcie?")) {
+            db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/achievements/" + achievementId).remove()
+                .then(() => console.log("Osiągnięcie usunięto."))
+                .catch(error => console.error("Błąd usuwania: ", error));
+        }
+    }
+
+    // Dodanie Zawodnika (Admin)
+    function addPlayerAdmin() {
+        const playerNameInput = document.getElementById("player-name-admin-input");
+        const playerNumberInput = document.getElementById("player-number-admin-input");
+        
+        const playerName = playerNameInput.value.trim();
+        const playerNumber = parseInt(playerNumberInput.value.trim());
+
+        if (!currentTeamIdAdmin) return alert("Wybierz drużynę.");
+        if (!playerName) return alert("Podaj imię i nazwisko zawodnika.");
+        
+        if (isNaN(playerNumber) || playerNumber < 1 || playerNumber > 99) {
+            return alert("🚨 Proszę podać prawidłowy numer zawodnika (od 1 do 99).");
+        }
+
+        // Admin ma możliwość dodania tego samego numeru, ale dla spójności sprawdzamy:
+        db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/players").once('value')
+            .then(snapshot => {
+                const players = snapshot.val();
+                let numberTaken = false;
+                for (let key in players) {
+                    if (players[key].number === playerNumber) {
+                        numberTaken = true;
+                        break;
+                    }
+                }
+
+                if (numberTaken && !confirm(`UWAGA: Numer ${playerNumber} jest już zajęty. Czy na pewno chcesz dodać tego zawodnika?`)) {
+                    return;
+                }
+                
+                // ZAPIS DO BAZY
+                db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/players").push({
+                    name: playerName,
+                    number: playerNumber 
+                });
+
+                playerNameInput.value = ""; 
+                playerNumberInput.value = "";
+            });
+    }
+
+    // Usunięcie Zawodnika (Admin)
+    function deletePlayerAdmin(playerId) {
+        if (!currentTeamIdAdmin) return alert("Błąd sesji.");
+        
+        if (confirm("Usunąć tego zawodnika?")) {
+            db.ref(TEAM_BASE_PATH + currentTeamIdAdmin + "/players/" + playerId).remove()
+                .then(() => console.log("Zawodnika usunięto."))
+                .catch(error => console.error("Błąd usuwania: ", error));
+        }
+    }
+
+    // ===================================
+    // FUNKCJE ZARZĄDZANIA MECZAMI (BEZ ZMIAN W LOGICE)
+    // ===================================
 
     function addMatch() {
         const group = document.getElementById("group").value;
@@ -270,11 +415,7 @@
     }
 
     function generateStatusOptions(currentStatus) {
-        const statuses = {
-            'scheduled': 'Zaplanowany',
-            'live': 'Na żywo',
-            'finished': 'Zakończony'
-        };
+        const statuses = { 'scheduled': 'Zaplanowany', 'live': 'Na żywo', 'finished': 'Zakończony' };
         let options = '';
         for (const [key, value] of Object.entries(statuses)) {
             const selected = key === currentStatus ? 'selected' : '';
@@ -297,22 +438,16 @@
     }
     
     function updateStatus(id, newStatus) {
-        db.ref("matches/" + id).update({
-            status: newStatus
-        }).then(() => {
-            console.log("Status zaktualizowany: " + id);
-        }).catch(error => {
-            alert("Błąd aktualizacji statusu: " + error.message);
-        });
+        db.ref("matches/" + id).update({ status: newStatus })
+            .then(() => console.log("Status zaktualizowany: " + id))
+            .catch(error => alert("Błąd aktualizacji statusu: " + error.message));
     }
 
     function deleteMatch(id) {
         if (confirm("Czy na pewno chcesz usunąć ten mecz? Tej operacji nie można cofnąć!")) {
-            db.ref("matches/" + id).remove().then(() => {
-                console.log("Mecz usunięty: " + id);
-            }).catch(error => {
-                alert("Błąd usuwania meczu: " + error.message);
-            });
+            db.ref("matches/" + id).remove()
+                .then(() => console.log("Mecz usunięty: " + id))
+                .catch(error => alert("Błąd usuwania meczu: " + error.message));
         }
     }
 
@@ -347,7 +482,6 @@
             }).forEach(match => {
                 const statusOptions = generateStatusOptions(match.status);
 
-                // Zmodyfikowana struktura HTML w pętli do lepszego zarządzania mobilnego
                 groupHtml += `
                     <div class="match-box">
                         <span>${match.teamA} vs ${match.teamB}</span>
