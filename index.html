@@ -14,6 +14,27 @@
     <link rel="stylesheet" href="style.css">
 
     <style>
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+        .login-links {
+            display: flex;
+            gap: 15px;
+        }
+        .login-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .login-links a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
         .stats-summary {
             display: flex;
             flex-wrap: wrap;
@@ -42,12 +63,9 @@
             padding: 10px 0;
             border-bottom: 1px dashed #eee;
         }
-        .match-item:last-child {
-            border-bottom: none;
-        }
         .team-name {
             font-weight: 700;
-            width: 40%;
+            width: 35%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -55,7 +73,7 @@
         .score-box {
             font-weight: 900;
             font-size: 1.1em;
-            width: 20%;
+            width: 15%;
             text-align: center;
         }
         .status-tag {
@@ -73,7 +91,6 @@
             70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
             100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
         }
-        /* Style dla głównego banneru */
         .hero-banner {
             text-align: center;
             background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
@@ -82,21 +99,16 @@
             border-radius: 10px;
             margin-bottom: 30px;
         }
-        .hero-banner h1 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .hero-banner p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Puchar Gwiazd</h1>
-        <div id="current-time"></div>
+        <div class="login-links">
+            <a href="login_kapitan.html"><i class="fas fa-user-shield"></i> Kapitan</a>
+            <a href="admin.html"><i class="fas fa-user-cog"></i> Admin</a>
+        </div>
+        <div id="current-time" style="display: none;"></div> 
     </div>
 
     <nav id="main-nav">
@@ -152,7 +164,6 @@
         const firebaseConfig = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            // POPRAWNY URL REALTIME DATABASE:
             databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
             projectId: "puchargwiazd-bdaa4",
             storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
@@ -168,7 +179,6 @@
         
         let teamsMap = {};
 
-        // 1. POBIERANIE NAZW DRUŻYN (mapowanie ID na nazwy)
         function loadTeamNames() {
             return db.ref(TEAMS_BASE_PATH).once('value').then(snapshot => {
                 const data = snapshot.val();
@@ -180,7 +190,6 @@
             });
         }
 
-        // 2. RENDEROWANIE MECZÓW
         function renderMatches(matches) {
             const upcomingContainer = document.getElementById('upcoming-matches');
             const recentContainer = document.getElementById('recent-results');
@@ -192,9 +201,7 @@
             const recent = [];
             const live = [];
 
-            // Sortowanie i grupowanie meczów
             Object.values(matches).forEach(match => {
-                // Konwersja nazw z ID
                 match.teamAName = teamsMap[match.teamA] || match.teamA;
                 match.teamBName = teamsMap[match.teamB] || match.teamB;
 
@@ -207,11 +214,9 @@
                 }
             });
             
-            // Pokaż mecze na żywo na samym początku listy ostatnich wyników
-            const displayRecent = [...live, ...recent.slice(-5)].reverse(); // Pokaż 5 ostatnich + Live
-            const displayUpcoming = [...live, ...upcoming.slice(0, 5)]; // Pokaż 5 najbliższych + Live
+            const displayRecent = [...live, ...recent.slice(-5)].reverse();
+            const displayUpcoming = [...live, ...upcoming.slice(0, 5)];
 
-            // Renderowanie Nadchodzących/Live
             if (displayUpcoming.length > 0) {
                 displayUpcoming.forEach(match => {
                     upcomingContainer.innerHTML += createMatchHtml(match);
@@ -220,7 +225,6 @@
                 upcomingContainer.innerHTML += '<p style="text-align: center; color: #888;">Brak zaplanowanych meczów.</p>';
             }
 
-            // Renderowanie Ostatnich/Live
             if (displayRecent.length > 0) {
                 displayRecent.forEach(match => {
                     recentContainer.innerHTML += createMatchHtml(match);
@@ -230,17 +234,14 @@
             }
         }
 
-        // 3. GENEROWANIE HTML DLA POJEDYNCZEGO MECZU
         function createMatchHtml(match) {
             const statusClass = match.status;
             let scoreContent;
             
-            if (match.status === 'finished') {
-                scoreContent = `<span class="score-box finished-score">${match.scoreA} - ${match.scoreB}</span>`;
-            } else if (match.status === 'live') {
-                scoreContent = `<span class="score-box live-score">${match.scoreA} - ${match.scoreB}</span>`;
+            if (match.status === 'finished' || match.status === 'live') {
+                scoreContent = `<span class="score-box">${match.scoreA} - ${match.scoreB}</span>`;
             } else {
-                scoreContent = `<span class="score-box scheduled-score">vs</span>`;
+                scoreContent = `<span class="score-box">vs</span>`;
             }
 
             const statusText = {
@@ -260,7 +261,6 @@
         }
 
 
-        // 4. GŁÓWNA INICJALIZACJA
         loadTeamNames().then(() => {
             db.ref(MATCHES_PATH).on('value', snapshot => {
                 const matchesData = snapshot.val();
@@ -273,7 +273,6 @@
             });
         }).catch(error => {
             console.error("Błąd ładowania danych początkowych: ", error);
-            // Wyświetlenie błędu użytkownikowi
             document.getElementById('upcoming-matches').innerHTML = '<p style="color: red; text-align: center;">Błąd ładowania danych.</p>';
             document.getElementById('recent-results').innerHTML = '<p style="color: red; text-align: center;">Błąd ładowania danych.</p>';
         });
