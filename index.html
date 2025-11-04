@@ -49,6 +49,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 450px;
+            box-sizing: border-box;
         }
         .stats-column h3 {
             color: #007bff;
@@ -56,38 +57,45 @@
             padding-bottom: 5px;
             text-align: center;
         }
+        
+        /* 💡 KLUCZOWE POPRAWKI DLA WYŚWIETLANIA MECZU */
         .match-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px dashed #eee;
-            /* Zapewnienie, że całość się mieści */
-            box-sizing: border-box; 
         }
         
-        /* 💡 KLUCZOWA POPRAWKA STYLI DLA NAZW DRUŻYN */
         .team-name {
             font-weight: 700;
-            width: 40%; /* Zwiększona szerokość dla nazwy */
-            /* Utrzymanie jednej linii i obsługa ucinania */
+            flex-grow: 1; /* Zajmuje całą dostępną przestrzeń */
             overflow: hidden; 
             text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: nowrap; /* Upewnij się, że nazwa jest w jednej linii */
+            padding: 0 5px; /* Lekki padding, aby nie dotykało krawędzi */
         }
+        
+        .score-box-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 70px; /* Stała, mała szerokość na wynik */
+            flex-shrink: 0; /* Nie pozwól, aby ta sekcja się kurczyła */
+        }
+        
         .score-box {
             font-weight: 900;
             font-size: 1.1em;
-            width: 10%; /* Zmniejszona szerokość dla wyniku */
-            text-align: center;
-            min-width: 40px; /* Minimalna szerokość dla wyniku, żeby się nie zwinął */
+            color: #333; /* Upewnij się, że wynik ma dobry kontrast */
         }
+        
         .status-tag {
-            font-size: 0.7em; /* Lekko mniejsza czcionka dla oszczędności miejsca */
+            font-size: 0.7em;
             font-weight: bold;
             padding: 3px 6px;
             border-radius: 4px;
-            min-width: 60px;
+            flex-shrink: 0; /* Nie pozwól, aby tag statusu się kurczył */
+            margin-left: 10px;
             text-align: center;
         }
         
@@ -244,6 +252,7 @@
             }
         }
 
+        // 2. KLUCZOWA ZMIANA W GENEROWANIU HTML: Kontener wyniku
         function createMatchHtml(match) {
             const statusClass = match.status;
             let scoreContent;
@@ -263,8 +272,13 @@
             return `
                 <div class="match-item">
                     <span class="team-name" style="text-align: right;">${match.teamAName}</span>
-                    ${scoreContent}
+                    
+                    <div class="score-box-container">
+                        ${scoreContent}
+                    </div>
+
                     <span class="team-name" style="text-align: left;">${match.teamBName}</span>
+                    
                     <span class="status-tag ${statusClass}">${statusText} (Gr. ${match.group})</span>
                 </div>
             `;
