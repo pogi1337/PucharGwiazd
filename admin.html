@@ -16,6 +16,15 @@
   </style>
 </head>
 <body>
+  <script>
+    const password = prompt("Podaj hasło administratora:");
+
+    if (password !== "Kowalski12") {
+        document.body.innerHTML = "<h1>Brak dostępu</h1>";
+        throw new Error("Access denied");
+    }
+</script>
+
 
 <h1>Panel Admina – Wyniki na żywo</h1>
 
@@ -97,3 +106,4 @@
 
 </body>
 </html>
+
