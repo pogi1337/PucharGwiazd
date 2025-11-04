@@ -9,77 +9,145 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght=500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
+        /* =========================================== */
+        /* ZMIENNE KOLORYSTYCZNE (CZARNO-NIEBIESKIE) */
+        /* =========================================== */
         :root {
-            --primary-color: #dc3545;
-            --secondary-color: #6c757d;
+            --primary-color: #007bff; /* Główny niebieski */
+            --primary-dark: #0056b3;
+            --secondary-color: #adb5bd; /* Jasnoszary dla tekstu/ikon */
             --success-color: #28a745;
-            --background-start: #e0f2f7;
-            --background-end: #bbdefb;
-            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            --danger-color: #dc3545;
+            --background-start: #0d1a26; /* Bardzo ciemny/prawie czarny */
+            --background-end: #212121; /* Ciemny szary */
+            --card-bg: #343a40; /* Ciemne tło kart */
+            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            --border-color: #007bff;
         }
 
         body { 
             font-family: 'Roboto', sans-serif; margin: 0; padding: 20px 10px; 
             background: linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%); 
-            color: #212121; display: flex; flex-direction: column;
+            color: #f8f9fa; /* Jasny tekst na ciemnym tle */
+            display: flex; flex-direction: column;
             align-items: center; min-height: 100vh;
         }
         .header {
             width: 100%; max-width: 900px; margin-bottom: 30px; padding: 25px;
-            background-color: #ffffff; border-radius: 15px;
+            background-color: var(--card-bg); border-radius: 15px;
             box-shadow: var(--card-shadow); border: 2px solid var(--primary-color);
             display: flex; justify-content: space-between; align-items: center;
         }
         .header h1 {
             font-family: 'Montserrat', sans-serif; color: var(--primary-color); font-size: 3.2em;
-            margin-bottom: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
         .content-container {
-            max-width: 900px; width: 100%; margin-bottom: 30px; padding: 25px;
-            background: white; border-radius: 15px; 
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid var(--primary-color);
+            max-width: 900px; width: 100%; margin-bottom: 20px;
+            background: var(--card-bg); border-radius: 15px; 
+            box-shadow: var(--card-shadow); border: 1px solid #495057;
+            overflow: hidden; /* Dla akordeonu */
         }
-        .content-container h2 {
+        
+        /* =========================================== */
+        /* STYLY AKORDEONU (UŁATWIENIE OBSŁUGI) */
+        /* =========================================== */
+        .accordion-header {
+            padding: 20px 25px; cursor: pointer;
+            background-color: #212529; /* Ciemniejszy pasek */
+            border-bottom: 1px solid #495057;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: background-color 0.3s;
+        }
+        .accordion-header:hover {
+            background-color: #2c3034;
+        }
+        .accordion-header.active {
+            background-color: var(--primary-dark);
+            color: white;
+        }
+        .accordion-header.active h2 {
+            color: white;
+        }
+        .accordion-header h2 {
             font-family: 'Montserrat', sans-serif; color: var(--primary-color);
-            margin-top: 10px; margin-bottom: 25px; padding-bottom: 5px;
-            border-bottom: 2px solid var(--primary-color); font-weight: 700;
-            font-size: 2.2em;
+            margin: 0; padding: 0; font-weight: 700;
+            font-size: 1.8em;
+            transition: color 0.3s;
+        }
+        .accordion-header .arrow {
+            font-size: 1.5em; color: var(--secondary-color);
+            transition: transform 0.3s, color 0.3s;
+        }
+        .accordion-header.active .arrow {
+            color: white;
+            transform: rotate(180deg);
         }
 
-        input[type="text"], input[type="email"], input[type="number"], input[type="password"], select, textarea {
-            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;
-            box-sizing: border-box; resize: vertical;
+        .accordion-content {
+            padding: 0 25px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            background-color: var(--card-bg);
         }
+        .accordion-content.open {
+            padding: 25px;
+        }
+
+        /* Sekcje wewnętrzne */
+        .subsection-header {
+            font-size: 1.5em; color: var(--primary-color); margin-top: 25px; margin-bottom: 15px;
+            border-bottom: 1px dashed var(--secondary-color); padding-bottom: 5px;
+        }
+        .subsection-header i { margin-right: 8px; }
+
+
+        /* =========================================== */
+        /* ELEMENTY FORMULARZA */
+        /* =========================================== */
+        input[type="text"], input[type="email"], input[type="number"], input[type="password"], select, textarea {
+            width: 100%; padding: 10px; border: 1px solid #495057; border-radius: 5px;
+            box-sizing: border-box; resize: vertical;
+            background-color: #2b3035; /* Tło inputu */
+            color: #f8f9fa;
+        }
+        select { height: 42px; }
+        .form-group label { color: var(--secondary-color); }
+
         .select-group { display: flex; gap: 15px; align-items: flex-end; }
         .select-group > .form-group { flex: 1; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
         .form-row { display: flex; gap: 20px; }
         .team-score-group { flex: 1; }
 
         .submit-btn {
             background-color: var(--primary-color); color: white; padding: 12px 20px; border: none;
             border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;
-            transition: background-color 0.3s; margin-top: 10px;
-            text-align: center;
+            transition: background-color 0.3s, transform 0.1s; margin-top: 10px;
+            text-align: center; border: 1px solid var(--primary-color);
         }
-        .submit-btn:hover { background-color: #c82333; }
-        .submit-btn.delete { background-color: #ffc107; color: #212529; }
-        .submit-btn.delete:hover { background-color: #e0a800; }
-        .submit-btn.live-toggle { background-color: #17a2b8; }
+        .submit-btn:hover { background-color: var(--primary-dark); transform: translateY(-1px); }
+        .submit-btn.delete { background-color: var(--danger-color); color: white; border-color: var(--danger-color); }
+        .submit-btn.delete:hover { background-color: #bd2130; }
+        .submit-btn.live-toggle { background-color: #17a2b8; border-color: #17a2b8; }
         .submit-btn.live-toggle:hover { background-color: #138496; }
-        .submit-btn.live-toggle.active { background-color: var(--success-color); }
+        .submit-btn.live-toggle.active { background-color: var(--success-color); border-color: var(--success-color); }
         .submit-btn.live-toggle.active:hover { background-color: #218838; }
-        .submit-btn.generate { background-color: #007bff; }
-        .submit-btn.generate:hover { background-color: #0056b3; }
         
         .player-entry { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .player-entry input[type="number"] { flex: 0 0 60px; }
         .player-entry input[type="text"] { flex: 1; }
+        .remove-player-btn { 
+            background-color: #6c757d; color: white; border: none; border-radius: 5px; padding: 10px; 
+            cursor: pointer; transition: background-color 0.2s;
+        }
+        .remove-player-btn:hover { background-color: #5a6268; }
 
         #edit-match-form > div { display: flex; gap: 15px; margin-top: 15px; }
         #edit-match-form button { flex: 1; }
@@ -90,21 +158,20 @@
         .match-live-status.live { background-color: var(--success-color); color: white; }
         .match-live-status.offline { background-color: #ffc107; color: #212529; }
 
+        /* Komunikaty */
         .message-area { padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; }
-        .message-area.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .message-area.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; word-break: break-word; }
-        .message-area.info { background-color: #cce5ff; color: #004085; border: 1px solid #b8daff; }
-        .subsection-header {
-            font-size: 1.5em; color: var(--primary-color); margin-top: 25px; margin-bottom: 15px;
-            border-bottom: 1px dashed #ccc; padding-bottom: 5px;
-        }
-        .subsection-header i { margin-right: 8px; }
+        .message-area.success { background-color: #1e4d2b; color: #c3e6cb; border: 1px solid #1c7430; }
+        .message-area.error { background-color: #58151c; color: #f5c6cb; border: 1px solid #721c24; word-break: break-word; }
+        .message-area.info { background-color: #004085; color: #b8daff; border: 1px solid #0056b3; }
 
         @media (max-width: 768px) {
             body { padding: 10px; }
-            .header, .content-container { padding: 15px; margin-bottom: 20px; }
+            .header, .content-container { padding: 0; margin-bottom: 15px; }
             .header h1 { font-size: 2.2em; }
-            .content-container h2 { font-size: 1.8em; }
+            
+            .accordion-header h2 { font-size: 1.5em; }
+            .accordion-content { padding: 0 15px; }
+            .accordion-content.open { padding: 15px; }
             .subsection-header { font-size: 1.3em; }
 
             .select-group, .form-row, #edit-match-form > div { flex-direction: column; gap: 10px; }
@@ -112,7 +179,7 @@
             .player-entry { flex-wrap: wrap; gap: 5px; }
             .player-entry input[type="number"] { flex: 0 0 50px; }
             .player-entry input[type="text"] { flex: 1 1 calc(100% - 70px); }
-            .remove-player-btn { flex: 1 1 100%; }
+            .remove-player-btn { flex: 1 1 100%; padding: 5px; }
             .submit-btn { padding: 10px 15px; font-size: 0.9em; }
         }
     </style>
@@ -123,7 +190,7 @@
         <h1><i class="fas fa-lock"></i> Panel Administracyjny</h1>
     </div>
 
-    <div class="content-container" id="login-section">
+    <div class="content-container" id="login-section" style="padding: 25px;">
         <h2><i class="fas fa-sign-in-alt"></i> Logowanie Admina</h2>
         <form id="admin-login-form">
             <div class="form-group">
@@ -141,156 +208,211 @@
 
     <div id="admin-panel" style="display: none; width: 100%;">
         
-        <div class="content-container" id="match-score-entry">
-            <h2><i class="fas fa-bullseye"></i> Wprowadź Wynik Meczu i Strzelców</h2>
-            <form id="match-form">
+        <div class="content-container accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion('match-score-entry-content')">
+                <h2><i class="fas fa-bullseye"></i> 1. Wprowadź Wynik Meczu i Strzelców</h2>
+                <i class="fas fa-chevron-down arrow"></i>
+            </div>
+            <div id="match-score-entry-content" class="accordion-content">
+                <form id="match-form">
+                    <div class="select-group">
+                        <div class="form-group">
+                            <label for="filter-group-score">Filtruj wg Grupy:</label>
+                            <select id="filter-group-score" onchange="filterMatchSelect('match-id', this.value)">
+                                <option value="">-- Wszystkie Grupy --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="match-id">Wybierz Mecz:</label>
+                            <select id="match-id" required>
+                                <option value="">-- Ładowanie meczów... --</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group team-score-group">
+                            <label for="home-score" id="home-team-label">Wynik Gospodarzy:</label>
+                            <input type="number" id="home-score" min="0" value="0" required onchange="generateGoalSelectors('home')">
+                        </div>
+                        <div class="form-group team-score-group">
+                            <label for="away-score" id="away-team-label">Wynik Gości:</label>
+                            <input type="number" id="away-score" min="0" value="0" required onchange="generateGoalSelectors('away')">
+                        </div>
+                    </div>
+                    
+                    <h3 class="subsection-header"><i class="fas fa-futbol"></i> Strzelcy Goli dla Gospodarzy</h3>
+                    <div id="home-goal-selectors"></div>
+
+                    <h3 class="subsection-header"><i class="fas fa-futbol"></i> Strzelcy Goli dla Gości</h3>
+                    <div id="away-goal-selectors"></div>
+
+                    <button type="submit" class="submit-btn" id="submit-match-score"><i class="fas fa-save"></i> Zapisz Wynik i Strzelców</button>
+                    <div id="match-message" class="message-area"></div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="content-container accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion('match-management-content')">
+                <h2><i class="fas fa-calendar-alt"></i> 2. Zarządzanie Meczami (Dodaj, Edytuj, LIVE)</h2>
+                <i class="fas fa-chevron-down arrow"></i>
+            </div>
+            <div id="match-management-content" class="accordion-content">
+                <h3 class="subsection-header"><i class="fas fa-plus-circle"></i> Dodaj Nowy Mecz</h3>
+                <form id="add-match-form">
+                    <div class="form-group">
+                        <label for="new-match-id">ID Meczu (np. G1M1):</label>
+                        <input type="text" id="new-match-id" required placeholder="Unikalne ID, np. FINAŁ">
+                    </div>
+                    <div class="select-group">
+                        <div class="form-group">
+                            <label for="new-match-group">Grupa:</label>
+                            <input type="text" id="new-match-group" required placeholder="Grupa A, PlayOff, Finał...">
+                        </div>
+                        <div class="form-group">
+                            <label for="new-home-team">Gospodarze:</label>
+                            <select id="new-home-team" required><option value="">-- Ładowanie drużyn... --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-away-team">Goście:</label>
+                            <select id="new-away-team" required><option value="">-- Ładowanie drużyn... --</option></select>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn"><i class="fas fa-calendar-plus"></i> Dodaj Mecz</button>
+                    <div id="add-match-message" class="message-area"></div>
+                </form>
+
+                <h3 class="subsection-header" style="margin-top: 40px;"><i class="fas fa-edit"></i> Edytuj/Usuń Mecz i Live Status</h3>
                 <div class="select-group">
                     <div class="form-group">
-                        <label for="filter-group-score">Filtruj wg Grupy:</label>
-                        <select id="filter-group-score" onchange="filterMatchSelect('match-id', this.value)">
+                        <label for="filter-group-manage">Filtruj wg Grupy:</label>
+                        <select id="filter-group-manage" onchange="filterMatchSelect('match-id-manage', this.value)">
                             <option value="">-- Wszystkie Grupy --</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="match-id">Wybierz Mecz:</label>
-                        <select id="match-id" required>
+                        <label for="match-id-manage">Wybierz Mecz do Edycji:</label>
+                        <select id="match-id-manage" onchange="loadMatchDataForEdit(this.value)">
                             <option value="">-- Ładowanie meczów... --</option>
                         </select>
                     </div>
                 </div>
-                
-                <div class="form-row">
-                    <div class="form-group team-score-group">
-                        <label for="home-score" id="home-team-label">Wynik Gospodarzy:</label>
-                        <input type="number" id="home-score" min="0" value="0" required onchange="generateGoalSelectors('home')">
-                    </div>
-                    <div class="form-group team-score-group">
-                        <label for="away-score" id="away-team-label">Wynik Gości:</label>
-                        <input type="number" id="away-score" min="0" value="0" required onchange="generateGoalSelectors('away')">
-                    </div>
-                </div>
-                
-                <h3 class="subsection-header"><i class="fas fa-futbol"></i> Strzelcy Goli dla Gospodarzy</h3>
-                <div id="home-goal-selectors"></div>
 
-                <h3 class="subsection-header"><i class="fas fa-futbol"></i> Strzelcy Goli dla Gości</h3>
-                <div id="away-goal-selectors"></div>
-
-                <button type="submit" class="submit-btn" id="submit-match-score"><i class="fas fa-save"></i> Zapisz Wynik i Strzelców</button>
-                <div id="match-message" class="message-area"></div>
-            </form>
+                <form id="edit-match-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="edit-match-id">ID Meczu (do zmiany):</label>
+                        <input type="text" id="edit-match-id" required>
+                    </div>
+                    <div class="select-group">
+                        <div class="form-group">
+                            <label for="edit-match-group">Grupa:</label>
+                            <input type="text" id="edit-match-group" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-home-team">Gospodarze:</label>
+                            <select id="edit-home-team" required><option value="">-- Ładowanie drużyn... --</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-away-team">Goście:</label>
+                            <select id="edit-away-team" required><option value="">-- Ładowanie drużyn... --</option></select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 15px;">
+                        <button type="submit" class="submit-btn" style="flex: 1;"><i class="fas fa-save"></i> Zapisz Zmiany w Meczu</button>
+                        <button type="button" id="toggle-live-btn" class="submit-btn live-toggle" style="flex: 1;"><i class="fas fa-broadcast-tower"></i> Włącz/Wyłącz LIVE</button>
+                        <button type="button" id="delete-match-btn" class="submit-btn delete" style="flex: 1;"><i class="fas fa-trash-alt"></i> Usuń Mecz</button>
+                    </div>
+                    <div id="edit-match-message" class="message-area"></div>
+                </form>
+            </div>
         </div>
         
-        <div class="content-container" id="match-management">
-            <h2><i class="fas fa-calendar-alt"></i> Zarządzanie Meczami</h2>
-            <h3 class="subsection-header"><i class="fas fa-plus-circle"></i> Dodaj Nowy Mecz</h3>
-            <form id="add-match-form">
+        <div class="content-container accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion('team-management-content')">
+                <h2><i class="fas fa-users-cog"></i> 3. Zarządzanie Drużynami (Składy i Osiągnięcia)</h2>
+                <i class="fas fa-chevron-down arrow"></i>
+            </div>
+            <div id="team-management-content" class="accordion-content">
                 <div class="form-group">
-                    <label for="new-match-id">ID Meczu (np. G1M1):</label>
-                    <input type="text" id="new-match-id" required placeholder="Unikalne ID, np. FINAŁ">
-                </div>
-                <div class="select-group">
-                    <div class="form-group">
-                        <label for="new-match-group">Grupa:</label>
-                        <input type="text" id="new-match-group" required placeholder="Grupa A, PlayOff, Finał...">
-                    </div>
-                    <div class="form-group">
-                        <label for="new-home-team">Gospodarze:</label>
-                        <select id="new-home-team" required><option value="">-- Ładowanie drużyn... --</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-away-team">Goście:</label>
-                        <select id="new-away-team" required><option value="">-- Ładowanie drużyn... --</option></select>
-                    </div>
-                </div>
-                <button type="submit" class="submit-btn"><i class="fas fa-calendar-plus"></i> Dodaj Mecz</button>
-                <div id="add-match-message" class="message-area"></div>
-            </form>
-
-            <h3 class="subsection-header" style="margin-top: 40px;"><i class="fas fa-edit"></i> Edytuj/Usuń Mecz i Live Status</h3>
-            <div class="select-group">
-                <div class="form-group">
-                    <label for="filter-group-manage">Filtruj wg Grupy:</label>
-                    <select id="filter-group-manage" onchange="filterMatchSelect('match-id-manage', this.value)">
-                        <option value="">-- Wszystkie Grupy --</option>
+                    <label for="select-team-manage">Wybierz Drużynę do Edycji:</label>
+                    <select id="select-team-manage">
+                        <option value="">-- Wybierz drużynę --</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="match-id-manage">Wybierz Mecz do Edycji:</label>
-                    <select id="match-id-manage" onchange="loadMatchDataForEdit(this.value)">
-                        <option value="">-- Ładowanie meczów... --</option>
-                    </select>
-                </div>
+
+                <form id="edit-team-form" style="display: none;">
+                    <h3 class="subsection-header"><i class="fas fa-trophy"></i> Osiągnięcia Drużyny</h3>
+                    <div class="form-group">
+                        <label for="team-achievements">Osiągnięcia (każde w nowej linii lub oddzielone przecinkami):</label>
+                        <textarea id="team-achievements" rows="3" placeholder="Puchar 2024, Lider Strzelców, ..."></textarea>
+                    </div>
+
+                    <h3 class="subsection-header"><i class="fas fa-shirt"></i> Zawodnicy i Numery</h3>
+                    <div id="players-container">
+                    </div>
+                    
+                    <button type="button" class="submit-btn add-player-btn" id="add-player-btn"><i class="fas fa-user-plus"></i> Dodaj Zawodnika</button>
+
+                    <button type="submit" class="submit-btn" style="margin-top: 25px;"><i class="fas fa-save"></i> Zapisz Zmiany w Drużynie</button>
+                    <div id="edit-team-message" class="message-area"></div>
+                </form>
             </div>
-
-            <form id="edit-match-form" style="display: none;">
-                <div class="form-group">
-                    <label for="edit-match-id">ID Meczu (do zmiany):</label>
-                    <input type="text" id="edit-match-id" required>
-                </div>
-                <div class="select-group">
-                    <div class="form-group">
-                        <label for="edit-match-group">Grupa:</label>
-                        <input type="text" id="edit-match-group" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-home-team">Gospodarze:</label>
-                        <select id="edit-home-team" required><option value="">-- Ładowanie drużyn... --</option></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-away-team">Goście:</label>
-                        <select id="edit-away-team" required><option value="">-- Ładowanie drużyn... --</option></select>
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 15px; margin-top: 15px;">
-                    <button type="submit" class="submit-btn" style="flex: 1;"><i class="fas fa-save"></i> Zapisz Zmiany w Meczu</button>
-                    <button type="button" id="toggle-live-btn" class="submit-btn live-toggle" style="flex: 1;"><i class="fas fa-broadcast-tower"></i> Włącz/Wyłącz LIVE</button>
-                    <button type="button" id="delete-match-btn" class="submit-btn delete" style="flex: 1;"><i class="fas fa-trash-alt"></i> Usuń Mecz</button>
-                </div>
-                <div id="edit-match-message" class="message-area"></div>
-            </form>
-        </div>
-        
-        <div class="content-container" id="team-management">
-            <h2><i class="fas fa-users-cog"></i> Zarządzanie Drużynami</h2>
-
-            <div class="form-group">
-                <label for="select-team-manage">Wybierz Drużynę do Edycji:</label>
-                <select id="select-team-manage">
-                    <option value="">-- Wybierz drużynę --</option>
-                </select>
-            </div>
-
-            <form id="edit-team-form" style="display: none;">
-                <h3 class="subsection-header"><i class="fas fa-trophy"></i> Osiągnięcia Drużyny</h3>
-                <div class="form-group">
-                    <label for="team-achievements">Osiągnięcia (każde w nowej linii lub oddzielone przecinkami):</label>
-                    <textarea id="team-achievements" rows="3" placeholder="Puchar 2024, Lider Strzelców, ..."></textarea>
-                </div>
-
-                <h3 class="subsection-header"><i class="fas fa-shirt"></i> Zawodnicy i Numery</h3>
-                <div id="players-container">
-                </div>
-                
-                <button type="button" class="submit-btn add-player-btn" id="add-player-btn"><i class="fas fa-user-plus"></i> Dodaj Zawodnika</button>
-
-                <button type="submit" class="submit-btn" style="margin-top: 25px;"><i class="fas fa-save"></i> Zapisz Zmiany w Drużynie</button>
-                <div id="edit-team-message" class="message-area"></div>
-            </form>
         </div>
 
-        <div class="content-container" style="text-align: center;">
-            <button id="admin-logout-btn" class="submit-btn" style="background-color: var(--secondary-color);"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
+        <div class="content-container" style="text-align: center; padding: 25px;">
+            <button id="admin-logout-btn" class="submit-btn" style="background-color: #6c757d;"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
         </div>
 
     </div>
     
-    <div class="footer" style="width: 100%; max-width: 900px; text-align: center; padding: 15px 0; margin-top: 30px; color: var(--secondary-color); border-top: 1px solid #ccc;">
+    <div class="footer" style="width: 100%; max-width: 900px; text-align: center; padding: 15px 0; margin-top: 30px; color: var(--secondary-color); border-top: 1px solid #495057;">
         <p>© 2025 Panel Admina Puchar Gwiazd.</p>
     </div>
 
 <script>
+    // ===========================================
+    // LOGIKA AKORDEONU (COLLAPSIBLE SECTIONS)
+    // ===========================================
+
+    function toggleAccordion(contentId) {
+        const content = document.getElementById(contentId);
+        const header = content.previousElementSibling;
+        const arrow = header.querySelector('.arrow');
+        const isContentOpen = content.style.maxHeight;
+
+        // Otwórz/Zamknij sekcję
+        if (isContentOpen && isContentOpen !== '0px') {
+            content.style.maxHeight = '0';
+            content.classList.remove('open');
+            header.classList.remove('active');
+            arrow.classList.remove('fa-chevron-up');
+            arrow.classList.add('fa-chevron-down');
+        } else {
+            // Zamknij wszystkie pozostałe
+            document.querySelectorAll('.accordion-content').forEach(otherContent => {
+                if (otherContent.id !== contentId) {
+                    otherContent.style.maxHeight = '0';
+                    otherContent.classList.remove('open');
+                    otherContent.previousElementSibling.classList.remove('active');
+                    const otherArrow = otherContent.previousElementSibling.querySelector('.arrow');
+                    if (otherArrow) {
+                         otherArrow.classList.remove('fa-chevron-up');
+                         otherArrow.classList.add('fa-chevron-down');
+                    }
+                }
+            });
+            
+            // Otwórz aktualną
+            content.style.maxHeight = content.scrollHeight + "px";
+            content.classList.add('open');
+            header.classList.add('active');
+            arrow.classList.remove('fa-chevron-down');
+            arrow.classList.add('fa-chevron-up');
+        }
+    }
+    
     // ===========================================
     // KONFIGURACJA FIREBASE
     // ===========================================
@@ -298,7 +420,6 @@
     const firebaseConfig = {
         apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
         authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        // !!! POPRAWIONY FORMAT URL dla SDK v8 (bez protokołu https://) !!!
         databaseURL: "puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/", 
         projectId: "puchargwiazd-bdaa4",
         storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
@@ -310,7 +431,6 @@
         firebase.initializeApp(firebaseConfig); 
     } catch (e) {
         console.error("Błąd inicjalizacji Firebase (sprawdź klucze API i URL bazy danych):", e.message);
-        // Kontynuacja bez Firebase, ale funkcje JS nie będą działać poprawnie
     }
 
     const auth = firebase.auth(); 
@@ -340,6 +460,8 @@
                 adminPanel.style.display = 'block';
                 loadMatchAndTeamData(); 
                 loadTeamsForManagement();
+                // Otwórz pierwszą sekcję akordeonu po załadowaniu
+                setTimeout(() => toggleAccordion('match-score-entry-content'), 100); 
             } else {
                 loginSection.style.display = 'block';
                 adminPanel.style.display = 'none';
@@ -390,7 +512,7 @@
     });
 
     // ===========================================
-    // LOGIKA APLIKACJI
+    // LOGIKA APLIKACJI (NIEZMIENIONA, Z WYJĄTKIEM AKORDEONU)
     // ===========================================
 
     function loadMatchAndTeamData() {
@@ -403,7 +525,6 @@
         .then(snapshot => {
             allMatchesData = snapshot.val() || {};
             Object.keys(allMatchesData).forEach(matchId => {
-                // Sprawdzenie, który mecz jest LIVE, nadal jest potrzebne dla logiki przycisku LIVE
                 if (allMatchesData[matchId].live) {
                     currentLiveMatchId = matchId;
                 }
@@ -560,7 +681,7 @@
         const currentScorers = match.scorers ? match.scorers.filter(s => s.teamType === teamType) : [];
 
         if (score === 0) {
-            container.innerHTML = `<p style="color: #6c757d;">Drużyna ${team.name} nie strzeliła bramek.</p>`;
+            container.innerHTML = `<p style="color: var(--secondary-color);">Drużyna ${team.name} nie strzeliła bramek.</p>`;
             return;
         }
 
