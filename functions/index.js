@@ -91,4 +91,23 @@ exports.setAdmin = functions.https.onCall(async (data, context) => {
     return { success: false, error: err.message };
   }
 });
+exports.setAdmin = functions.https.onCall(async (data, context) => {
+  if (!context.auth || context.auth.token.admin !== true) {
+    return { success: false, error: 'Brak uprawnień (musisz być adminem)' };
+  }
+
+  const { email } = data;
+  if (!email) {
+    return { success: false, error: 'Nie podano adresu e-mail' };
+  }
+
+  try {
+    const user = await admin.auth().getUserByEmail(email);
+    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+    return { success: true, message: `Użytkownik ${email} został ustawiony jako admin.` };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
 
