@@ -257,4 +257,323 @@
             e.preventDefault();
             const email = document.getElementById('admin-email').value; 
             const password = document.getElementById('admin-password').value;
-            const
+            const messageArea = document.getElementById('login-message');
+            
+            messageArea.textContent = "Logowanie...";
+            messageArea.className = "message-area info";
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    messageArea.textContent = "Zalogowano! Sprawdzanie uprawnień...";
+                    messageArea.className = "message-area success";
+                    // checkAuth() przejmie kontrolę
+                })
+                .catch(error => {
+                    messageArea.textContent = "Błąd logowania: Błędny email lub hasło lub brak uprawnień admina.";
+                    messageArea.className = "message-area error";
+                    console.error("Firebase Auth Error:", error);
+                });
+        });
+
+        document.getElementById('admin-logout-btn').addEventListener('click', () => {
+            auth.signOut();
+        });
+
+
+        // ===========================================
+        // SEKCJA 1: ZARZĄDZANIE DRUŻYNAMI
+        // ===========================================
+
+        function loadTeamsForManagement() {
+            teamsRef.once('value', snapshot => {
+                teamsData = snapshot.val() || {};
+                const teamsList = document.getElementById('teams-list');
+                teamsList.innerHTML = '<option value="">-- Wybierz drużynę --</option>';
+
+                Object.keys(teamsData).forEach(teamId => {
+                    const team = teamsData[teamId];
+                    const option = document.createElement('option');
+                    option.value = teamId;
+                    option.textContent = `${team.name} (${teamId})`;
+                    teamsList.appendChild(option);
+                });
+                
+                teamsList.addEventListener('change', (e) => {
+                    const selectedId = e.target.value;
+                    const team = teamsData[selectedId];
+                    const displayNameInput = document.getElementById('team-display-name');
+                    const playersDisplay = document.getElementById('team-players-display');
+
+                    if (team) {
+                        displayNameInput.value = team.name || '';
+                        
+                        let playersText = '';
+                        if (team.players) {
+                            // Ładne formatowanie listy zawodników
+                            Object.values(team.players).forEach(p => {
+                                playersText += `${p.number ? '[' + p.number + ']' : ''} ${p.name}\n`;
+                            });
+                        } else {
+                            playersText = 'Brak dodanych zawodników.';
+                        }
+                        playersDisplay.value = playersText.trim();
+                    } else {
+                        displayNameInput.value = '';
+                        playersDisplay.value = '';
+                    }
+                });
+            });
+        }
+
+        document.getElementById('team-management-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const teamId = document.getElementById('teams-list').value;
+            const newName = document.getElementById('team-display-name').value.trim();
+            const messageArea = document.getElementById('team-management-message');
+
+            if (!teamId || !newName) {
+                messageArea.textContent = 'Błąd: Wybierz drużynę i podaj nową nazwę.';
+                messageArea.className = 'message-area error';
+                return;
+            }
+
+            messageArea.textContent = `Zapisywanie nowej nazwy dla ${teamId}...`;
+            messageArea.className = 'message-area info';
+
+            // Admin ma prawo zapisu, co jest zgodne z Regułami Bezpieczeństwa
+            teamsRef.child(teamId).update({ name: newName })
+                .then(() => {
+                    messageArea.textContent = `Pomyślnie zmieniono nazwę drużyny ${teamId} na ${newName}.`;
+                    messageArea.className = 'message-area success';
+                    loadTeamsForManagement(); // Odśwież listę
+                })
+                .catch(error => {
+                    messageArea.textContent = 'Błąd zapisu: ' + error.message;
+                    messageArea.className = 'message-area error';
+                });
+        });
+
+
+        // ===========================================
+        // SEKCJA 2: WPROWADZANIE WYNIKÓW MECZÓW
+        // ===========================================
+
+        function loadMatchesForScoreInput() {
+            matchesRef.on('value', snapshot => {
+                const matches = snapshot.val() || {};
+                const container = document.getElementById('match-results-container');
+                container.innerHTML = '';
+                
+                // Konwersja na tablicę i sortowanie (np. po dacie/czasie/kluczu)
+                const sortedMatches = Object.entries(matches).sort(([, a], [, b]) => a.date - b.date); 
+
+                if (sortedMatches.length === 0) {
+                     container.innerHTML = '<div class="message-area info">Brak wygenerowanych meczów.</div>';
+                     return;
+                }
+
+                sortedMatches.forEach(([matchId, match]) => {
+                    const matchDiv = document.createElement('form');
+                    matchDiv.classList.add('match-form');
+                    matchDiv.dataset.matchId = matchId;
+                    
+                    const scoreA = match.scoreA !== undefined ? match.scoreA : '';
+                    const scoreB = match.scoreB !== undefined ? match.scoreB : '';
+
+                    matchDiv.innerHTML = `
+                        <div class="match-header">${match.type || 'Faza'} | Mecz ${matchId}</div>
+                        <div class="score-inputs">
+                            <span class="team-name">${teamsData[match.teamA]?.name || match.teamA}</span>
+                            <input type="number" class="score-a" value="${scoreA}" min="0" required>
+                            <span class="separator"> - </span>
+                            <input type="number" class="score-b" value="${scoreB}" min="0" required>
+                            <span class="team-name">${teamsData[match.teamB]?.name || match.teamB}</span>
+                        </div>
+                        <button type="submit" class="submit-btn" style="width: auto; margin-top: 10px;">Zapisz Wynik</button>
+                    `;
+                    
+                    matchDiv.addEventListener('submit', handleMatchScoreSubmit);
+                    container.appendChild(matchDiv);
+                });
+            });
+        }
+
+        function handleMatchScoreSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const matchId = form.dataset.matchId;
+            const scoreA = parseInt(form.querySelector('.score-a').value, 10);
+            const scoreB = parseInt(form.querySelector('.score-b').value, 10);
+            const messageArea = document.getElementById('match-results-message');
+
+            messageArea.textContent = `Zapisywanie wyniku meczu ${matchId}...`;
+            messageArea.className = 'message-area info';
+
+            matchesRef.child(matchId).update({
+                scoreA: scoreA,
+                scoreB: scoreB
+            })
+            .then(() => {
+                messageArea.textContent = `Wynik ${scoreA} - ${scoreB} dla meczu ${matchId} zapisany!`;
+                messageArea.className = 'message-area success';
+            })
+            .catch(error => {
+                messageArea.textContent = 'Błąd zapisu wyniku: ' + error.message;
+                messageArea.className = 'message-area error';
+            });
+        }
+
+        // ===========================================
+        // SEKCJA 3: GENEROWANIE MECZÓW I CZYSZCZENIE DANYCH
+        // ===========================================
+
+        document.getElementById('generate-matches-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const messageArea = document.getElementById('generate-matches-message');
+            const matchType = document.getElementById('match-type-select').value.trim();
+
+            if (Object.keys(teamsData).length < 2) {
+                messageArea.textContent = 'Błąd: Potrzebujesz co najmniej 2 drużyn do wygenerowania meczów.';
+                messageArea.className = 'message-area error';
+                return;
+            }
+            
+            if (!matchType) {
+                 messageArea.textContent = 'Błąd: Podaj typ (np. Grupa A).';
+                 messageArea.className = 'message-area error';
+                 return;
+            }
+
+            messageArea.textContent = 'Generowanie meczów, proszę czekać...';
+            messageArea.className = 'message-area info';
+
+            // Wywołanie Cloud Function do generowania par
+            const generateMatches = firebase.functions().httpsCallable('generateMatches');
+
+            try {
+                const result = await generateMatches({ type: matchType });
+                messageArea.textContent = `Sukces! Wygenerowano ${result.data.count} nowych meczów.`;
+                messageArea.className = 'message-area success';
+                document.getElementById('match-type-select').value = '';
+            } catch (error) {
+                console.error("Błąd generowania meczów:", error);
+                messageArea.textContent = `Błąd generowania: ${error.message}. Sprawdź logi Cloud Functions.`;
+                messageArea.className = 'message-area error';
+            }
+        });
+
+        document.getElementById('clear-all-data-btn').addEventListener('click', () => {
+             if (confirm("JESTEŚ PEWIEN? To usunie WSZYSTKIE dane z węzłów /matches i /teams. Danych nie da się odzyskać!")) {
+                const messageArea = document.getElementById('clear-data-message');
+                messageArea.textContent = 'Usuwanie danych...';
+                messageArea.className = 'message-area error';
+
+                // Usunięcie danych (Admin ma prawo zapisu)
+                matchesRef.remove()
+                    .then(() => teamsRef.remove())
+                    .then(() => {
+                        messageArea.textContent = 'Pomyślnie usunięto wszystkie dane meczów i drużyn.';
+                        messageArea.className = 'message-area success';
+                        loadTeamsForManagement(); // Odświeżenie widoków
+                    })
+                    .catch(error => {
+                        messageArea.textContent = 'Błąd usuwania danych: ' + error.message;
+                    });
+            }
+        });
+
+        // ===========================================
+        // SEKCJA 4: TWORZENIE KONTA DRUŻYNY (NOWA WERSJA Z WPISYWANIEM NAZWY)
+        // ===========================================
+
+        document.getElementById('create-team-account-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleCreateTeamAccount();
+        });
+
+        async function handleCreateTeamAccount() {
+            const email = document.getElementById('team-account-email').value.trim();
+            const password = document.getElementById('team-account-password').value.trim();
+            const teamName = document.getElementById('new-team-name-input').value.trim(); 
+            const messageArea = document.getElementById('team-account-message');
+
+            if (!teamName || teamName.length < 3) {
+                messageArea.textContent = 'Błąd: Nazwa drużyny jest za krótka.';
+                messageArea.className = 'message-area error';
+                return;
+            }
+            if (password.length < 6) {
+                 messageArea.textContent = 'Błąd: Hasło musi mieć co najmniej 6 znaków.';
+                 messageArea.className = 'message-area error';
+                 return;
+            }
+            
+            // Generowanie bezpiecznego teamId z nazwy (np. 'Lwy Północy' -> 'lwy_polnocy')
+            const teamId = teamName
+                            .toLowerCase()
+                            .replace(/[^a-z0-9\s]/g, '') // Usuwa znaki specjalne
+                            .replace(/\s+/g, '_'); // Zamienia spacje na podkreślenia
+
+            messageArea.textContent = `Tworzenie konta i drużyny (${teamId})...`;
+            messageArea.className = 'message-area info';
+
+            try {
+                // 1. Sprawdzenie, czy drużyna już istnieje w bazie danych
+                const teamSnapshot = await db.ref(`teams/${teamId}`).once('value');
+                if (teamSnapshot.exists()) {
+                     messageArea.textContent = `Błąd: Drużyna o ID "${teamId}" już istnieje. Proszę użyć innej nazwy.`;
+                     messageArea.className = 'message-area error';
+                     return;
+                }
+
+                // 2. Utworzenie nowego węzła drużyny w Realtime Database
+                await db.ref(`teams/${teamId}`).set({
+                    name: teamName,
+                    id: teamId,
+                    players: {}, // Pusty skład do uzupełnienia przez kapitana
+                    created: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // 3. Wywołanie Cloud Function, która utworzy użytkownika i przypisze Custom Claim
+                const createTeamUser = firebase.functions().httpsCallable('createTeamUser');
+                const result = await createTeamUser({ 
+                    email: email, 
+                    password: password, 
+                    teamId: teamId, // Przekazujemy wygenerowane ID
+                    teamName: teamName
+                });
+
+                // 4. Sukces
+                messageArea.textContent = `Sukces! Utworzono konto dla: ${teamName} (${teamId}). Email: ${email}. Zapisz te dane!`;
+                messageArea.className = 'message-area success';
+                
+                // Wyczyść pola i odśwież listę drużyn
+                document.getElementById('team-account-email').value = '';
+                document.getElementById('team-account-password').value = '';
+                document.getElementById('new-team-name-input').value = '';
+                loadTeamsForManagement(); // Odświeżenie listy w Sekcji 1
+
+            } catch (error) {
+                console.error("Błąd tworzenia konta drużyny:", error);
+                let displayMessage = "Błąd: Nie udało się utworzyć konta. ";
+                
+                if (error.code && error.code === 'functions/invalid-argument') {
+                    displayMessage = `Błąd funkcji: ${error.message}. Sprawdź, czy funkcja Cloud Functions działa.`;
+                } else if (error.message && error.message.includes('email-already-in-use')) {
+                     displayMessage = "Błąd: Podany email jest już w użyciu.";
+                } else if (error.code && error.code === 'functions/internal') {
+                     displayMessage += 'Błąd serwera. Sprawdź logi Cloud Functions.';
+                } else {
+                     displayMessage += error.message;
+                }
+                
+                messageArea.textContent = displayMessage;
+                messageArea.className = 'message-area error';
+            }
+        }
+
+        // START APLIKACJI
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>
