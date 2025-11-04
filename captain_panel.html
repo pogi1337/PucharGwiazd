@@ -13,9 +13,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
-        /* =========================================== */
-        /* TWOJE STYLISTYKI (minimalne poprawki dla sekcji logowania) */
-        /* =========================================== */
         body { 
             font-family: 'Montserrat', sans-serif; 
             padding: 10px; 
@@ -23,7 +20,6 @@
             color: #212121;
             min-height: 100vh;
         }
-
         .section { 
             max-width: 600px; 
             margin: 20px auto; 
@@ -33,7 +29,6 @@
             border-radius: 12px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
         }
-        
         h1, h2 { 
             color: #1565c0; 
             text-align: center; 
@@ -47,144 +42,36 @@
             padding-bottom: 8px; 
             font-weight: 700;
         }
-
-        /* POLA FORMULARZA */
-        input, button {
-            padding: 14px; 
-            margin: 5px 0;
-            border-radius: 8px;
-            border: 1px solid #bdbdbd;
-            width: 100%;
-            box-sizing: border-box;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-        input:focus {
-            border-color: #2196f3;
-            outline: none;
-            box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
-        }
-
-        /* Układ pól dodawania zawodnika na PC/dużych ekranach */
-        #player-number-input {
-            font-weight: 700;
-            text-align: center;
-            width: 30%; 
-            margin-right: 1%; 
-            display: inline-block;
-            background-color: #e3f2fd;
-        }
-        #player-name-input {
-            width: 69%; 
-            display: inline-block;
-        }
-
-        /* PRZYCISKI */
-        .primary-btn { /* Nowa klasa dla przycisków logowania/dodawania */
-            background-color: #4caf50;
-            color: white; 
-            cursor: pointer; 
-            border: none; 
-            transition: background-color 0.3s, transform 0.2s;
-            width: 100%;
-            margin-top: 15px;
-            font-weight: 700;
-        }
-        .primary-btn:hover {
-            background-color: #388e3c;
-            transform: translateY(-2px);
-        }
-        .delete-btn { 
-            background-color: #f44336; 
-            width: 90px; 
-            padding: 10px;
-            margin: 0;
-            flex-shrink: 0;
-        }
-        .delete-btn:hover {
-            background-color: #d32f2f;
-        }
-        .logout-btn {
-            background-color: #757575;
-            margin-top: 30px;
-        }
-        .logout-btn:hover {
-             background-color: #5d5d5d;
-        }
-
-        /* LISTA ZAWODNIKÓW */
+        input, button { padding: 14px; margin: 5px 0; border-radius: 8px; border: 1px solid #bdbdbd; width: 100%; box-sizing: border-box; font-size: 1em; transition: border-color 0.3s; }
+        input:focus { border-color: #2196f3; outline: none; box-shadow: 0 0 5px rgba(33, 150, 243, 0.5); }
+        #player-number-input { font-weight: 700; text-align: center; width: 30%; margin-right: 1%; display: inline-block; background-color: #e3f2fd; }
+        #player-name-input { width: 69%; display: inline-block; }
+        .primary-btn { background-color: #4caf50; color: white; cursor: pointer; border: none; transition: background-color 0.3s, transform 0.2s; width: 100%; margin-top: 15px; font-weight: 700; }
+        .primary-btn:hover { background-color: #388e3c; transform: translateY(-2px); }
+        .delete-btn { background-color: #f44336; width: 90px; padding: 10px; margin: 0; flex-shrink: 0; }
+        .delete-btn:hover { background-color: #d32f2f; }
+        .logout-btn { background-color: #757575; margin-top: 30px; }
+        .logout-btn:hover { background-color: #5d5d5d; }
         .player-list { list-style: none; padding: 0; }
-        .player-list li { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 12px 5px; 
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 1.1em;
-        }
-        .player-list li:hover {
-            background-color: #f9f9f9;
-        }
-        .player-info {
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-            color: #333;
-            flex-grow: 1;
-            padding-right: 15px;
-        }
-        .player-number {
-            font-size: 1.2em;
-            font-weight: 700;
-            color: #1976d2; 
-            margin-right: 10px;
-            min-width: 30px;
-            text-align: left;
-        }
-        
-        /* KOMUNIKATY */
-        .message-area { 
-            padding: 10px; 
-            border-radius: 5px; 
-            font-weight: bold; 
-            margin-top: 10px; 
-            text-align: center; 
-            border: 1px solid transparent;
-        }
+        .player-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f0f0f0; font-size: 1.1em; }
+        .player-list li:hover { background-color: #f9f9f9; }
+        .player-info { display: flex; align-items: center; font-weight: 500; color: #333; flex-grow: 1; padding-right: 15px; }
+        .player-number { font-size: 1.2em; font-weight: 700; color: #1976d2; margin-right: 10px; min-width: 30px; text-align: left; }
+        .message-area { padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; border: 1px solid transparent;}
         .message-area.success { background-color: #e8f5e9; color: #388e3c; border-color: #a5d6a7; }
         .message-area.error { background-color: #ffebee; color: #d32f2f; border-color: #ef9a9a; }
         .message-area.info { background-color: #e3f2fd; color: #1976d2; border-color: #90caf9; }
+        
+        /* Ukryj sekcję logowania, która jest teraz pusta */
+        #login-section { display: none; } 
 
-
-        /* --- STYLY DLA URZĄDZEŃ MOBILNYCH --- */
         @media (max-width: 600px) {
             .section { padding: 15px; margin: 10px auto; }
-            #player-number-input, #player-name-input {
-                width: 100%; 
-                margin-right: 0;
-                display: block;
-            }
-            .player-list li {
-                flex-direction: column; 
-                align-items: stretch;
-                padding-bottom: 15px;
-                padding-top: 15px;
-            }
-            .player-list li .player-info {
-                width: 100%;
-                margin-bottom: 10px;
-                padding-right: 0;
-                font-size: 1.3em;
-            }
-            .player-list li .player-number {
-                font-size: 1.5em; 
-                margin-right: 15px;
-                min-width: 40px;
-            }
-            .delete-btn {
-                width: 100%;
-                margin-left: 0;
-            }
+            #player-number-input, #player-name-input { width: 100%; margin-right: 0; display: block; }
+            .player-list li { flex-direction: column; align-items: stretch; padding-bottom: 15px; padding-top: 15px; }
+            .player-list li .player-info { width: 100%; margin-bottom: 10px; padding-right: 0; font-size: 1.3em; }
+            .player-list li .player-number { font-size: 1.5em; margin-right: 15px; min-width: 40px; }
+            .delete-btn { width: 100%; margin-left: 0; }
         }
     </style>
 </head>
@@ -192,25 +79,11 @@
 
 <h1 id="main-title">Panel Kapitanów</h1>
 
-<div class="section" id="login-section">
-    <h2><i class="fas fa-sign-in-alt"></i> Logowanie Drużyny</h2>
-    <form id="captain-login-form">
-        <div class="form-group">
-            <input type="email" id="captain-email" required placeholder="Email Kapitana">
-        </div>
-        <div class="form-group">
-            <input type="password" id="captain-password" required placeholder="Hasło">
-        </div>
-        <button type="submit" class="primary-btn"><i class="fas fa-sign-in-alt"></i> Zaloguj</button>
-        <div id="login-message" class="message-area"></div>
-    </form>
-</div>
-
-<div class="section" id="player-management" style="display: none;">
+<div class="section" id="login-section"></div> <div class="section" id="player-management" style="display: none;">
     <h2 id="team-name-display">Edycja Składu dla: --</h2>
     
     <div id="loading-indicator" class="message-area info" style="display: none;">
-        <i class="fas fa-spinner fa-spin"></i> Ładowanie danych...
+        <i class="fas fa-spinner fa-spin"></i> Weryfikacja konta...
     </div>
 
     <h3><i class="fas fa-user-plus"></i> Dodaj Nowego Zawodnika</h3>
@@ -224,6 +97,11 @@
         <li>Brak danych do wyświetlenia.</li>
     </ul>
     <button onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
+</div>
+
+<div class="section" id="access-denied" style="display: none; text-align: center;">
+    <h2>Brak dostępu</h2>
+    <p>Sesja wygasła lub brak uprawnień. Proszę zalogować się ponownie: <a href="login_kapitana.html">strona logowania</a>.</p>
 </div>
 
 <script>
@@ -248,105 +126,82 @@
 
     const auth = firebase.auth();
     const db = firebase.database();
-    
-    // WAŻNE: Prawidłowa ścieżka to "teams" BEZ dodatkowego "/teams"
-    // Pamiętaj: /teams/{teamId}/players
     const TEAM_BASE_PATH = "teams";
     let currentTeamId = null; 
     let currentTeamName = null;
 
     // ===========================================
-    // LOGIKA AUTORYZACJI FIREBASE AUTH
+    // LOGIKA SESJI I AUTORYZACJI
     // ===========================================
 
     function checkAuth() {
+        // Główny element sprawdzający, czy user ma token Firebase
         auth.onAuthStateChanged(user => {
-            const loginSection = document.getElementById('login-section');
             const managementSection = document.getElementById('player-management');
-            const teamNameDisplay = document.getElementById("team-name-display");
+            const deniedSection = document.getElementById('access-denied');
             
             if (user) {
                 document.getElementById('loading-indicator').style.display = 'block';
 
-                // Pobierz token z Custom Claims, aby sprawdzić, czy ma teamId
+                // Wymuś odświeżenie tokenu, aby uzyskać Custom Claim (teamId)
                 user.getIdTokenResult(true) 
                     .then(idTokenResult => {
                         currentTeamId = idTokenResult.claims.teamId;
                         
                         if (currentTeamId) {
-                            loginSection.style.display = 'none';
+                            // Pomyślna weryfikacja
+                            deniedSection.style.display = 'none';
                             managementSection.style.display = 'block';
                             
                             // Pobierz nazwę drużyny i załaduj skład
                             db.ref(`${TEAM_BASE_PATH}/${currentTeamId}/name`).once('value')
                                 .then(nameSnapshot => {
                                     currentTeamName = nameSnapshot.val() || currentTeamId;
-                                    teamNameDisplay.textContent = `Edycja Składu dla: ${currentTeamName}`;
+                                    document.getElementById("team-name-display").textContent = `Edycja Składu dla: ${currentTeamName}`;
                                     loadTeamPlayers(currentTeamId);
                                     document.getElementById('loading-indicator').style.display = 'none';
                                 });
 
                         } else {
                             // Zalogowany, ale nie jest kapitanem (brak teamId)
-                            alert("Błąd autoryzacji: To konto nie ma przypisanej drużyny. Wyloguj.");
+                            showAccessDenied("Brak przypisanego ID drużyny. Wyloguj się i zaloguj ponownie.");
                             auth.signOut();
                         }
                     })
                     .catch(error => {
                         console.error("Błąd pobierania tokena:", error);
-                        alert("Błąd weryfikacji. Zaloguj się ponownie.");
+                        showAccessDenied("Błąd weryfikacji tokena. Spróbuj zalogować się ponownie.");
                         auth.signOut();
                     });
             } else {
-                // Niezalogowany
-                managementSection.style.display = 'none';
-                loginSection.style.display = 'block';
-                currentTeamId = null;
+                // Brak zalogowanego użytkownika - przekierowanie do logowania
+                showAccessDenied("Sesja wygasła.");
             }
         });
     }
 
-    document.getElementById('captain-login-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('captain-email').value; 
-        const password = document.getElementById('captain-password').value;
-        const messageArea = document.getElementById('login-message');
-        
-        messageArea.textContent = "Logowanie...";
-        messageArea.className = "message-area info";
-
-        auth.signInWithEmailAndPassword(email, password)
-            .then(() => {
-                messageArea.textContent = "Zalogowano pomyślnie! Ładowanie panelu...";
-                messageArea.className = "message-area success";
-                // checkAuth() przejmie kontrolę
-            })
-            .catch(error => {
-                let displayMessage = "Błąd logowania: Błędny email lub hasło. Tylko konta kapitanów mają dostęp.";
-                if (error.code === 'auth/network-request-failed') {
-                     displayMessage = "Błąd: Brak połączenia z siecią.";
-                }
-                messageArea.textContent = displayMessage;
-                messageArea.className = "message-area error";
-                console.error("Firebase Auth Error:", error);
-            });
-    });
-
-    function logout() {
-        auth.signOut();
-        // Wyczyść ewentualne pozostałości starej sesji
-        if (sessionStorage.getItem('loggedInTeamId')) {
-             sessionStorage.removeItem('loggedInTeamId');
-        }
+    function showAccessDenied(message) {
+         document.getElementById('player-management').style.display = 'none';
+         document.getElementById('access-denied').style.display = 'block';
+         // Opcjonalnie wyświetl wiadomość błędu
+         console.warn(message);
     }
 
+    function logout() {
+        auth.signOut().then(() => {
+             // Wyczyść ewentualne pozostałości i przekieruj do logowania
+             if (sessionStorage.getItem('loggedInTeamId')) {
+                 sessionStorage.removeItem('loggedInTeamId');
+             }
+             window.location.href = "login_kapitana.html"; 
+        });
+    }
 
     // ===========================================
-    // LOGIKA ZARZĄDZANIA SKŁADEM (TWOJA LOGIKA)
+    // LOGIKA ZARZĄDZANIA SKŁADEM
     // ===========================================
 
     function loadTeamPlayers(teamId) {
-        // Używamy db.ref(`${TEAM_BASE_PATH}/${teamId}/players`)
         const teamRef = db.ref(`${TEAM_BASE_PATH}/${teamId}/players`);
         teamRef.on("value", snapshot => {
             renderPlayers(snapshot.val());
@@ -354,7 +209,6 @@
     }
 
     function renderPlayers(playersData) {
-        // ... (Twoja funkcja renderPlayers pozostaje niezmieniona)
         const playerList = document.getElementById("player-list");
         playerList.innerHTML = "";
 
@@ -395,7 +249,7 @@
         messageArea.className = 'message-area';
 
         if (!currentTeamId) {
-             messageArea.textContent = "Błąd sesji. Zaloguj się ponownie.";
+             messageArea.textContent = "Błąd sesji. Wyloguj się i zaloguj ponownie.";
              messageArea.className = "message-area error";
              return;
         }
@@ -405,14 +259,12 @@
              return;
         }
         
-        // WALIDACJA NUMERU ZAWODNIKA
         if (isNaN(playerNumber) || playerNumber < 1 || playerNumber > 99) {
             messageArea.textContent = "🚨 Proszę podać prawidłowy numer zawodnika (od 1 do 99).";
             messageArea.className = "message-area error";
             return;
         }
 
-        // Sprawdzenie, czy numer nie jest już zajęty
         db.ref(`${TEAM_BASE_PATH}/${currentTeamId}/players`).once('value')
             .then(snapshot => {
                 const players = snapshot.val();
@@ -428,7 +280,6 @@
                     messageArea.textContent = `⚠️ Numer ${playerNumber} jest już zajęty w Twojej drużynie! Wybierz inny.`;
                     messageArea.className = "message-area error";
                 } else {
-                    // ZAPIS DO BAZY - DODANIE NUMERU
                     db.ref(`${TEAM_BASE_PATH}/${currentTeamId}/players`).push({
                         name: playerName,
                         number: playerNumber 
@@ -461,7 +312,6 @@
         }
     }
     
-    // START APLIKACJI
     document.addEventListener('DOMContentLoaded', checkAuth);
 </script>
 
