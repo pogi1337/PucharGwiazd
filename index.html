@@ -35,22 +35,29 @@
         .login-links a:hover {
             background-color: rgba(255, 255, 255, 0.2);
         }
+        
+        /* 💡 KLUCZOWA ZMIANA: Powiększenie kontenerów dla lepszego widoku meczów */
         .stats-summary {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-around;
             gap: 20px;
             margin-top: 20px;
+            width: 100%; /* Używa pełnej szerokości sekcji content-section */
         }
+        
         .stats-column {
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 450px;
+            max-width: 100%; /* Usunięcie sztywnego ograniczenia 450px */
             box-sizing: border-box;
+            flex: 1; /* Pozwala na równy podział przestrzeni */
+            min-width: 300px; /* Minimalna szerokość, żeby nie wyglądało źle na desktopie */
         }
+        
         .stats-column h3 {
             color: #007bff;
             border-bottom: 2px solid #007bff;
@@ -58,48 +65,51 @@
             text-align: center;
         }
         
-        /* 💡 KLUCZOWE ZMIANY CSS DLA UKŁADU MECZU */
-/* W pliku index.html, w sekcji <style> */
-
-.match-item {
-    display: flex; /* Użycie elastycznego układu */
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px dashed #eee;
-}
-
-.team-name {
-    font-weight: 700;
-    flex-grow: 1; /* Pozwól, aby nazwa zajęła dostępną przestrzeń */
-    min-width: 50px; 
-    overflow: hidden; 
-    text-overflow: ellipsis; /* Ucinaj długie nazwy z ... */
-    white-space: nowrap; 
-    padding: 0 5px; 
-    text-align: right; 
-}
-
-.team-name:last-of-type {
-     text-align: left; 
-}
-
-.score-box-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px; /* Stała, MAŁA szerokość dla wyniku */
-    flex-shrink: 0; /* ⚠️ KLUCZOWE: NIE POZWÓL NA KURCZENIE SIĘ WYNIKU */
-    font-size: 1.1em;
-    font-weight: 900;
-}
-
-.status-tag {
-    /* ... inne style ... */
-    flex-shrink: 0; /* ⚠️ KLUCZOWE: NIE POZWÓL NA KURCZENIE SIĘ TAGU */
-    margin-left: 10px;
-}
+        /* KLUCZOWE POPRAWKI DLA WYŚWIETLANIA MECZU */
+        .match-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.9em; /* Mniejsza czcionka dla oszczędności miejsca */
+        }
         
-        /* Reszta stylów */
+        .team-name {
+            font-weight: 700;
+            flex-grow: 1; 
+            min-width: 50px; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            white-space: nowrap; 
+            padding: 0 5px; 
+            text-align: right; 
+        }
+        
+        .team-name:last-of-type {
+             text-align: left; 
+        }
+
+        .score-box-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 55px; /* Bardzo ścisła szerokość dla wyniku */
+            flex-shrink: 0; 
+            font-size: 1.1em;
+            font-weight: 900;
+        }
+        
+        .status-tag {
+            font-size: 0.65em; /* Zmniejszony rozmiar tagu */
+            font-weight: bold;
+            padding: 3px 5px;
+            border-radius: 4px;
+            flex-shrink: 0; 
+            margin-left: 5px; /* Mniejszy margines */
+            text-align: center;
+        }
+        
+        /* Style statusów */
         .scheduled { background-color: #ffc107; color: #333; }
         .live { background-color: #dc3545; color: white; animation: pulse 1.5s infinite; }
         .finished { background-color: #28a745; color: white; }
@@ -116,6 +126,36 @@
             padding: 50px 20px;
             border-radius: 10px;
             margin-bottom: 30px;
+        }
+        
+        /* Styl dla odliczania (zaciągnięty z style.css) */
+        .countdown {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #e64a19;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px; 
+            text-align: center;
+        }
+
+        .countdown div {
+            margin: 0 10px;
+            background-color: #ffccbc;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            min-width: 80px; 
+            text-align: center;
+        }
+
+        .countdown span {
+            display: block;
+            font-size: 0.5em;
+            color: #d84315;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -143,7 +183,12 @@
     <section class="content-section">
         <div class="hero-banner">
             <h1>⭐ Oficjalna Strona Pucharu Gwiazd ⭐</h1>
-            <p>Śledź na żywo wyniki, tabele grup i aktualności z największego turnieju! Dołącz do nas!</p>
+            <p>Śledź na żywo wyniki, tabele grup i aktualności z największego turnieju!</p>
+        </div>
+        
+        <h2>⏰ Start Turnieju!</h2>
+        <div id="countdown" class="countdown">
+            <p>Ładowanie odliczania...</p>
         </div>
 
         <h2>Aktualizacje Meczowe</h2>
@@ -192,7 +237,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
-        // Zauważ, że Twoja struktura drużyn wygląda na: teams -> teams -> TeamA/TeamB
         const TEAMS_BASE_PATH = "teams/teams"; 
         const MATCHES_PATH = "matches"; 
         
@@ -253,7 +297,7 @@
             }
         }
 
-        // Zmieniona funkcja generująca HTML
+        // Funkcja generująca HTML meczu
         function createMatchHtml(match) {
             const statusClass = match.status;
             let scoreContent;
@@ -285,8 +329,40 @@
             `;
         }
 
+        // Nowa funkcja Odliczania
+        function startCountdown() {
+            // Data i czas docelowy: 14 grudnia 2025, 10:00:00 CET
+            const countDownDate = new Date("Dec 14, 2025 10:00:00").getTime();
+            const countdownElement = document.getElementById("countdown");
 
+            // Aktualizacja co 1 sekundę
+            const x = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = countDownDate - now;
+
+                // Obliczenia czasu dla dni, godzin, minut i sekund
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                if (distance < 0) {
+                    clearInterval(x);
+                    countdownElement.innerHTML = "<div>Turniej trwa!</div>";
+                } else {
+                    countdownElement.innerHTML = `
+                        <div>${days}<span>Dni</span></div>
+                        <div>${hours}<span>Godzin</span></div>
+                        <div>${minutes}<span>Minut</span></div>
+                        <div>${seconds}<span>Sekund</span></div>
+                    `;
+                }
+            }, 1000);
+        }
+
+        // Inicjalizacja: załaduj nazwy, rozpocznij słuchanie meczów i odliczanie
         loadTeamNames().then(() => {
+            // Ładowanie meczów
             db.ref(MATCHES_PATH).on('value', snapshot => {
                 const matchesData = snapshot.val();
                 if (matchesData) {
@@ -296,6 +372,8 @@
                     document.getElementById('recent-results').innerHTML = '<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3><p style="text-align: center;">Brak danych meczowych.</p>';
                 }
             });
+            // Uruchomienie odliczania
+            startCountdown(); 
         }).catch(error => {
             console.error("Błąd ładowania danych początkowych: ", error);
             document.getElementById('upcoming-matches').innerHTML = '<p style="color: red; text-align: center;">Błąd ładowania danych.</p>';
@@ -305,4 +383,3 @@
     </script>
 </body>
 </html>
-
