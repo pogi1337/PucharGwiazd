@@ -1,96 +1,327 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Puchar Gwiazd – Tabele Grup</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Tabele Grup - Puchar Gwiazd</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> 
+    
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h2 { border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-top: 30px; }
+        .table-container {
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+        .group-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            min-width: 600px;
+        }
+        .group-table th, .group-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        .group-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .group-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .team-name-col {
+            text-align: left !important;
+            font-weight: 700;
+        }
+        /* Wizualne wyróżnienie pozycji */
+        .group-table tr:first-child .pos-col,
+        .group-table tr:nth-child(2) .pos-col {
+            background-color: #28a745; /* Zielony dla awansu */
+            color: white;
+        }
+        .pos-col { width: 5%; }
+        /* Style dla sekcji meczów */
+        .match-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            margin: 5px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+        .match-status {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
-  <div class="header">
-    <h1>Tabele Grup - Puchar Gwiazd</h1>
-    <div id="current-time"></div>
-  </div>
 
-  <nav id="main-nav">
-    <ul>
-      <li><a href="index.html">Strona Główna</a></li>
-      <li><a href="druzyny.html">Drużyny</a></li>
-      <li><a href="regulamin.html">Regulamin</a></li>
-      <li><a href="tabela.html">Tabele Grup</a></li>
-      <li><a href="onas.html">O Nas</a></li>
-      <li><a href="pusta-strona.html">Pusta Strona</a></li>
-    </ul>
-  </nav>
-
-  <section class="content-section">
-    <h2>Grupa A</h2>
-    <table class="styled-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Drużyna</th>
-          <th>Mecze</th>
-          <th>Z</th>
-          <th>R</th>
-          <th>P</th>
-          <th>GZ</th>
-          <th>GS</th>
-          <th>Pkt</th>
-          <th>+/-</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>Czarne perły</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>2</td><td>Jagerwarrior</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>3</td><td>PKNA Stunt</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>4</td><td>Bruklin United</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>5</td><td>Łobuzy</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>6</td><td>Wybrzeże klatki</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Grupa B</h2>
-    <table class="styled-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Drużyna</th>
-          <th>Mecze</th>
-          <th>Z</th>
-          <th>R</th>
-          <th>P</th>
-          <th>GZ</th>
-          <th>GS</th>
-          <th>Pkt</th>
-          <th>+/-</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>PKS Mięsne</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>2</td><td>Bezrobotni</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>3</td><td>Fc Hetman</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>3</td><td>AC PAJACE</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>3</td><td>Bigos Squad</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><td>3</td><td>Dream Events</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <div class="footer">
-    <p>© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
-    <div class="social-media-links">
-      <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
-      <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
+    <div class="header">
+        <h1>Tabele Grup - Puchar Gwiazd</h1>
+        <div id="current-time"></div>
     </div>
-  </div>
 
-  <button id="theme-toggle">
-    <i class="fas fa-moon"></i>
-  </button>
+    <nav id="main-nav">
+        <ul>
+            <li><a href="index.html">Strona Główna</a></li>
+            <li><a href="druzyny.html">Drużyny</a></li>
+            <li><a href="regulamin.html">Regulamin</a></li>
+            <li><a href="tabela.html">Tabele Grup</a></li>
+            <li><a href="onas.html">O Nas</a></li>
+            <li><a href="pusta-strona.html">Pusta Strona</a></li>
+        </ul>
+    </nav>
 
-  <script src="script.js"></script>
+    <section class="content-section">
+        <div id="tables-output">
+            <p style="text-align: center;">Ładowanie tabel grup i wyników...</p>
+        </div>
+    </section>
+
+    <div class="footer">
+        <p>© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
+        <div class="social-media-links">
+            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </div>
+
+    <button id="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <script src="script.js"></script>
+    
+    <script>
+        // UWAGA: Upewnij się, że ten URL jest poprawny w pliku captain_panel.html i admin.html!
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        // Ścieżki dostosowane do Twojej zagnieżdżonej struktury
+        const TEAMS_BASE_PATH = "teams/teams"; 
+        const MATCHES_PATH = "matches"; 
+        
+        let teamsMap = {};
+
+        // 1. POBIERANIE NAZW DRUŻYN
+        function loadTeamNames() {
+            // Zwraca Promise, aby reszta skryptu czekała na pobranie mapy nazw
+            return db.ref(TEAMS_BASE_PATH).once('value').then(snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    // Tworzenie mapy ID (np. TeamA) -> Nazwa (np. Drużyna Orłów)
+                    Object.entries(data).forEach(([id, team]) => {
+                        teamsMap[id] = team.name || id; 
+                    });
+                }
+            });
+        }
+
+        // 2. LOGIKA SORTOWANIA TABEL (wg kolejności: Pkt, RB, GZ)
+        function sortTeams(teams) {
+            return teams.sort((a, b) => {
+                if (b.Pkt !== a.Pkt) return b.Pkt - a.Pkt;
+                if (b.RB !== a.RB) return b.RB - a.RB;
+                return b.GZ - a.GZ;
+            });
+        }
+
+        // 3. OBLICZANIE STATYSTYK MECZOWYCH
+        function calculateStats(matchesData) {
+            const groupStats = {}; 
+            const groupMatches = {};
+
+            Object.values(matchesData).forEach(match => {
+                const group = match.group || 'Inne'; // Zapewnia istnienie grupy
+                const scoreA = parseInt(match.scoreA) || 0;
+                const scoreB = parseInt(match.scoreB) || 0;
+                const teamA = match.teamA;
+                const teamB = match.teamB;
+
+                if (!groupStats[group]) {
+                    groupStats[group] = {};
+                    groupMatches[group] = [];
+                }
+                groupMatches[group].push(match);
+
+                if (match.status === 'finished') {
+                    // Inicjalizacja statystyk dla drużyn
+                    [teamA, teamB].forEach(teamId => {
+                        if (!groupStats[group][teamId]) {
+                            groupStats[group][teamId] = { M: 0, W: 0, R: 0, P: 0, GZ: 0, GS: 0, RB: 0, Pkt: 0, name: teamsMap[teamId] || teamId };
+                        }
+                    });
+
+                    // Aktualizacja statystyk dla Drużyny A
+                    const statsA = groupStats[group][teamA];
+                    statsA.M++;
+                    statsA.GZ += scoreA;
+                    statsA.GS += scoreB;
+                    
+                    // Aktualizacja statystyk dla Drużyny B
+                    const statsB = groupStats[group][teamB];
+                    statsB.M++;
+                    statsB.GZ += scoreB;
+                    statsB.GS += scoreA;
+
+                    // Obliczanie Punktów (3 za W, 1 za R)
+                    if (scoreA > scoreB) { // Wygrana A
+                        statsA.W++; statsA.Pkt += 3;
+                        statsB.P++;
+                    } else if (scoreB > scoreA) { // Wygrana B
+                        statsB.W++; statsB.Pkt += 3;
+                        statsA.P++;
+                    } else { // Remis
+                        statsA.R++; statsA.Pkt += 1;
+                        statsB.R++; statsB.Pkt += 1;
+                    }
+                }
+            });
+
+            // Końcowe obliczenie Różnicy Bramek
+            Object.values(groupStats).forEach(group => {
+                Object.values(group).forEach(team => {
+                    team.RB = team.GZ - team.GS;
+                });
+            });
+
+            return { groupStats, groupMatches };
+        }
+
+
+        // 4. RENDEROWANIE HTML
+        function renderTables(groupStats, groupMatches) {
+            const output = document.getElementById('tables-output');
+            output.innerHTML = '';
+            
+            const sortedGroupNames = Object.keys(groupStats).sort(); // Sortowanie grup (A, B, C...)
+
+            sortedGroupNames.forEach(groupName => {
+                const teamsArray = Object.values(groupStats[groupName]);
+                const sortedTeams = sortTeams(teamsArray);
+
+                let tableHtml = `
+                    <div class="table-container">
+                        <h2>Grupa ${groupName}</h2>
+                        <table class="group-table styled-table">
+                            <thead>
+                                <tr>
+                                    <th class="pos-col">#</th>
+                                    <th class="team-name-col">Drużyna</th>
+                                    <th>M</th>
+                                    <th>Z</th>
+                                    <th>R</th>
+                                    <th>P</th>
+                                    <th>GZ</th>
+                                    <th>GS</th>
+                                    <th>RB</th>
+                                    <th>Pkt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                sortedTeams.forEach((team, index) => {
+                    tableHtml += `
+                        <tr>
+                            <td class="pos-col">${index + 1}</td>
+                            <td class="team-name-col">${team.name}</td>
+                            <td>${team.M}</td>
+                            <td>${team.W}</td>
+                            <td>${team.R}</td>
+                            <td>${team.P}</td>
+                            <td>${team.GZ}</td>
+                            <td>${team.GS}</td>
+                            <td>${team.RB}</td>
+                            <td>${team.Pkt}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                output.innerHTML += tableHtml;
+                
+                // Wyświetlanie meczów pod tabelą
+                renderGroupMatches(groupName, groupMatches[groupName]);
+            });
+        }
+        
+        function renderGroupMatches(groupName, matches) {
+            let matchesHtml = `<h3>Mecze Grupy ${groupName}</h3>`;
+            
+            matches.sort((a, b) => {
+                // Sortowanie: Zakończone na górze, potem Na Żywo, potem Zaplanowane
+                const order = { 'finished': 1, 'live': 2, 'scheduled': 3 };
+                return order[a.status] - order[b.status];
+            }).forEach(match => {
+                const statusText = {
+                    'scheduled': 'Zaplanowany',
+                    'live': 'NA ŻYWO',
+                    'finished': 'ZAKOŃCZONY'
+                }[match.status] || 'Nieznany';
+
+                const scoreText = match.status === 'finished' ? 
+                                    `${match.scoreA} - ${match.scoreB}` : 
+                                    '--';
+                
+                // Kolory statusu
+                const statusColor = match.status === 'live' ? 'red' : match.status === 'finished' ? 'green' : '#888';
+
+                matchesHtml += `
+                    <div class="match-box">
+                        <span style="width: 35%;">${teamsMap[match.teamA] || match.teamA}</span>
+                        <span style="width: 15%; text-align: center;">${scoreText}</span>
+                        <span style="width: 35%; text-align: right;">${teamsMap[match.teamB] || match.teamB}</span>
+                        <span class="match-status" style="width: 15%; text-align: right; color: ${statusColor}">${statusText}</span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('tables-output').innerHTML += `<div class="matches-group-section">${matchesHtml}</div>`;
+        }
+
+        // 5. GŁÓWNA INICJALIZACJA
+        loadTeamNames().then(() => {
+            // Nasłuchujemy zmian w wynikach meczów
+            db.ref(MATCHES_PATH).on('value', snapshot => {
+                const matchesData = snapshot.val();
+                if (matchesData) {
+                    const { groupStats, groupMatches } = calculateStats(matchesData);
+                    renderTables(groupStats, groupMatches);
+                } else {
+                    document.getElementById('tables-output').innerHTML = '<p style="text-align: center;">Brak meczów w bazie danych.</p>';
+                }
+            });
+        }).catch(error => {
+            console.error("Błąd ładowania danych początkowych: ", error);
+            document.getElementById('tables-output').innerHTML = '<p style="text-align: center; color: red;">Błąd ładowania danych (sprawdź konsolę F12).</p>';
+        });
+
+    </script>
 </body>
 </html>
