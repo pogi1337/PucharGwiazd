@@ -67,12 +67,13 @@
             font-weight: 500;
             color: #333;
         }
-        input[type="text"], input[type="email"], input[type="number"], input[type="password"], select {
+        input[type="text"], input[type="email"], input[type="number"], input[type="password"], select, textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
+            resize: vertical; /* Dla textarea */
         }
         
         /* PRZYCISKI */
@@ -98,6 +99,7 @@
             border-radius: 5px;
             font-weight: bold;
             margin-top: 10px;
+            text-align: center;
         }
         .message-area.success {
             background-color: #d4edda;
@@ -116,13 +118,14 @@
             border: 1px solid #b8daff;
         }
         
-        /* --- STYLIZACJA WPROWADZANIA WYNIKÓW I STRZELCÓW --- */
-        .form-row {
-            display: flex; gap: 20px;
+        /* ZARZĄDZANIE DRUŻYNAMI/MECZAMI */
+        .select-group {
+            display: flex; gap: 15px; align-items: flex-end;
         }
-        .team-score-group {
+        .select-group > .form-group {
             flex: 1;
         }
+
         .subsection-header {
             font-size: 1.5em;
             color: #dc3545;
@@ -133,27 +136,36 @@
         }
         .subsection-header i { margin-right: 8px; }
 
-        .goal-entry {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #f5c6cb;
-            border-radius: 5px;
-            background-color: #fff0f0;
+        /* Style dla panelu edycji zawodników i osiągnięć */
+        .player-entry {
+            display: flex; gap: 10px; margin-bottom: 10px;
+            align-items: center;
+            padding: 10px; border: 1px solid #eee; border-radius: 5px;
+            background: #f9f9f9;
         }
-        .goal-entry label {
-            display: block;
+        .player-entry input[type="text"], .player-entry input[type="number"] {
+            flex: 1; margin: 0;
+            padding: 8px;
+        }
+        .remove-player-btn {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
             font-size: 0.9em;
-            color: #444;
-            margin-bottom: 5px;
-            font-weight: bold;
+            transition: background-color 0.3s;
         }
-        .goal-scorer-select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #dc3545;
-            border-radius: 5px;
-            box-sizing: border-box;
-            background-color: white;
+        .remove-player-btn:hover {
+            background-color: #5a6268;
+        }
+        .add-player-btn {
+            background-color: #28a745;
+            margin-top: 15px;
+        }
+        .add-player-btn:hover {
+            background-color: #218838;
         }
     </style>
 </head>
@@ -166,6 +178,10 @@
     <div class="content-container" id="login-section">
         <h2><i class="fas fa-sign-in-alt"></i> Logowanie Admina</h2>
         <form id="admin-login-form">
+            <div class="form-group">
+                <label for="admin-email">Email:</label>
+                <input type="email" id="admin-email" value="kacpernwm77@gmail.com" required>
+            </div>
             <div class="form-group">
                 <label for="admin-password">Hasło:</label>
                 <input type="password" id="admin-password" required>
@@ -182,7 +198,7 @@
 
             <form id="match-form">
                 <div class="form-group">
-                    <label for="match-id">Wybierz Mecz (ID/Nazwy grup):</label>
+                    <label for="match-id">Wybierz Mecz:</label>
                     <select id="match-id" required>
                         <option value="">-- Ładowanie meczów... --</option>
                     </select>
@@ -200,18 +216,72 @@
                 </div>
                 
                 <h3 class="subsection-header"><i class="fas fa-futbol"></i> Strzelcy Goli dla Gospodarzy</h3>
-                <div id="home-goal-selectors">
-                    </div>
+                <div id="home-goal-selectors"></div>
 
                 <h3 class="subsection-header"><i class="fas fa-futbol"></i> Strzelcy Goli dla Gości</h3>
-                <div id="away-goal-selectors">
-                    </div>
+                <div id="away-goal-selectors"></div>
 
                 <button type="submit" class="submit-btn" id="submit-match-score"><i class="fas fa-save"></i> Zapisz Wynik i Strzelców</button>
                 
                 <div id="match-message" class="message-area" style="margin-top: 15px;"></div>
             </form>
         </div>
+        
+        <div class="content-container" id="new-match-entry">
+            <h2><i class="fas fa-plus-circle"></i> Dodaj Nowy Mecz</h2>
+
+            <form id="add-match-form">
+                <div class="form-group">
+                    <label for="new-match-id">ID Meczu (np. G1M1):</label>
+                    <input type="text" id="new-match-id" required placeholder="Unikalne ID, np. FINAŁ">
+                </div>
+                <div class="select-group">
+                    <div class="form-group">
+                        <label for="new-home-team">Gospodarze:</label>
+                        <select id="new-home-team" required>
+                            <option value="">-- Ładowanie drużyn... --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-away-team">Goście:</label>
+                        <select id="new-away-team" required>
+                            <option value="">-- Ładowanie drużyn... --</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn"><i class="fas fa-calendar-plus"></i> Dodaj Mecz</button>
+                <div id="add-match-message" class="message-area" style="margin-top: 15px;"></div>
+            </form>
+        </div>
+
+        <div class="content-container" id="team-management">
+            <h2><i class="fas fa-users-cog"></i> Zarządzanie Drużynami</h2>
+
+            <div class="form-group">
+                <label for="select-team-manage">Wybierz Drużynę do Edycji:</label>
+                <select id="select-team-manage">
+                    <option value="">-- Wybierz drużynę --</option>
+                </select>
+            </div>
+
+            <form id="edit-team-form" style="display: none;">
+                <h3 class="subsection-header"><i class="fas fa-trophy"></i> Osiągnięcia Drużyny</h3>
+                <div class="form-group">
+                    <label for="team-achievements">Osiągnięcia (oddzielone przecinkami lub akapitami):</label>
+                    <textarea id="team-achievements" rows="3" placeholder="Puchar 2024, Lider Strzelców, ..."></textarea>
+                </div>
+
+                <h3 class="subsection-header"><i class="fas fa-shirt"></i> Zawodnicy i Numery</h3>
+                <div id="players-container">
+                    </div>
+                
+                <button type="button" class="submit-btn add-player-btn" id="add-player-btn"><i class="fas fa-user-plus"></i> Dodaj Zawodnika</button>
+
+                <button type="submit" class="submit-btn" style="margin-top: 25px;"><i class="fas fa-save"></i> Zapisz Zmiany w Drużynie</button>
+                <div id="edit-team-message" class="message-area" style="margin-top: 15px;"></div>
+            </form>
+        </div>
+
         
         <div class="content-container" style="text-align: center;">
             <button id="admin-logout-btn" class="submit-btn" style="background-color: #6c757d;"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
@@ -238,20 +308,14 @@
         appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
     };
 
-    // TU NASTĘPUJE INICJALIZACJA, KTÓRA WYRZUCIŁA BŁĄD WE WCZEŚNIEJSZEJ WERSJI
     firebase.initializeApp(firebaseConfig); 
     const auth = firebase.auth(); 
     const db = firebase.database();
     
     // ===========================================
-    // STAŁA: EMAIL ADMINISTRATORA (MUSI ISTNIEĆ W FIREBASE AUTH!)
-    // ZMIEŃ TO NA SWÓJ PRAWIDŁOWY EMAIL ADMINISTRACYJNY!
-    const ADMIN_EMAIL = "kacpernwm77@gmail.com"; 
-
-    // ===========================================
     // ZMIENNE DANYCH I STAŁE ŚCIEŻEK
     // ===========================================
-    let allTeamsData = {}; 
+    let allTeamsData = {}; // Przechowuje dane wszystkich drużyn (Teams/teams)
     let currentMatchTeams = {}; 
     const MATCHES_PATH = "matches/matches"; 
     const TEAMS_PATH_ROOT = "teams/teams"; 
@@ -260,17 +324,20 @@
     // AUTORYZACJA
     // ===========================================
 
+    // Funkcja sprawdza stan autoryzacji
     function checkAuth() {
         auth.onAuthStateChanged(user => {
             const loginSection = document.getElementById('login-section');
             const adminPanel = document.getElementById('admin-panel');
             
-            // Sprawdź, czy użytkownik jest zalogowany i ma prawidłowy email
-            if (user && user.email === ADMIN_EMAIL) {
+            // Sprawdź, czy użytkownik jest zalogowany
+            if (user) {
                 // Użytkownik zalogowany - Pokaż panel
                 loginSection.style.display = 'none';
                 adminPanel.style.display = 'block';
+                // Ładuj wszystkie dane po zalogowaniu
                 loadMatchAndTeamData(); 
+                loadTeamsForManagement();
             } else {
                 // Użytkownik wylogowany - Pokaż formularz logowania
                 loginSection.style.display = 'block';
@@ -281,10 +348,10 @@
         });
     }
 
+    // Obsługa formularza logowania (Email + Hasło)
     document.getElementById('admin-login-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        // Używamy stałego emaila i hasła z pola
-        const email = ADMIN_EMAIL; 
+        const email = document.getElementById('admin-email').value; 
         const password = document.getElementById('admin-password').value;
         const messageArea = document.getElementById('login-message');
         
@@ -294,13 +361,25 @@
                 messageArea.className = "message-area success";
             })
             .catch(error => {
-                // Błąd logowania/hasła
-                messageArea.textContent = "Błąd logowania: Błędne hasło lub problem z serwerem."; 
+                let displayMessage;
+                switch(error.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        displayMessage = "Błąd: Błędny email lub hasło. Sprawdź, czy admin jest dodany w Firebase Auth.";
+                        break;
+                    case 'auth/invalid-email':
+                        displayMessage = "Błąd: Nieprawidłowy format emaila.";
+                        break;
+                    default:
+                        displayMessage = "Błąd logowania: " + error.message; 
+                }
+                messageArea.textContent = displayMessage;
                 messageArea.className = "message-area error";
                 console.error("Firebase Auth Error:", error);
             });
     });
 
+    // Wylogowanie
     document.getElementById('admin-logout-btn').addEventListener('click', () => {
         auth.signOut().then(() => {
             document.getElementById('login-message').textContent = "Wylogowano.";
@@ -312,38 +391,57 @@
     });
 
     // ===========================================
-    // ŁADOWANIE DANYCH MECZÓW I DRUŻYN
+    // ŁADOWANIE DANYCH: MECZE, DRUŻYNY
     // ===========================================
 
+    // Ładuje drużyny i mecze do list rozwijanych
     function loadMatchAndTeamData() {
         const matchSelect = document.getElementById('match-id');
-        matchSelect.innerHTML = '<option value="">-- Ładowanie meczów... --</option>';
+        const newHomeSelect = document.getElementById('new-home-team');
+        const newAwaySelect = document.getElementById('new-away-team');
 
+        matchSelect.innerHTML = '<option value="">-- Ładowanie meczów... --</option>';
+        newHomeSelect.innerHTML = '<option value="">-- Ładowanie drużyn... --</option>';
+        newAwaySelect.innerHTML = '<option value="">-- Ładowanie drużyn... --</option>';
+
+        // 1. Ładowanie wszystkich drużyn
         db.ref(TEAMS_PATH_ROOT).once('value').then(snapshot => {
             allTeamsData = snapshot.val() || {};
-        }).catch(error => console.error("Błąd ładowania wszystkich drużyn:", error));
+            
+            const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
+            Object.keys(allTeamsData).forEach(teamId => {
+                const teamName = allTeamsData[teamId].name || teamId;
+                teamOptions.push(`<option value="${teamId}">${teamName} (${teamId})</option>`);
+            });
 
-        db.ref(MATCHES_PATH).once('value', snapshot => {
-            const matchesData = snapshot.val();
-            if (matchesData) {
-                matchSelect.innerHTML = '<option value="">-- Wybierz mecz --</option>';
-                Object.keys(matchesData).forEach(matchId => {
-                    const match = matchesData[matchId];
-                    const homeName = allTeamsData[match.homeTeamId] ? allTeamsData[match.homeTeamId].name || match.homeTeamId : match.homeTeamId;
-                    const awayName = allTeamsData[match.awayTeamId] ? allTeamsData[match.awayTeamId].name || match.awayTeamId : match.awayTeamId;
-                    
-                    const option = document.createElement('option');
-                    option.value = matchId;
-                    option.textContent = `${matchId}: ${homeName} vs ${awayName}`;
-                    option.dataset.home = match.homeTeamId;
-                    option.dataset.away = match.awayTeamId;
-                    matchSelect.appendChild(option);
-                });
-            } else {
-                 matchSelect.innerHTML = '<option value="">-- Brak meczów do rozegrania --</option>';
-            }
-        });
+            newHomeSelect.innerHTML = teamOptions.join('');
+            newAwaySelect.innerHTML = teamOptions.join('');
+
+            // 2. Ładowanie meczów (dopiero po załadowaniu drużyn)
+            db.ref(MATCHES_PATH).once('value', snapshot => {
+                const matchesData = snapshot.val();
+                if (matchesData) {
+                    matchSelect.innerHTML = '<option value="">-- Wybierz mecz --</option>';
+                    Object.keys(matchesData).forEach(matchId => {
+                        const match = matchesData[matchId];
+                        const homeName = allTeamsData[match.homeTeamId] ? allTeamsData[match.homeTeamId].name || match.homeTeamId : match.homeTeamId;
+                        const awayName = allTeamsData[match.awayTeamId] ? allTeamsData[match.awayTeamId].name || match.awayTeamId : match.awayTeamId;
+                        
+                        const option = document.createElement('option');
+                        option.value = matchId;
+                        option.textContent = `${matchId}: ${homeName} vs ${awayName}`;
+                        option.dataset.home = match.homeTeamId;
+                        option.dataset.away = match.awayTeamId;
+                        matchSelect.appendChild(option);
+                    });
+                } else {
+                    matchSelect.innerHTML = '<option value="">-- Brak meczów do rozegrania --</option>';
+                }
+            });
+
+        }).catch(error => console.error("Błąd ładowania wszystkich drużyn:", error));
         
+        // Ustawienie Event Listener dla wybierania meczu
         matchSelect.addEventListener('change', (e) => {
             const selectedOption = matchSelect.options[matchSelect.selectedIndex];
             const homeId = selectedOption.dataset.home;
@@ -381,8 +479,11 @@
     }
 
     // ===========================================
-    // LOGIKA GENEROWANIA I ZAPISU STRZELCÓW
+    // AKCJA 1: WPROWADZENIE WYNIKU MECZOWEGO
+    // (Kod ten został zachowany z poprzedniej wersji i działał)
     // ===========================================
+
+    // ... (generateGoalSelectors, saveMatchScore - kod jest poniżej w bloku <script>) ...
 
     function generateGoalSelectors(teamType) {
         const scoreInput = document.getElementById(`${teamType}-score`);
@@ -473,6 +574,7 @@
                 messageArea.textContent = `Wynik meczu ${matchId} (${homeScore}-${awayScore}) oraz lista strzelców zapisane pomyślnie.`;
                 messageArea.className = "message-area success";
                 
+                // Reset formularza po zapisie
                 document.getElementById('match-form').reset();
                 document.getElementById('home-goal-selectors').innerHTML = '';
                 document.getElementById('away-goal-selectors').innerHTML = '';
@@ -486,6 +588,180 @@
                 messageArea.className = "message-area error";
             });
     }
+
+    // ===========================================
+    // AKCJA 2: DODAWANIE NOWEGO MECZU
+    // ===========================================
+    document.getElementById('add-match-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const matchId = document.getElementById('new-match-id').value.toUpperCase().trim();
+        const homeTeamId = document.getElementById('new-home-team').value;
+        const awayTeamId = document.getElementById('new-away-team').value;
+        const messageArea = document.getElementById('add-match-message');
+
+        if (!matchId || !homeTeamId || !awayTeamId) {
+            messageArea.textContent = "Uzupełnij wszystkie pola: ID, Gospodarze, Goście.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        if (homeTeamId === awayTeamId) {
+            messageArea.textContent = "Błąd: Drużyny muszą być różne.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const newMatchData = {
+            homeTeamId: homeTeamId,
+            awayTeamId: awayTeamId,
+            homeScore: 0,
+            awayScore: 0,
+            scorers: [],
+            played: false
+        };
+
+        db.ref(MATCHES_PATH).child(matchId).set(newMatchData)
+            .then(() => {
+                messageArea.textContent = `Mecz ${matchId} dodany pomyślnie.`;
+                messageArea.className = "message-area success";
+                document.getElementById('add-match-form').reset();
+                loadMatchAndTeamData(); // Odśwież listę meczów
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd dodawania meczu: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    });
+
+    // ===========================================
+    // AKCJA 3: ZARZĄDZANIE DRUŻYNAMI I ZAWODNIKAMI
+    // ===========================================
+
+    // Ładuje drużyny do listy rozwijanej do edycji
+    function loadTeamsForManagement() {
+        const teamSelect = document.getElementById('select-team-manage');
+        teamSelect.innerHTML = '<option value="">-- Ładowanie drużyn... --</option>';
+
+        db.ref(TEAMS_PATH_ROOT).once('value').then(snapshot => {
+            allTeamsData = snapshot.val() || {}; // Odświeżenie globalnej listy
+            const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
+            Object.keys(allTeamsData).forEach(teamId => {
+                const teamName = allTeamsData[teamId].name || teamId;
+                teamOptions.push(`<option value="${teamId}">${teamName} (${teamId})</option>`);
+            });
+            teamSelect.innerHTML = teamOptions.join('');
+        }).catch(error => console.error("Błąd ładowania drużyn do zarządzania:", error));
+    }
+
+    // Wybór drużyny do edycji
+    document.getElementById('select-team-manage').addEventListener('change', function() {
+        const teamId = this.value;
+        const editForm = document.getElementById('edit-team-form');
+        const playersContainer = document.getElementById('players-container');
+
+        if (!teamId) {
+            editForm.style.display = 'none';
+            return;
+        }
+
+        editForm.style.display = 'block';
+        const team = allTeamsData[teamId];
+        playersContainer.innerHTML = ''; // Czyść starych zawodników
+
+        // Wypełnianie osiągnięć
+        const achievements = team.achievements ? team.achievements.join('\n') : '';
+        document.getElementById('team-achievements').value = achievements;
+
+        // Wypełnianie zawodników
+        const players = team.players || {};
+        Object.keys(players).forEach(playerId => {
+            addPlayerInput(players[playerId].name, players[playerId].number);
+        });
+
+        document.getElementById('edit-team-message').textContent = '';
+    });
+
+    // Dodanie pola na nowego zawodnika
+    document.getElementById('add-player-btn').addEventListener('click', () => {
+        addPlayerInput('', '');
+    });
+
+    // Funkcja pomocnicza do dodawania pola zawodnika
+    function addPlayerInput(name = '', number = '') {
+        const container = document.getElementById('players-container');
+        const playerDiv = document.createElement('div');
+        playerDiv.classList.add('player-entry');
+        playerDiv.innerHTML = `
+            <input type="number" class="player-number" value="${number}" min="0" max="99" placeholder="Nr">
+            <input type="text" class="player-name" value="${name}" required placeholder="Imię i Nazwisko / Pseudonim">
+            <button type="button" class="remove-player-btn"><i class="fas fa-trash"></i> Usuń</button>
+        `;
+        // Dodanie obsługi usuwania
+        playerDiv.querySelector('.remove-player-btn').addEventListener('click', () => {
+            playerDiv.remove();
+        });
+        container.appendChild(playerDiv);
+    }
+
+    // Zapisywanie zmian w drużynie
+    document.getElementById('edit-team-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const teamId = document.getElementById('select-team-manage').value;
+        const messageArea = document.getElementById('edit-team-message');
+        
+        // 1. Osiągnięcia
+        const achievementsText = document.getElementById('team-achievements').value.trim();
+        // Rozbijanie na tablicę (przez nową linię lub przecinek) i filtrowanie pustych
+        const achievementsArray = achievementsText 
+            ? achievementsText.split(/[\n,]+/).map(item => item.trim()).filter(item => item.length > 0) 
+            : [];
+
+        // 2. Zawodnicy
+        const newPlayers = {};
+        let playerIdCounter = 1;
+        let allPlayersValid = true;
+
+        document.querySelectorAll('#players-container .player-entry').forEach(entry => {
+            const nameInput = entry.querySelector('.player-name').value.trim();
+            const numberInput = entry.querySelector('.player-number').value.trim();
+
+            if (nameInput.length === 0) {
+                allPlayersValid = false;
+                return;
+            }
+
+            // Używamy unikalnego klucza (playerIdCounter)
+            const playerKey = 'player' + playerIdCounter; 
+            newPlayers[playerKey] = {
+                name: nameInput,
+                number: numberInput ? parseInt(numberInput) : null 
+            };
+            playerIdCounter++;
+        });
+
+        if (!allPlayersValid) {
+            messageArea.textContent = "Błąd: Niektórzy zawodnicy mają puste nazwy. Usuń lub uzupełnij pola.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const teamUpdateData = {
+            achievements: achievementsArray,
+            players: newPlayers 
+        };
+
+        db.ref(TEAMS_PATH_ROOT).child(teamId).update(teamUpdateData)
+            .then(() => {
+                messageArea.textContent = `Dane drużyny ${teamId} zapisane pomyślnie.`;
+                messageArea.className = "message-area success";
+                // Odświeżenie danych globalnych i menu (np. dla strzelców)
+                loadMatchAndTeamData(); 
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd zapisu danych drużyny: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    });
 
     // ===========================================
     // START APLIKACJI
