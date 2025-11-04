@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* CSS DLA RESPONSYWNOŚCI I WYGLĄDU ZASADNICZO BEZ ZMIAN */
+        /* CSS JEST POMINIĘTY ZE WZGLĘDU NA DŁUGOŚĆ, ALE ZOSTAJE TAKI SAM JAK W POPRZEDNIEJ WIADOMOŚCI */
         :root {
             --primary-color: #dc3545;
             --secondary-color: #6c757d;
@@ -51,7 +51,6 @@
             font-size: 2.2em;
         }
 
-        /* FORMULARZE I POLA */
         input[type="text"], input[type="email"], input[type="number"], input[type="password"], select, textarea {
             width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;
             box-sizing: border-box; resize: vertical;
@@ -63,7 +62,6 @@
         .form-row { display: flex; gap: 20px; }
         .team-score-group { flex: 1; }
 
-        /* PRZYCISKI */
         .submit-btn {
             background-color: var(--primary-color); color: white; padding: 12px 20px; border: none;
             border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;
@@ -80,23 +78,19 @@
         .submit-btn.generate { background-color: #007bff; }
         .submit-btn.generate:hover { background-color: #0056b3; }
         
-        /* ZARZĄDZANIE DRUŻYNAMI */
         .player-entry { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
         .player-entry input[type="number"] { flex: 0 0 60px; }
         .player-entry input[type="text"] { flex: 1; }
 
-        /* ZARZĄDZANIE MECZAMI - PRZYCISKI */
         #edit-match-form > div { display: flex; gap: 15px; margin-top: 15px; }
         #edit-match-form button { flex: 1; }
         
-        /* Oznaczenie LIVE */
         .match-live-status {
             font-size: 0.8em; padding: 3px 8px; border-radius: 3px; font-weight: bold; margin-left: 10px;
         }
         .match-live-status.live { background-color: var(--success-color); color: white; }
         .match-live-status.offline { background-color: #ffc107; color: #212529; }
 
-        /* NOWA SEKCJA LIVE GENERATOR */
         #live-html-output {
             background-color: #f1f1f1;
             padding: 15px;
@@ -117,7 +111,6 @@
         }
         .subsection-header i { margin-right: 8px; }
 
-        /* RESPONSYWNOŚĆ (MOBILE) */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .header, .content-container { padding: 15px; margin-bottom: 20px; }
@@ -125,28 +118,12 @@
             .content-container h2 { font-size: 1.8em; }
             .subsection-header { font-size: 1.3em; }
 
-            .select-group, .form-row, #edit-match-form > div {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .select-group > .form-group, .team-score-group, #edit-match-form button {
-                flex: none;
-                width: 100%;
-            }
-            .player-entry {
-                flex-wrap: wrap;
-                gap: 5px;
-            }
-            .player-entry input[type="number"] {
-                flex: 0 0 50px; 
-            }
-            .player-entry input[type="text"] {
-                flex: 1 1 calc(100% - 70px);
-            }
-            .remove-player-btn {
-                flex: 1 1 100%; 
-            }
-            
+            .select-group, .form-row, #edit-match-form > div { flex-direction: column; gap: 10px; }
+            .select-group > .form-group, .team-score-group, #edit-match-form button { flex: none; width: 100%; }
+            .player-entry { flex-wrap: wrap; gap: 5px; }
+            .player-entry input[type="number"] { flex: 0 0 50px; }
+            .player-entry input[type="text"] { flex: 1 1 calc(100% - 70px); }
+            .remove-player-btn { flex: 1 1 100%; }
             .submit-btn { padding: 10px 15px; font-size: 0.9em; }
         }
     </style>
@@ -177,7 +154,6 @@
         
         <div class="content-container" id="match-score-entry">
             <h2><i class="fas fa-bullseye"></i> Wprowadź Wynik Meczu i Strzelców</h2>
-
             <form id="match-form">
                 <div class="select-group">
                     <div class="form-group">
@@ -212,14 +188,12 @@
                 <div id="away-goal-selectors"></div>
 
                 <button type="submit" class="submit-btn" id="submit-match-score"><i class="fas fa-save"></i> Zapisz Wynik i Strzelców</button>
-                
                 <div id="match-message" class="message-area"></div>
             </form>
         </div>
         
         <div class="content-container" id="match-management">
             <h2><i class="fas fa-calendar-alt"></i> Zarządzanie Meczami</h2>
-
             <h3 class="subsection-header"><i class="fas fa-plus-circle"></i> Dodaj Nowy Mecz</h3>
             <form id="add-match-form">
                 <div class="form-group">
@@ -245,7 +219,6 @@
             </form>
 
             <h3 class="subsection-header" style="margin-top: 40px;"><i class="fas fa-edit"></i> Edytuj/Usuń Mecz i Live Status</h3>
-            
             <div class="select-group">
                 <div class="form-group">
                     <label for="filter-group-manage">Filtruj wg Grupy:</label>
@@ -262,7 +235,6 @@
             </div>
 
             <form id="edit-match-form" style="display: none;">
-                
                 <div class="form-group">
                     <label for="edit-match-id">ID Meczu (do zmiany):</label>
                     <input type="text" id="edit-match-id" required>
@@ -287,7 +259,6 @@
                     <button type="button" id="toggle-live-btn" class="submit-btn live-toggle" style="flex: 1;"><i class="fas fa-broadcast-tower"></i> Włącz/Wyłącz LIVE</button>
                     <button type="button" id="delete-match-btn" class="submit-btn delete" style="flex: 1;"><i class="fas fa-trash-alt"></i> Usuń Mecz</button>
                 </div>
-
                 <div id="edit-match-message" class="message-area"></div>
             </form>
         </div>
@@ -301,7 +272,6 @@
             <div id="live-html-output">
                 Kliknij "Generuj Kod LIVE" po włączeniu LIVE dla meczu, aby zobaczyć aktualny kod.
             </div>
-
             <div id="live-generator-message" class="message-area"></div>
         </div>
 
@@ -324,7 +294,7 @@
 
                 <h3 class="subsection-header"><i class="fas fa-shirt"></i> Zawodnicy i Numery</h3>
                 <div id="players-container">
-                    </div>
+                </div>
                 
                 <button type="button" class="submit-btn add-player-btn" id="add-player-btn"><i class="fas fa-user-plus"></i> Dodaj Zawodnika</button>
 
@@ -333,7 +303,6 @@
             </form>
         </div>
 
-        
         <div class="content-container" style="text-align: center;">
             <button id="admin-logout-btn" class="submit-btn" style="background-color: var(--secondary-color);"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
         </div>
@@ -349,11 +318,11 @@
     // KONFIGURACJA FIREBASE
     // ===========================================
 
-    // SPRAWDŹ DOKŁADNIE TEN BLOK Z KONFIGURACJĄ!
     const firebaseConfig = {
         apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
         authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
+        // !!! KRYTYCZNA POPRAWKA: Dodano ukośnik na końcu adresu URL bazy danych !!!
+        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/", 
         projectId: "puchargwiazd-bdaa4",
         storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
         messagingSenderId: "890734185883",
@@ -370,7 +339,7 @@
     let allGroups = new Set(); 
     let currentMatchTeams = {}; 
     
-    // ŚCIEŻKI SKORYGOWANE: (matches i teams są na root, jak w Twojej bazie)
+    // ŚCIEŻKI SKORYGOWANE: (matches i teams są na root, jak w bazie)
     const MATCHES_PATH = "matches"; 
     const TEAMS_PATH_ROOT = "teams"; 
     let currentLiveMatchId = null; 
@@ -404,7 +373,6 @@
         const password = document.getElementById('admin-password').value;
         const messageArea = document.getElementById('login-message');
         
-        // CZYTAJ BŁĘDY TUTAJ, JEŚLI LOGOWANIE NIE DZIAŁA
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
                 messageArea.textContent = "Zalogowano pomyślnie!";
@@ -415,13 +383,16 @@
                 switch(error.code) {
                     case 'auth/user-not-found':
                     case 'auth/wrong-password':
-                        displayMessage = "Błąd: Błędny email lub hasło. Sprawdź, czy konto istnieje w Firebase Authentication.";
+                        displayMessage = "Błąd: Błędny email lub hasło. Sprawdź, czy konto jest aktywne w Firebase Authentication.";
                         break;
                     case 'auth/network-request-failed':
                         displayMessage = "Błąd: Brak połączenia z internetem lub problem z serwerem Firebase.";
                         break;
+                    case 'auth/invalid-credential':
+                        displayMessage = "Błąd: Nieprawidłowe dane logowania (zwykle oznacza to błąd hasła lub emaila).";
+                        break;
                     default:
-                        displayMessage = "Błąd logowania: " + error.message + " (Kod błędu: " + error.code + ")"; 
+                        displayMessage = "Błąd logowania: " + error.message + " (Kod błędu: " + error.code + ")."; 
                 }
                 messageArea.textContent = displayMessage;
                 messageArea.className = "message-area error";
@@ -437,8 +408,9 @@
     });
 
     // ===========================================
-    // LOGIKA ŁADOWANIA I FILTROWANIA DANYCH (pozostałe funkcje bez zmian)
+    // LOGIKA APLIKACJI (pozostałe funkcje z poprzednich wersji)
     // ===========================================
+
     function loadMatchAndTeamData() {
         currentLiveMatchId = null;
         db.ref(TEAMS_PATH_ROOT).once('value').then(snapshot => {
@@ -543,14 +515,498 @@
             document.getElementById('edit-match-form').style.display = 'none';
         }
     }
-    
-    // ... (pozostałe funkcje logiki aplikacji: handleMatchScoreSelect, generateGoalSelectors, saveMatchScore, addMatchForm, loadMatchDataForEdit, editMatchForm, toggleLiveBtn, deleteMatchBtn, loadTeamsForManagement, teamSelectManage, addPlayerInput, editTeamForm)
-    // ... Zostały przeniesione do zewnętrznego pliku lub są pominięte w tym skrócie, aby skupić się na problemie z logowaniem.
-    // ... W pełnym kodzie z poprzedniej wiadomości (Wersja 5) one istnieją.
 
-    // ===========================================
-    // SEKCJA 4: GENERATOR KODU LIVE NA STRONĘ GŁÓWNĄ (Poprawiony tekst)
-    // ===========================================
+    function handleMatchScoreSelect(e) {
+        const matchSelect = e.target;
+        const selectedOption = matchSelect.options[matchSelect.selectedIndex];
+        const homeId = selectedOption.dataset.home;
+        const awayId = selectedOption.dataset.away;
+
+        document.getElementById('home-goal-selectors').innerHTML = '';
+        document.getElementById('away-goal-selectors').innerHTML = '';
+
+        if (homeId && awayId) {
+            currentMatchTeams = {
+                home: { 
+                    id: homeId, 
+                    name: allTeamsData[homeId]?.name || homeId, 
+                    players: allTeamsData[homeId]?.players || {}
+                },
+                away: { 
+                    id: awayId, 
+                    name: allTeamsData[awayId]?.name || awayId, 
+                    players: allTeamsData[awayId]?.players || {}
+                }
+            };
+            
+            document.getElementById('home-team-label').textContent = `Wynik ${currentMatchTeams.home.name}:`;
+            document.getElementById('away-team-label').textContent = `Wynik ${currentMatchTeams.away.name}:`;
+            
+            const match = allMatchesData[matchSelect.value];
+            if (match) {
+                document.getElementById('home-score').value = match.homeScore || 0;
+                document.getElementById('away-score').value = match.awayScore || 0;
+            }
+
+            generateGoalSelectors('home');
+            generateGoalSelectors('away');
+
+        } else {
+            currentMatchTeams = {};
+            document.getElementById('home-team-label').textContent = 'Wynik Gospodarzy:';
+            document.getElementById('away-team-label').textContent = 'Wynik Gości:';
+            document.getElementById('home-score').value = 0;
+            document.getElementById('away-score').value = 0;
+        }
+    }
+
+    function generateGoalSelectors(teamType) {
+        const matchId = document.getElementById('match-id').value;
+        const match = allMatchesData[matchId];
+
+        const scoreInput = document.getElementById(`${teamType}-score`);
+        const score = parseInt(scoreInput.value) || 0;
+        const container = document.getElementById(`${teamType}-goal-selectors`);
+        container.innerHTML = '';
+        
+        if (!currentMatchTeams[teamType] || !match) return;
+
+        const team = currentMatchTeams[teamType];
+        const players = team.players || {};
+        
+        const currentScorers = match.scorers ? match.scorers.filter(s => s.teamType === teamType) : [];
+
+        if (score === 0) {
+            container.innerHTML = `<p style="color: #6c757d;">Drużyna ${team.name} nie strzeliła bramek.</p>`;
+            return;
+        }
+
+        const playerArray = Object.values(players);
+        playerArray.sort((a, b) => (a.number || 999) - (b.number || 999));
+
+        let playerOptions = '<option value="">-- Wybierz strzelca --</option>';
+        if (playerArray.length > 0) {
+            playerOptions += playerArray.map(player => 
+                `<option value="${player.name}">${player.number ? player.number + '. ' : ''}${player.name}</option>`
+            ).join('');
+        } else {
+            playerOptions += '<option value="Brak Zawodników">Brak zawodników w składzie</option>';
+        }
+
+        for (let i = 1; i <= score; i++) {
+            const goalDiv = document.createElement('div');
+            goalDiv.classList.add('form-group', 'goal-entry');
+            
+            const defaultValue = currentScorers[i-1]?.scorerName || ""; 
+
+            goalDiv.innerHTML = `
+                <label>Bramka nr ${i} (${team.name}):</label>
+                <select class="goal-scorer-select" data-team="${teamType}" required>
+                    ${playerOptions}
+                </select>
+            `;
+            setTimeout(() => {
+                const selectElement = goalDiv.querySelector('.goal-scorer-select');
+                if (selectElement) {
+                    selectElement.value = defaultValue;
+                }
+            }, 0); 
+            
+            container.appendChild(goalDiv);
+        }
+    }
+
+    document.getElementById('match-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveMatchScore();
+    });
+
+    function saveMatchScore() {
+        const matchId = document.getElementById('match-id').value;
+        const homeScore = parseInt(document.getElementById('home-score').value);
+        const awayScore = parseInt(document.getElementById('away-score').value);
+        const messageArea = document.getElementById('match-message');
+
+        if (!matchId) {
+            messageArea.textContent = "Wybierz mecz.";
+            messageArea.className = "message-area error";
+            return;
+        }
+        
+        const scorers = [];
+        let isValid = true;
+
+        document.querySelectorAll('.goal-scorer-select').forEach(select => {
+            if (!select.value || select.value === "Brak Zawodników") {
+                isValid = false;
+            }
+            scorers.push({
+                teamType: select.dataset.team,
+                scorerName: select.value
+            });
+        });
+
+        if (!isValid) {
+            messageArea.textContent = "Uzupełnij brakujących strzelców (nie można wybrać 'Brak Zawodników').";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const matchData = {
+            homeScore: homeScore,
+            awayScore: awayScore,
+            scorers: scorers, 
+            played: true 
+        };
+        
+        if(allMatchesData[matchId]) {
+            matchData.live = allMatchesData[matchId].live || false;
+            matchData.group = allMatchesData[matchId].group || 'Brak Grupy';
+            matchData.homeTeamId = allMatchesData[matchId].homeTeamId;
+            matchData.awayTeamId = allMatchesData[matchId].awayTeamId;
+        }
+
+        db.ref(MATCHES_PATH).child(matchId).update(matchData)
+            .then(() => {
+                messageArea.textContent = `Wynik meczu ${matchId} (${homeScore}-${awayScore}) oraz lista strzelców zapisane pomyślnie.`;
+                messageArea.className = "message-area success";
+                
+                loadMatchAndTeamData(); 
+                document.getElementById('match-form').reset();
+
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd zapisu w bazie danych: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    }
+
+    document.getElementById('add-match-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const matchId = document.getElementById('new-match-id').value.toUpperCase().trim();
+        const homeTeamId = document.getElementById('new-home-team').value;
+        const awayTeamId = document.getElementById('new-away-team').value;
+        const group = document.getElementById('new-match-group').value.trim();
+        const messageArea = document.getElementById('add-match-message');
+
+        if (!matchId || !homeTeamId || !awayTeamId || !group) {
+            messageArea.textContent = "Uzupełnij wszystkie pola: ID, Grupa, Gospodarze, Goście.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        if (homeTeamId === awayTeamId) {
+            messageArea.textContent = "Błąd: Drużyny muszą być różne.";
+            messageArea.className = "message-area error";
+            return;
+        }
+        
+        if (allMatchesData[matchId]) {
+            messageArea.textContent = "Błąd: Mecz o takim ID już istnieje. Użyj innego ID.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const newMatchData = {
+            homeTeamId: homeTeamId,
+            awayTeamId: awayTeamId,
+            group: group,
+            homeScore: 0,
+            awayScore: 0,
+            scorers: [],
+            played: false,
+            live: false
+        };
+
+        db.ref(MATCHES_PATH).child(matchId).set(newMatchData)
+            .then(() => {
+                messageArea.textContent = `Mecz ${matchId} dodany pomyślnie.`;
+                messageArea.className = "message-area success";
+                document.getElementById('add-match-form').reset();
+                loadMatchAndTeamData(); 
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd dodawania meczu: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    });
+
+    function loadMatchDataForEdit(matchId) {
+        const editForm = document.getElementById('edit-match-form');
+        const match = allMatchesData[matchId];
+        const toggleLiveBtn = document.getElementById('toggle-live-btn');
+        document.getElementById('edit-match-message').textContent = '';
+
+        if (!matchId || !match) {
+            editForm.style.display = 'none';
+            return;
+        }
+
+        editForm.style.display = 'block';
+
+        document.getElementById('edit-match-id').value = matchId; 
+        document.getElementById('edit-match-group').value = match.group || '';
+        document.getElementById('edit-home-team').value = match.homeTeamId || '';
+        document.getElementById('edit-away-team').value = match.awayTeamId || '';
+        
+        if (match.live) {
+            toggleLiveBtn.classList.add('active');
+            toggleLiveBtn.innerHTML = '<i class="fas fa-broadcast-tower"></i> LIVE: Włączony (Kliknij, aby wyłączyć)';
+        } else {
+            toggleLiveBtn.classList.remove('active');
+            toggleLiveBtn.innerHTML = '<i class="fas fa-broadcast-tower"></i> LIVE: Wyłączony (Kliknij, aby włączyć)';
+        }
+    }
+
+    document.getElementById('edit-match-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const oldMatchId = document.getElementById('match-id-manage').value;
+        const newMatchId = document.getElementById('edit-match-id').value.toUpperCase().trim();
+        const homeTeamId = document.getElementById('edit-home-team').value;
+        const awayTeamId = document.getElementById('edit-away-team').value;
+        const group = document.getElementById('edit-match-group').value.trim();
+        const messageArea = document.getElementById('edit-match-message');
+
+        if (!oldMatchId || !newMatchId || !homeTeamId || !awayTeamId || !group) {
+            messageArea.textContent = "Uzupełnij wszystkie pola.";
+            messageArea.className = "message-area error";
+            return;
+        }
+        if (homeTeamId === awayTeamId) {
+            messageArea.textContent = "Błąd: Drużyny muszą być różne.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const matchDataToUpdate = {
+            homeTeamId: homeTeamId,
+            awayTeamId: awayTeamId,
+            group: group
+        };
+        
+        const currentMatch = allMatchesData[oldMatchId];
+        if (currentMatch) {
+            matchDataToUpdate.live = currentMatch.live || false;
+            matchDataToUpdate.played = currentMatch.played || false;
+            matchDataToUpdate.homeScore = currentMatch.homeScore || 0;
+            matchDataToUpdate.awayScore = currentMatch.awayScore || 0;
+            matchDataToUpdate.scorers = currentMatch.scorers || [];
+        }
+
+        if (oldMatchId === newMatchId) {
+            db.ref(MATCHES_PATH).child(oldMatchId).update(matchDataToUpdate)
+                .then(() => {
+                    messageArea.textContent = `Mecz ${oldMatchId} pomyślnie zaktualizowany.`;
+                    messageArea.className = "message-area success";
+                    loadMatchAndTeamData();
+                })
+                .catch(error => {
+                    messageArea.textContent = "Błąd aktualizacji: " + error.message;
+                    messageArea.className = "message-area error";
+                });
+        } else {
+            if (allMatchesData[newMatchId]) {
+                messageArea.textContent = `Błąd: Nowe ID (${newMatchId}) już istnieje. Wybierz inne.`;
+                messageArea.className = "message-area error";
+                return;
+            }
+            db.ref(MATCHES_PATH).child(newMatchId).set(matchDataToUpdate)
+                .then(() => db.ref(MATCHES_PATH).child(oldMatchId).remove())
+                .then(() => {
+                    messageArea.textContent = `Mecz ${oldMatchId} pomyślnie przeniesiony do ID: ${newMatchId}.`;
+                    messageArea.className = "message-area success";
+                    loadMatchAndTeamData();
+                    document.getElementById('edit-match-form').style.display = 'none';
+                })
+                .catch(error => {
+                    messageArea.textContent = "Błąd zmiany ID: " + error.message;
+                    messageArea.className = "message-area error";
+                });
+        }
+    });
+
+    document.getElementById('toggle-live-btn').addEventListener('click', function() {
+        const matchId = document.getElementById('match-id-manage').value;
+        const messageArea = document.getElementById('edit-match-message');
+        if (!matchId) {
+            messageArea.textContent = "Wybierz mecz, aby zmienić status LIVE.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const isLiveNow = allMatchesData[matchId]?.live || false;
+        const newLiveStatus = !isLiveNow;
+        let promise;
+
+        if (newLiveStatus) {
+            promise = db.ref(MATCHES_PATH).once('value')
+                .then(snapshot => {
+                    const allUpdates = {};
+                    snapshot.forEach(child => {
+                        const existingMatchId = child.key;
+                        if (existingMatchId !== matchId && child.val().live) {
+                            allUpdates[existingMatchId + '/live'] = false;
+                        }
+                    });
+                    allUpdates[matchId + '/live'] = true; 
+                    return db.ref(MATCHES_PATH).update(allUpdates);
+                });
+
+        } else {
+            const updates = {};
+            updates[matchId + '/live'] = false;
+            promise = db.ref(MATCHES_PATH).update(updates);
+        }
+
+        promise
+            .then(() => {
+                loadMatchAndTeamData(); 
+                loadMatchDataForEdit(matchId); 
+                messageArea.textContent = `Status LIVE meczu ${matchId} zmieniony na: ${newLiveStatus ? 'WŁĄCZONY' : 'WYŁĄCZONY'}. Inne mecze LIVE wyłączone.`;
+                messageArea.className = "message-area success";
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd zmiany statusu LIVE: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    });
+
+    document.getElementById('delete-match-btn').addEventListener('click', function() {
+        const matchId = document.getElementById('match-id-manage').value;
+        const messageArea = document.getElementById('edit-match-message');
+
+        if (!matchId) {
+            messageArea.textContent = "Wybierz mecz do usunięcia.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        if (!confirm(`Czy na pewno chcesz usunąć mecz ${matchId} (${allMatchesData[matchId]?.group || 'Brak Grupy'})? Tej operacji nie można cofnąć.`)) {
+            return;
+        }
+
+        db.ref(MATCHES_PATH).child(matchId).remove()
+            .then(() => {
+                messageArea.textContent = `Mecz ${matchId} został pomyślnie usunięty.`;
+                messageArea.className = "message-area success";
+                document.getElementById('edit-match-form').style.display = 'none';
+                loadMatchAndTeamData(); 
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd usuwania meczu: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    });
+
+    function loadTeamsForManagement() {
+        const teamSelect = document.getElementById('select-team-manage');
+        const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
+        Object.keys(allTeamsData).forEach(teamId => {
+             const teamName = allTeamsData[teamId]?.name || teamId;
+             teamOptions.push(`<option value="${teamId}">${teamName} (${teamId})</option>`);
+        });
+        teamSelect.innerHTML = teamOptions.join('');
+        document.getElementById('edit-team-form').style.display = 'none';
+    }
+
+    document.getElementById('select-team-manage').addEventListener('change', function() {
+        const teamId = this.value;
+        const editForm = document.getElementById('edit-team-form');
+        const playersContainer = document.getElementById('players-container');
+
+        if (!teamId) {
+            editForm.style.display = 'none';
+            return;
+        }
+
+        editForm.style.display = 'block';
+        const team = allTeamsData[teamId];
+        playersContainer.innerHTML = ''; 
+
+        const achievements = team.achievements ? team.achievements.join('\n') : '';
+        document.getElementById('team-achievements').value = achievements;
+
+        const players = team.players || {};
+        Object.keys(players).forEach(playerId => {
+            addPlayerInput(players[playerId].name, players[playerId].number);
+        });
+
+        document.getElementById('edit-team-message').textContent = '';
+    });
+
+    document.getElementById('add-player-btn').addEventListener('click', () => {
+        addPlayerInput('', '');
+    });
+
+    function addPlayerInput(name = '', number = '') {
+        const container = document.getElementById('players-container');
+        const playerDiv = document.createElement('div');
+        playerDiv.classList.add('player-entry');
+        playerDiv.innerHTML = `
+            <input type="number" class="player-number" value="${number}" min="0" max="99" placeholder="Nr">
+            <input type="text" class="player-name" value="${name}" required placeholder="Imię i Nazwisko / Pseudonim">
+            <button type="button" class="remove-player-btn"><i class="fas fa-trash"></i> Usuń</button>
+        `;
+        playerDiv.querySelector('.remove-player-btn').addEventListener('click', () => {
+            playerDiv.remove();
+        });
+        container.appendChild(playerDiv);
+    }
+
+    document.getElementById('edit-team-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const teamId = document.getElementById('select-team-manage').value;
+        const messageArea = document.getElementById('edit-team-message');
+        
+        const achievementsText = document.getElementById('team-achievements').value.trim();
+        const achievementsArray = achievementsText 
+            ? achievementsText.split(/[\n,]+/).map(item => item.trim()).filter(item => item.length > 0) 
+            : [];
+
+        const newPlayers = {};
+        let playerIdCounter = 1;
+        let allPlayersValid = true;
+
+        document.querySelectorAll('#players-container .player-entry').forEach(entry => {
+            const nameInput = entry.querySelector('.player-name').value.trim();
+            const numberInput = entry.querySelector('.player-number').value.trim();
+
+            if (nameInput.length === 0) {
+                allPlayersValid = false;
+                return;
+            }
+
+            const playerKey = 'player' + playerIdCounter; 
+            newPlayers[playerKey] = {
+                name: nameInput,
+                number: numberInput ? parseInt(numberInput) : null 
+            };
+            playerIdCounter++;
+        });
+
+        if (!allPlayersValid) {
+            messageArea.textContent = "Błąd: Niektórzy zawodnicy mają puste nazwy. Usuń lub uzupełnij pola.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const teamUpdateData = {
+            achievements: achievementsArray,
+            players: newPlayers 
+        };
+
+        db.ref(TEAMS_PATH_ROOT).child(teamId).update(teamUpdateData)
+            .then(() => {
+                messageArea.textContent = `Dane drużyny ${allTeamsData[teamId].name || teamId} zapisane pomyślnie.`;
+                messageArea.className = "message-area success";
+                loadMatchAndTeamData(); 
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd zapisu danych drużyny: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    });
+
 
     document.getElementById('generate-live-html-btn').addEventListener('click', generateLiveHTML);
 
@@ -635,7 +1091,7 @@
     const liveFirebaseConfig = {
         apiKey: "${firebaseConfig.apiKey}",
         authDomain: "${firebaseConfig.authDomain}",
-        databaseURL: "${firebaseConfig.databaseURL}", 
+        databaseURL: "${firebaseConfig.databaseURL}", // Używa poprawionego URL
         projectId: "${firebaseConfig.projectId}",
         storageBucket: "${firebaseConfig.storageBucket}",
         messagingSenderId: "${firebaseConfig.messagingSenderId}",
@@ -646,13 +1102,12 @@
         firebase.initializeApp(liveFirebaseConfig, "liveApp");
     }
     const liveDB = firebase.app("liveApp").database();
-    const LIVE_MATCHES_PATH = "matches"; // Ścieżka musi być zgodna z bazą!
+    const LIVE_MATCHES_PATH = "matches"; 
 
     function updateLiveScore() {
         liveDB.ref(LIVE_MATCHES_PATH).on('value', snapshot => {
             let liveMatch = null;
             
-            // Wyszukaj mecz LIVE
             snapshot.forEach(child => {
                 if (child.val().live) {
                     liveMatch = child.val();
@@ -665,7 +1120,6 @@
 
             if (liveMatch && container) {
                 
-                // UWAGA: Nie mamy tutaj ładowania pełnych nazw drużyn, więc używamy ID
                 document.querySelector('#live-score-display .live-match-teams div:nth-child(1)').textContent = liveMatch.homeTeamId;
                 document.querySelector('#live-score-display .live-match-teams div:nth-child(3)').textContent = liveMatch.awayTeamId;
 
@@ -695,28 +1149,10 @@
         messageArea.className = "message-area success";
     }
 
-
     // ===========================================
     // START APLIKACJI
     // ===========================================
     document.addEventListener('DOMContentLoaded', checkAuth);
-
-    
-    // PUSTE IMPLEMENTACJE FUNKCJI (dla kompletności struktury kodu, są zaimplementowane w pełnej wersji)
-    // Jeśli używasz pełnego kodu z Wersji 5, nie musisz się tym przejmować.
-    function handleMatchScoreSelect() {}
-    function generateGoalSelectors() {}
-    function saveMatchScore() {}
-    document.getElementById('add-match-form').addEventListener('submit', function(e) { e.preventDefault(); /* ... */ });
-    function loadMatchDataForEdit() {}
-    document.getElementById('edit-match-form').addEventListener('submit', function(e) { e.preventDefault(); /* ... */ });
-    document.getElementById('toggle-live-btn').addEventListener('click', function() { /* ... */ });
-    document.getElementById('delete-match-btn').addEventListener('click', function() { /* ... */ });
-    function loadTeamsForManagement() {}
-    document.getElementById('select-team-manage').addEventListener('change', function() { /* ... */ });
-    document.getElementById('add-player-btn').addEventListener('click', () => { /* ... */ });
-    function addPlayerInput() {}
-    document.getElementById('edit-team-form').addEventListener('submit', function(e) { e.preventDefault(); /* ... */ });
 </script>
 </body>
 </html>
