@@ -9,10 +9,12 @@
 
   <style>
     body { font-family: Arial; padding: 20px; }
-    input { margin: 5px; padding: 6px; }
+    input, select { margin: 5px; padding: 6px; }
     button { padding: 6px 12px; cursor: pointer; margin-left: 5px; }
-    .match-box { border: 1px solid #ccc; padding: 10px; margin-top: 10px; }
-    .delete-btn { background-color: #f44336; color: white; border: none; } /* Styl dla przycisku usuń */
+    .match-box { border: 1px solid #ccc; padding: 10px; margin-top: 10px; margin-bottom: 5px; }
+    .delete-btn { background-color: #f44336; color: white; border: none; }
+    .group-section { margin-top: 20px; border-top: 2px solid #333; padding-top: 10px; }
+    .group-title { background-color: #f0f0f0; padding: 5px; margin-bottom: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -29,11 +31,18 @@
 <h1>Panel Admina – Wyniki na żywo</h1>
 
 <h2>Dodaj mecz</h2>
+<select id="group">
+    <option value="">Wybierz grupę</option>
+    <option value="A">Grupa A</option>
+    <option value="B">Grupa B</option>
+    <option value="C">Grupa C</option>
+    <option value="D">Grupa D</option>
+</select>
 <input id="teamA" placeholder="Drużyna A">
 <input id="teamB" placeholder="Drużyna B">
 <button onclick="addMatch()">Dodaj mecz</button>
 
-<h2>Lista meczów</h2>
+<h2>Lista meczów według grup</h2>
 <div id="matches"></div>
 
 <script>
@@ -52,25 +61,29 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // ✅ DODAWANIE MECZU
+  // ✅ DODAWANIE MECZU (Zmodyfikowane)
   function addMatch() {
+    const group = document.getElementById("group").value; // Pobieramy grupę
     const a = document.getElementById("teamA").value;
     const b = document.getElementById("teamB").value;
-    if (!a || !b) return alert("Podaj obie drużyny!");
+    
+    if (!group || !a || !b) return alert("Wybierz grupę i podaj obie drużyny!");
 
     const ref = db.ref("matches").push();
     ref.set({
       teamA: a,
       teamB: b,
       scoreA: 0,
-      scoreB: 0
+      scoreB: 0,
+      group: group // ZMIANA: Dodajemy pole grupy do obiektu meczu
     });
 
     document.getElementById("teamA").value = "";
     document.getElementById("teamB").value = "";
+    document.getElementById("group").value = ""; // Opcjonalnie: resetujemy wybór grupy
   }
 
-  // ✅ WYŚWIETLANIE MECZÓW
+  // ✅ WYŚWIETLANIE MECZÓW (Zmodyfikowane, teraz z grupowaniem)
   db.ref("matches").on("value", snap => {
     const data = snap.val();
     const box = document.getElementById("matches");
@@ -81,20 +94,43 @@
       return;
     }
 
-    Object.entries(data).forEach(([id, match]) => {
-      box.innerHTML += `
-        <div class="match-box">
-          <b>${match.teamA}</b> vs <b>${match.teamB}</b><br>
-          <input id="a-${id}" type="number" value="${match.scoreA}">
-          <input id="b-${id}" type="number" value="${match.scoreB}">
-          <button onclick="updateScore('${id}')">Zapisz</button>
-                    <button class="delete-btn" onclick="deleteMatch('${id}')">Usuń</button>
-        </div>
-      `;
-    });
+    // Krok 1: Grupujemy mecze po nazwie grupy
+    const groupedMatches = {};
+    Object.entries(data).forEach(([id, match]) => {
+        // Używamy nazwy grupy lub 'Inne' dla meczów bez określonej grupy
+        const groupName = match.group || 'Inne'; 
+        if (!groupedMatches[groupName]) {
+            groupedMatches[groupName] = [];
+        }
+        groupedMatches[groupName].push({ id, ...match });
+    });
+
+    // Krok 2: Iterujemy po grupach i je wyświetlamy
+    const sortedGroupNames = Object.keys(groupedMatches).sort();
+
+    sortedGroupNames.forEach(groupName => {
+        let groupHtml = `<div class="group-section">`;
+        groupHtml += `<div class="group-title">GRUPA ${groupName}</div>`;
+        
+        groupedMatches[groupName].forEach(match => {
+            groupHtml += `
+              <div class="match-box">
+                <b>${match.teamA}</b> vs <b>${match.teamB}</b><br>
+                <input id="a-${match.id}" type="number" value="${match.scoreA}">
+                <input id="b-${match.id}" type="number" value="${match.scoreB}">
+                <button onclick="updateScore('${match.id}')">Zapisz</button>
+                <button class="delete-btn" onclick="deleteMatch('${match.id}')">Usuń</button>
+              </div>
+            `;
+        });
+        
+        groupHtml += `</div>`;
+        box.innerHTML += groupHtml;
+    });
+
   });
 
-  // ✅ AKTUALIZACJA WYNIKÓW
+  // ✅ AKTUALIZACJA WYNIKÓW (Bez zmian)
   function updateScore(id) {
     const scoreA = Number(document.getElementById("a-" + id).value);
     const scoreB = Number(document.getElementById("b-" + id).value);
@@ -105,11 +141,9 @@
     });
   }
   
-    
-  // ✅ USUWANIE MECZU
+  // ✅ USUWANIE MECZU (Bez zmian)
   function deleteMatch(id) {
     if (confirm("Czy na pewno chcesz usunąć ten mecz?")) {
-      // Używamy metody .remove() na referencji do konkretnego ID meczu
       db.ref("matches/" + id).remove()
         .then(() => {
           console.log("Mecz usunięty pomyślnie");
