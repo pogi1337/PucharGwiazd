@@ -1,4 +1,32 @@
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
+async function login(email, password) {
+  const auth = getAuth();
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // 🔹 Wymuś odświeżenie tokena
+    const idTokenResult = await user.getIdTokenResult(true);
+
+    console.log("✅ Zalogowano jako:", user.email);
+    console.log("📦 Custom claims:", idTokenResult.claims);
+
+    if (idTokenResult.claims.admin) {
+      alert("Jesteś ADMINEM 🧑‍💼");
+    } else if (idTokenResult.claims.role === "teamManager") {
+      alert(`Zalogowano jako drużyna: ${idTokenResult.claims.teamId}`);
+    } else {
+      alert("❌ Nie masz uprawnień — brak claimów");
+    }
+
+  } catch (error) {
+    console.error("Błąd logowania:", error);
+  }
+}
+
 
 // Funkcja logowania użytkownika (np. drużyny)
 async function login(email, password) {
