@@ -1,579 +1,252 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administratora - Puchar Gwiazd</title>
-
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script> 
-    
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <style>
-        /* =========================================== */
-        /* ZMIENNE KOLORYSTYCZNE (CZARNO-NIEBIESKIE) */
-        /* =========================================== */
-        :root {
-            --primary-color: #007bff; /* Główny niebieski */
-            --secondary-color: #adb5bd; /* Jasnoszary dla tekstu/ikon */
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --background-start: #0d1a26; /* Bardzo ciemny/prawie czarny */
-            --background-end: #212121; /* Ciemny szary */
-            --card-bg: #343a40; /* Ciemne tło kart */
-            --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-            --header-bg: #1c2733;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif; margin: 0; padding: 0;
-            background: linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%);
-            color: #f8f9fa; min-height: 100vh;
-        }
-        
-        /* Główne sekcje */
-        .header {
-            background-color: var(--header-bg); padding: 20px;
-            color: white; border-bottom: 3px solid var(--primary-color);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .header h1 { font-family: 'Montserrat', sans-serif; margin: 0; font-size: 1.5em; }
-        .main-content { padding: 20px; max-width: 1200px; margin: 0 auto; }
-
-        /* Karta/Kontener */
-        .container {
-            margin-top: 25px; padding: 20px;
-            background: var(--card-bg); border-radius: 10px;
-            box-shadow: var(--card-shadow); border: 1px solid #495057;
-        }
-        h2 { color: var(--primary-color); border-bottom: 2px solid #495057; padding-bottom: 10px; margin-bottom: 20px; }
-        
-        /* Formularz i inputy */
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: var(--secondary-color); font-weight: 500;}
-        input[type="email"], input[type="password"], input[type="text"], input[type="number"], select, textarea {
-            width: 100%; padding: 10px; border: 1px solid #495057; border-radius: 5px;
-            background-color: #2b3035; color: #f8f9fa; box-sizing: border-box;
-        }
-        select { height: 40px; }
-        
-        .submit-btn, .logout-btn {
-            background-color: var(--primary-color); color: white; padding: 10px 15px; border: none;
-            border-radius: 5px; cursor: pointer; font-size: 0.9em; font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .submit-btn:hover { background-color: #0056b3; }
-        .logout-btn { background-color: var(--danger-color); }
-        .logout-btn:hover { background-color: #bd2130; }
-
-        /* Komunikaty */
-        .message-area { padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; }
-        .message-area.success { background-color: #1e4d2b; color: #c3e6cb; border: 1px solid #1c7430; }
-        .message-area.error { background-color: #58151c; color: #f5c6cb; border: 1px solid #721c24; }
-        .message-area.info { background-color: #004085; color: #b8daff; border: 1px solid #0056b3; }
-        
-        /* Siatka sekcji */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-
-        /* Style dla tabeli wyników (Sekcja 3) */
-        .match-form { border: 1px solid #495057; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-        .match-header { font-weight: bold; margin-bottom: 10px; color: var(--secondary-color); }
-        .score-inputs { display: flex; align-items: center; gap: 10px; }
-        .score-inputs input { width: 60px; text-align: center; font-size: 1.1em; }
-        .team-name { font-weight: bold; }
-        .separator { margin: 0 5px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Administratora - Puchar Gwiazd</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f2f3f7;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #1a73e8;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 25px;
+    }
+    h2 {
+      color: #1a73e8;
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    button:hover {
+      background-color: #0c5edc;
+    }
+    .message-area {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+    .info {
+      color: #555;
+    }
+  </style>
 </head>
 <body>
+  <header>
+    <h1><i class="fas fa-user-shield"></i> Panel Administratora</h1>
+  </header>
 
-    <div class="main-content" id="login-section">
-        <div class="container" style="max-width: 400px; margin: 50px auto;">
-            <h1 style="text-align: center;">Logowanie Admina</h1>
-            <form id="admin-login-form">
-                <div class="form-group">
-                    <label for="admin-email">Email Admina:</label>
-                    <input type="email" id="admin-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="admin-password">Hasło:</label>
-                    <input type="password" id="admin-password" required>
-                </div>
-                <button type="submit" class="submit-btn">Zaloguj</button>
-                <div id="login-message" class="message-area"></div>
-            </form>
-        </div>
-    </div>
+  <!-- 🔹 SEKCJA 1: Logowanie administratora -->
+  <div class="container" id="login-section">
+    <h2>1. Logowanie</h2>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Hasło:</label>
+        <input type="password" id="password" required />
+      </div>
+      <button type="submit"><i class="fas fa-sign-in-alt"></i> Zaloguj</button>
+      <div id="login-message" class="message-area"></div>
+    </form>
+  </div>
 
-    <div id="admin-panel" style="display: none;">
-        <div class="header">
-            <h1>Panel Administracyjny Pucharu Gwiazd</h1>
-            <button id="admin-logout-btn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
-        </div>
+  <!-- 🔹 SEKCJA 2: Panel administratora (po zalogowaniu) -->
+  <div class="container" id="admin-section" style="display: none;">
+    <h2>2. Tworzenie konta drużyny</h2>
+    <form id="create-team-form">
+      <div class="form-group">
+        <label for="team-id">ID Drużyny:</label>
+        <input type="text" id="team-id" required />
+      </div>
+      <div class="form-group">
+        <label for="team-email">E-mail Drużyny:</label>
+        <input type="email" id="team-email" required />
+      </div>
+      <div class="form-group">
+        <label for="team-password">Hasło Drużyny:</label>
+        <input type="password" id="team-password" required minlength="6" />
+      </div>
+      <button type="submit"><i class="fas fa-user-plus"></i> Utwórz Drużynę</button>
+      <div id="team-message" class="message-area"></div>
+    </form>
+  </div>
 
-        <div class="main-content grid">
-            
-            <div class="container">
-                <h2>1. Zarządzanie Drużynami</h2>
-                <form id="team-management-form">
-                    <div class="form-group">
-                        <label for="teams-list">Wybierz Drużynę do Edycji (Nazwa/ID):</label>
-                        <select id="teams-list" required></select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="team-display-name">Nowa Nazwa Wyświetlana:</label>
-                        <input type="text" id="team-display-name" placeholder="Pełna nazwa drużyny">
-                    </div>
+  <!-- 🔹 SEKCJA 3: Nadawanie uprawnień administratora -->
+  <div class="container" id="grant-admin-section" style="display: none;">
+    <h2>3. Nadawanie uprawnień administratora</h2>
+    <form id="grant-admin-form">
+      <div class="form-group">
+        <label for="admin-email-input">Adres e-mail użytkownika:</label>
+        <input type="email" id="admin-email-input" required placeholder="np. jan.nowak@gmail.com">
+      </div>
+      <button type="submit"><i class="fas fa-user-shield"></i> Nadaj uprawnienia admina</button>
+      <div id="grant-admin-message" class="message-area"></div>
+    </form>
+  </div>
 
-                    <div class="form-group">
-                        <label for="team-players-display">Skład Drużyny (tylko podgląd):</label>
-                        <textarea id="team-players-display" rows="5" disabled style="font-size: 0.8em;"></textarea>
-                    </div>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-functions.js"></script>
 
-                    <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Zapisz Zmiany Nazwy</button>
-                    <div id="team-management-message" class="message-area"></div>
-                </form>
-            </div>
+  <script>
+    // =============================
+    // 🔥 Konfiguracja Firebase (PucharGwiazd)
+    // =============================
+    const firebaseConfig = {
+      apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+      authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+      projectId: "puchargwiazd-bdaa4",
+    };
+    firebase.initializeApp(firebaseConfig);
 
-            <div class="container">
-                <h2>2. Wprowadzanie Wyników Meczów</h2>
-                <div id="match-results-container">
-                    </div>
-                <div id="match-results-message" class="message-area"></div>
-            </div>
+    const auth = firebase.auth();
+    const functions = firebase.functions();
 
-            <div class="container">
-                <h2>3. Narzędzia Administracyjne</h2>
-                
-                <form id="generate-matches-form">
-                    <h3><i class="fas fa-calendar-alt"></i> Generowanie Meczów</h3>
-                    <div class="form-group">
-                        <label for="match-type-select">Typ meczu (np. faza grupowa, ćwierćfinał):</label>
-                        <input type="text" id="match-type-select" required placeholder="Np. Grupa A">
-                    </div>
-                    <button type="submit" class="submit-btn"><i class="fas fa-cogs"></i> Generuj Mecze Ligowe</button>
-                    <small style="color: var(--secondary-color); display: block; margin-top: 5px;">Wygeneruje mecze 'każdy z każdym' dla wszystkich obecnych drużyn.</small>
-                    <div id="generate-matches-message" class="message-area"></div>
-                </form>
+    // =============================
+    // 🔹 Logowanie administratora
+    // =============================
+    const loginForm = document.getElementById('login-form');
+    const loginMessage = document.getElementById('login-message');
 
-                <hr style="border-top: 1px solid #495057; margin: 20px 0;">
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
 
-                <button id="clear-all-data-btn" class="submit-btn" style="background-color: #8b0000; margin-top: 10px;"><i class="fas fa-trash-alt"></i> Usuń WSZYSTKIE DANE Meczy i Drużyn</button>
-                <div id="clear-data-message" class="message-area"></div>
-            </div>
+      loginMessage.textContent = "Logowanie...";
+      loginMessage.className = "message-area info";
 
-            <div class="container">
-                <h2>4. Stwórz Konto Logowania dla Drużyny</h2>
-                <form id="create-team-account-form">
-                    
-                    <div class="form-group">
-                        <label for="new-team-name-input">Nazwa Nowej Drużyny:</label>
-                        <input type="text" id="new-team-name-input" required placeholder="Np. 'Lwy Północy'">
-                        <small style="color: #adb5bd;">Nazwa zostanie użyta jako ID w bazie danych (np. 'Lwy_Polnocy').</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="team-account-email">Email Kapitana (Login):</label>
-                        <input type="email" id="team-account-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="team-account-password">Hasło (min. 6 znaków):</label>
-                        <input type="password" id="team-account-password" required>
-                    </div>
-                    <button type="submit" class="submit-btn"><i class="fas fa-user-plus"></i> Utwórz Konto/Drużynę</button>
-                    <div id="team-account-message" class="message-area"></div>
-                </form>
-            </div>
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        await user.getIdTokenResult(true);
 
-        </div> 
-    </div> <script>
-        // UWAGA: ZMIEŃ TE KLUCZE NA SWOJE I PAMIĘTAJ O 'HTTPS://' PRZY databaseURL!
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo", 
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com", 
-            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/", // !!! Już jest HTTPS
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-        };
-        
-        try {
-            firebase.initializeApp(firebaseConfig); 
-        } catch (e) {
-            console.error("Błąd inicjalizacji Firebase:", e.message);
-        }
-// RESZTA KODU JS PONIŻEJ...
+        const tokenResult = await user.getIdTokenResult();
+        const isAdmin = tokenResult.claims.admin === true;
 
-        const auth = firebase.auth(); 
-        const db = firebase.database();
-        const teamsRef = db.ref('teams');
-        const matchesRef = db.ref('matches');
+        if (isAdmin) {
+          document.getElementById('login-section').style.display = 'none';
+          document.getElementById('admin-section').style.display = 'block';
+          document.getElementById('grant-admin-section').style.display = 'block';
+        } else {
+          loginMessage.textContent = "Brak uprawnień administracyjnych.";
+          loginMessage.className = "message-area error";
+          await auth.signOut();
+        }
+      } catch (error) {
+        console.error("Błąd logowania:", error);
+        loginMessage.textContent = "Błąd logowania: " + error.message;
+        loginMessage.className = "message-area error";
+      }
+    });
 
-        let teamsData = {}; // Globalna przechowalnia danych drużyn
+    // =============================
+    // 🔹 Tworzenie konta drużyny
+    // =============================
+    const teamForm = document.getElementById('create-team-form');
+    const teamMessage = document.getElementById('team-message');
 
-        // ===========================================
-        // LOGIKA AUTORYZACJI
-        // ===========================================
+    teamForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const teamId = document.getElementById('team-id').value.trim();
+      const email = document.getElementById('team-email').value.trim();
+      const password = document.getElementById('team-password').value.trim();
 
-        function checkAuth() {
-            auth.onAuthStateChanged(user => {
-                const loginSection = document.getElementById('login-section');
-                const adminPanel = document.getElementById('admin-panel');
-                
-                if (user) {
-                    // Wymuś odświeżenie tokenu, aby uzyskać Custom Claim (admin)
-                    user.getIdTokenResult(true) 
-                        .then(idTokenResult => {
-                            const isAdmin = idTokenResult.claims.admin;
-                            
-                            if (isAdmin) {
-                                loginSection.style.display = 'none';
-                                adminPanel.style.display = 'block';
-                                loadTeamsForManagement();
-                                loadMatchesForScoreInput();
-                            } else {
-                                // Zalogowany, ale nie jest adminem
-                                alert("Brak uprawnień. Zaloguj się kontem administratora.");
-                                auth.signOut();
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Błąd pobierania tokena:", error);
-                            auth.signOut();
-                        });
-                } else {
-                    // Brak zalogowanego użytkownika
-                    loginSection.style.display = 'block';
-                    adminPanel.style.display = 'none';
-                }
-            });
-        }
+      teamMessage.textContent = "Tworzenie konta...";
+      teamMessage.className = "message-area info";
 
-        document.getElementById('admin-login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('admin-email').value; 
-            const password = document.getElementById('admin-password').value;
-            const messageArea = document.getElementById('login-message');
-            
-            messageArea.textContent = "Logowanie...";
-            messageArea.className = "message-area info";
+      try {
+        const createTeamUser = firebase.functions().httpsCallable('createTeamUser');
+        const result = await createTeamUser({ teamId, email, password });
+        if (result.data.success) {
+          teamMessage.textContent = result.data.message;
+          teamMessage.className = "message-area success";
+          teamForm.reset();
+        } else {
+          teamMessage.textContent = result.data.error;
+          teamMessage.className = "message-area error";
+        }
+      } catch (error) {
+        console.error("Błąd tworzenia drużyny:", error);
+        teamMessage.textContent = "Błąd: " + (error.message || "Nie udało się utworzyć drużyny.");
+        teamMessage.className = "message-area error";
+      }
+    });
 
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    messageArea.textContent = "Zalogowano! Sprawdzanie uprawnień...";
-                    messageArea.className = "message-area success";
-                    // checkAuth() przejmie kontrolę
-                })
-                .catch(error => {
-                    messageArea.textContent = "Błąd logowania: Błędny email lub hasło lub brak uprawnień admina.";
-                    messageArea.className = "message-area error";
-                    console.error("Firebase Auth Error:", error);
-                });
-        });
+    // =============================
+    // 🔹 Nadawanie uprawnień admina
+    // =============================
+    document.getElementById('grant-admin-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('admin-email-input').value.trim();
+      const messageArea = document.getElementById('grant-admin-message');
 
-        document.getElementById('admin-logout-btn').addEventListener('click', () => {
-            auth.signOut();
-        });
+      if (!email) {
+        messageArea.textContent = 'Podaj adres e-mail użytkownika.';
+        messageArea.className = 'message-area error';
+        return;
+      }
 
+      messageArea.textContent = 'Nadawanie uprawnień...';
+      messageArea.className = 'message-area info';
 
-        // ===========================================
-        // SEKCJA 1: ZARZĄDZANIE DRUŻYNAMI
-        // ===========================================
-
-        function loadTeamsForManagement() {
-            teamsRef.once('value', snapshot => {
-                teamsData = snapshot.val() || {};
-                const teamsList = document.getElementById('teams-list');
-                teamsList.innerHTML = '<option value="">-- Wybierz drużynę --</option>';
-
-                Object.keys(teamsData).forEach(teamId => {
-                    const team = teamsData[teamId];
-                    const option = document.createElement('option');
-                    option.value = teamId;
-                    option.textContent = `${team.name} (${teamId})`;
-                    teamsList.appendChild(option);
-                });
-                
-                teamsList.addEventListener('change', (e) => {
-                    const selectedId = e.target.value;
-                    const team = teamsData[selectedId];
-                    const displayNameInput = document.getElementById('team-display-name');
-                    const playersDisplay = document.getElementById('team-players-display');
-
-                    if (team) {
-                        displayNameInput.value = team.name || '';
-                        
-                        let playersText = '';
-                        if (team.players) {
-                            // Ładne formatowanie listy zawodników
-                            Object.values(team.players).forEach(p => {
-                                playersText += `${p.number ? '[' + p.number + ']' : ''} ${p.name}\n`;
-                            });
-                        } else {
-                            playersText = 'Brak dodanych zawodników.';
-                        }
-                        playersDisplay.value = playersText.trim();
-                    } else {
-                        displayNameInput.value = '';
-                        playersDisplay.value = '';
-                    }
-                });
-            });
-        }
-
-        document.getElementById('team-management-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const teamId = document.getElementById('teams-list').value;
-            const newName = document.getElementById('team-display-name').value.trim();
-            const messageArea = document.getElementById('team-management-message');
-
-            if (!teamId || !newName) {
-                messageArea.textContent = 'Błąd: Wybierz drużynę i podaj nową nazwę.';
-                messageArea.className = 'message-area error';
-                return;
-            }
-
-            messageArea.textContent = `Zapisywanie nowej nazwy dla ${teamId}...`;
-            messageArea.className = 'message-area info';
-
-            // Admin ma prawo zapisu, co jest zgodne z Regułami Bezpieczeństwa
-            teamsRef.child(teamId).update({ name: newName })
-                .then(() => {
-                    messageArea.textContent = `Pomyślnie zmieniono nazwę drużyny ${teamId} na ${newName}.`;
-                    messageArea.className = 'message-area success';
-                    loadTeamsForManagement(); // Odśwież listę
-                })
-                .catch(error => {
-                    messageArea.textContent = 'Błąd zapisu: ' + error.message;
-                    messageArea.className = 'message-area error';
-                });
-        });
-
-
-        // ===========================================
-        // SEKCJA 2: WPROWADZANIE WYNIKÓW MECZÓW
-        // ===========================================
-
-        function loadMatchesForScoreInput() {
-            matchesRef.on('value', snapshot => {
-                const matches = snapshot.val() || {};
-                const container = document.getElementById('match-results-container');
-                container.innerHTML = '';
-                
-                // Konwersja na tablicę i sortowanie (np. po dacie/czasie/kluczu)
-                const sortedMatches = Object.entries(matches).sort(([, a], [, b]) => a.date - b.date); 
-
-                if (sortedMatches.length === 0) {
-                     container.innerHTML = '<div class="message-area info">Brak wygenerowanych meczów.</div>';
-                     return;
-                }
-
-                sortedMatches.forEach(([matchId, match]) => {
-                    const matchDiv = document.createElement('form');
-                    matchDiv.classList.add('match-form');
-                    matchDiv.dataset.matchId = matchId;
-                    
-                    const scoreA = match.scoreA !== undefined ? match.scoreA : '';
-                    const scoreB = match.scoreB !== undefined ? match.scoreB : '';
-
-                    matchDiv.innerHTML = `
-                        <div class="match-header">${match.type || 'Faza'} | Mecz ${matchId}</div>
-                        <div class="score-inputs">
-                            <span class="team-name">${teamsData[match.teamA]?.name || match.teamA}</span>
-                            <input type="number" class="score-a" value="${scoreA}" min="0" required>
-                            <span class="separator"> - </span>
-                            <input type="number" class="score-b" value="${scoreB}" min="0" required>
-                            <span class="team-name">${teamsData[match.teamB]?.name || match.teamB}</span>
-                        </div>
-                        <button type="submit" class="submit-btn" style="width: auto; margin-top: 10px;">Zapisz Wynik</button>
-                    `;
-                    
-                    matchDiv.addEventListener('submit', handleMatchScoreSubmit);
-                    container.appendChild(matchDiv);
-                });
-            });
-        }
-
-        function handleMatchScoreSubmit(e) {
-            e.preventDefault();
-            const form = e.target;
-            const matchId = form.dataset.matchId;
-            const scoreA = parseInt(form.querySelector('.score-a').value, 10);
-            const scoreB = parseInt(form.querySelector('.score-b').value, 10);
-            const messageArea = document.getElementById('match-results-message');
-
-            messageArea.textContent = `Zapisywanie wyniku meczu ${matchId}...`;
-            messageArea.className = 'message-area info';
-
-            matchesRef.child(matchId).update({
-                scoreA: scoreA,
-                scoreB: scoreB
-            })
-            .then(() => {
-                messageArea.textContent = `Wynik ${scoreA} - ${scoreB} dla meczu ${matchId} zapisany!`;
-                messageArea.className = 'message-area success';
-            })
-            .catch(error => {
-                messageArea.textContent = 'Błąd zapisu wyniku: ' + error.message;
-                messageArea.className = 'message-area error';
-            });
-        }
-
-        // ===========================================
-        // SEKCJA 3: GENEROWANIE MECZÓW I CZYSZCZENIE DANYCH
-        // ===========================================
-
-        document.getElementById('generate-matches-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const messageArea = document.getElementById('generate-matches-message');
-            const matchType = document.getElementById('match-type-select').value.trim();
-
-            if (Object.keys(teamsData).length < 2) {
-                messageArea.textContent = 'Błąd: Potrzebujesz co najmniej 2 drużyn do wygenerowania meczów.';
-                messageArea.className = 'message-area error';
-                return;
-            }
-            
-            if (!matchType) {
-                 messageArea.textContent = 'Błąd: Podaj typ (np. Grupa A).';
-                 messageArea.className = 'message-area error';
-                 return;
-            }
-
-            messageArea.textContent = 'Generowanie meczów, proszę czekać...';
-            messageArea.className = 'message-area info';
-
-            // Wywołanie Cloud Function do generowania par
-            const generateMatches = firebase.functions().httpsCallable('generateMatches');
-
-            try {
-                const result = await generateMatches({ type: matchType });
-                messageArea.textContent = `Sukces! Wygenerowano ${result.data.count} nowych meczów.`;
-                messageArea.className = 'message-area success';
-                document.getElementById('match-type-select').value = '';
-            } catch (error) {
-                console.error("Błąd generowania meczów:", error);
-                messageArea.textContent = `Błąd generowania: ${error.message}. Sprawdź logi Cloud Functions.`;
-                messageArea.className = 'message-area error';
-            }
-        });
-
-        document.getElementById('clear-all-data-btn').addEventListener('click', () => {
-             if (confirm("JESTEŚ PEWIEN? To usunie WSZYSTKIE dane z węzłów /matches i /teams. Danych nie da się odzyskać!")) {
-                const messageArea = document.getElementById('clear-data-message');
-                messageArea.textContent = 'Usuwanie danych...';
-                messageArea.className = 'message-area error';
-
-                // Usunięcie danych (Admin ma prawo zapisu)
-                matchesRef.remove()
-                    .then(() => teamsRef.remove())
-                    .then(() => {
-                        messageArea.textContent = 'Pomyślnie usunięto wszystkie dane meczów i drużyn.';
-                        messageArea.className = 'message-area success';
-                        loadTeamsForManagement(); // Odświeżenie widoków
-                    })
-                    .catch(error => {
-                        messageArea.textContent = 'Błąd usuwania danych: ' + error.message;
-                    });
-            }
-        });
-
-        // ===========================================
-        // SEKCJA 4: TWORZENIE KONTA DRUŻYNY (NOWA WERSJA Z WPISYWANIEM NAZWY)
-        // ===========================================
-
-        document.getElementById('create-team-account-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            handleCreateTeamAccount();
-        });
-
-        async function handleCreateTeamAccount() {
-            const email = document.getElementById('team-account-email').value.trim();
-            const password = document.getElementById('team-account-password').value.trim();
-            const teamName = document.getElementById('new-team-name-input').value.trim(); 
-            const messageArea = document.getElementById('team-account-message');
-
-            if (!teamName || teamName.length < 3) {
-                messageArea.textContent = 'Błąd: Nazwa drużyny jest za krótka.';
-                messageArea.className = 'message-area error';
-                return;
-            }
-            if (password.length < 6) {
-                 messageArea.textContent = 'Błąd: Hasło musi mieć co najmniej 6 znaków.';
-                 messageArea.className = 'message-area error';
-                 return;
-            }
-            
-            // Generowanie bezpiecznego teamId z nazwy (np. 'Lwy Północy' -> 'lwy_polnocy')
-            const teamId = teamName
-                            .toLowerCase()
-                            .replace(/[^a-z0-9\s]/g, '') // Usuwa znaki specjalne
-                            .replace(/\s+/g, '_'); // Zamienia spacje na podkreślenia
-
-            messageArea.textContent = `Tworzenie konta i drużyny (${teamId})...`;
-            messageArea.className = 'message-area info';
-
-            try {
-                // 1. Sprawdzenie, czy drużyna już istnieje w bazie danych
-                const teamSnapshot = await db.ref(`teams/${teamId}`).once('value');
-                if (teamSnapshot.exists()) {
-                     messageArea.textContent = `Błąd: Drużyna o ID "${teamId}" już istnieje. Proszę użyć innej nazwy.`;
-                     messageArea.className = 'message-area error';
-                     return;
-                }
-
-                // 2. Utworzenie nowego węzła drużyny w Realtime Database
-                await db.ref(`teams/${teamId}`).set({
-                    name: teamName,
-                    id: teamId,
-                    players: {}, // Pusty skład do uzupełnienia przez kapitana
-                    created: firebase.database.ServerValue.TIMESTAMP
-                });
-                
-                // 3. Wywołanie Cloud Function, która utworzy użytkownika i przypisze Custom Claim
-                const createTeamUser = firebase.functions().httpsCallable('createTeamUser');
-                const result = await createTeamUser({ 
-                    email: email, 
-                    password: password, 
-                    teamId: teamId, // Przekazujemy wygenerowane ID
-                    teamName: teamName
-                });
-
-                // 4. Sukces
-                messageArea.textContent = `Sukces! Utworzono konto dla: ${teamName} (${teamId}). Email: ${email}. Zapisz te dane!`;
-                messageArea.className = 'message-area success';
-                
-                // Wyczyść pola i odśwież listę drużyn
-                document.getElementById('team-account-email').value = '';
-                document.getElementById('team-account-password').value = '';
-                document.getElementById('new-team-name-input').value = '';
-                loadTeamsForManagement(); // Odświeżenie listy w Sekcji 1
-
-            } catch (error) {
-                console.error("Błąd tworzenia konta drużyny:", error);
-                let displayMessage = "Błąd: Nie udało się utworzyć konta. ";
-                
-                if (error.code && error.code === 'functions/invalid-argument') {
-                    displayMessage = `Błąd funkcji: ${error.message}. Sprawdź, czy funkcja Cloud Functions działa.`;
-                } else if (error.message && error.message.includes('email-already-in-use')) {
-                     displayMessage = "Błąd: Podany email jest już w użyciu.";
-                } else if (error.code && error.code === 'functions/internal') {
-                     displayMessage += 'Błąd serwera. Sprawdź logi Cloud Functions.';
-                } else {
-                     displayMessage += error.message;
-                }
-                
-                messageArea.textContent = displayMessage;
-                messageArea.className = 'message-area error';
-            }
-        }
-
-        // START APLIKACJI
-        document.addEventListener('DOMContentLoaded', checkAuth);
-    </script>
+      try {
+        const grantAdminRole = firebase.functions().httpsCallable('setAdminRole');
+        const result = await grantAdminRole({ email: email });
+        messageArea.textContent = `✅ ${result.data.message}`;
+        messageArea.className = 'message-area success';
+        document.getElementById('admin-email-input').value = '';
+      } catch (error) {
+        console.error("Błąd nadawania uprawnień:", error);
+        messageArea.textContent = '❌ Błąd: ' + (error.message || 'Nie udało się nadać roli admina.');
+        messageArea.className = 'message-area error';
+      }
+    });
+  </script>
 </body>
 </html>
