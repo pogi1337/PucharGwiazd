@@ -62,26 +62,36 @@
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px dashed #eee;
+            /* Zapewnienie, że całość się mieści */
+            box-sizing: border-box; 
         }
+        
+        /* 💡 KLUCZOWA POPRAWKA STYLI DLA NAZW DRUŻYN */
         .team-name {
             font-weight: 700;
-            width: 35%;
-            overflow: hidden;
+            width: 40%; /* Zwiększona szerokość dla nazwy */
+            /* Utrzymanie jednej linii i obsługa ucinania */
+            overflow: hidden; 
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .score-box {
             font-weight: 900;
             font-size: 1.1em;
-            width: 15%;
+            width: 10%; /* Zmniejszona szerokość dla wyniku */
             text-align: center;
+            min-width: 40px; /* Minimalna szerokość dla wyniku, żeby się nie zwinął */
         }
         .status-tag {
-            font-size: 0.8em;
+            font-size: 0.7em; /* Lekko mniejsza czcionka dla oszczędności miejsca */
             font-weight: bold;
             padding: 3px 6px;
             border-radius: 4px;
+            min-width: 60px;
+            text-align: center;
         }
+        
+        /* Style statusów */
         .scheduled { background-color: #ffc107; color: #333; }
         .live { background-color: #dc3545; color: white; animation: pulse 1.5s infinite; }
         .finished { background-color: #28a745; color: white; }
@@ -105,7 +115,7 @@
     <div class="header">
         <h1>Puchar Gwiazd</h1>
         <div class="login-links">
-            <a href="login_kapitana.html"><i class="fas fa-user-shield"></i> Kapitan</a>
+            <a href="login_kapitan.html"><i class="fas fa-user-shield"></i> Kapitan</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> Admin</a>
         </div>
         <div id="current-time" style="display: none;"></div> 
@@ -280,4 +290,3 @@
     </script>
 </body>
 </html>
-
