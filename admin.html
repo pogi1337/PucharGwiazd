@@ -19,154 +19,87 @@
            STYLISTYKA GLOBALNA I ADMINISTRACYJNA
            ================================== */
         body { 
-            font-family: 'Roboto', sans-serif; 
-            margin: 0;
-            padding: 20px 10px; 
+            font-family: 'Roboto', sans-serif; margin: 0; padding: 20px 10px; 
             background: linear-gradient(135deg, #e0f2f7 0%, #bbdefb 100%); 
-            color: #212121;
-            display: flex; 
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            transition: background 0.5s ease, color 0.5s ease;
+            color: #212121; display: flex; flex-direction: column;
+            align-items: center; min-height: 100vh;
         }
-
-        /* NAGŁÓWEK (.header) */
         .header {
             width: 100%; max-width: 900px; margin-bottom: 30px; padding: 25px;
             background-color: #ffffff; border-radius: 15px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #dc3545;
             display: flex; justify-content: space-between; align-items: center;
         }
-        
         .header h1 {
             font-family: 'Montserrat', sans-serif; color: #dc3545; font-size: 3.2em;
             margin-bottom: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
-
-        /* GŁÓWNA TREŚĆ STRONY (.content-container) */
         .content-container {
             max-width: 900px; width: 100%; margin-bottom: 30px; padding: 25px;
             background: white; border-radius: 15px; 
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #dc3545;
         }
-
         .content-container h2 {
             font-family: 'Montserrat', sans-serif; font-size: 2.2em; color: #dc3545;
             margin-top: 10px; margin-bottom: 25px; padding-bottom: 5px;
             border-bottom: 2px solid #dc3545; font-weight: 700;
         }
-
-        /* FORMULARZ OGÓLNY */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #333;
-        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
         input[type="text"], input[type="email"], input[type="number"], input[type="password"], select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            resize: vertical; /* Dla textarea */
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;
+            box-sizing: border-box; resize: vertical;
         }
         
-        /* PRZYCISKI */
         .submit-btn {
-            background-color: #dc3545;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
-            transition: background-color 0.3s;
-            margin-top: 10px;
+            background-color: #dc3545; color: white; padding: 12px 20px; border: none;
+            border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;
+            transition: background-color 0.3s; margin-top: 10px;
         }
-        .submit-btn:hover {
-            background-color: #c82333;
-        }
+        .submit-btn:hover { background-color: #c82333; }
+        .submit-btn.delete { background-color: #ffc107; color: #212529; }
+        .submit-btn.delete:hover { background-color: #e0a800; }
+        .submit-btn.live-toggle { background-color: #17a2b8; }
+        .submit-btn.live-toggle:hover { background-color: #138496; }
+        .submit-btn.live-toggle.active { background-color: #28a745; }
+        .submit-btn.live-toggle.active:hover { background-color: #218838; }
 
-        /* WIADOMOŚCI */
-        .message-area {
-            padding: 10px;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 10px;
-            text-align: center;
-        }
-        .message-area.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .message-area.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            word-break: break-word;
-        }
-        .message-area.info {
-            background-color: #cce5ff;
-            color: #004085;
-            border: 1px solid #b8daff;
-        }
+        .message-area { padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; }
+        .message-area.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message-area.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; word-break: break-word; }
+        .message-area.info { background-color: #cce5ff; color: #004085; border: 1px solid #b8daff; }
         
-        /* ZARZĄDZANIE DRUŻYNAMI/MECZAMI */
-        .select-group {
-            display: flex; gap: 15px; align-items: flex-end;
-        }
-        .select-group > .form-group {
-            flex: 1;
-        }
-
+        /* NOWE: LEPSZE MENU WYBORU */
+        .select-group { display: flex; gap: 15px; align-items: flex-end; }
+        .select-group > .form-group { flex: 1; }
         .subsection-header {
-            font-size: 1.5em;
-            color: #dc3545;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            border-bottom: 1px dashed #ccc;
-            padding-bottom: 5px;
+            font-size: 1.5em; color: #dc3545; margin-top: 25px; margin-bottom: 15px;
+            border-bottom: 1px dashed #ccc; padding-bottom: 5px;
         }
         .subsection-header i { margin-right: 8px; }
 
-        /* Style dla panelu edycji zawodników i osiągnięć */
+        /* ZARZĄDZANIE DRUŻYNAMI */
         .player-entry {
-            display: flex; gap: 10px; margin-bottom: 10px;
-            align-items: center;
-            padding: 10px; border: 1px solid #eee; border-radius: 5px;
-            background: #f9f9f9;
+            display: flex; gap: 10px; margin-bottom: 10px; align-items: center;
+            padding: 10px; border: 1px solid #eee; border-radius: 5px; background: #f9f9f9;
         }
         .player-entry input[type="text"], .player-entry input[type="number"] {
-            flex: 1; margin: 0;
-            padding: 8px;
+            flex: 1; margin: 0; padding: 8px;
         }
         .remove-player-btn {
-            background-color: #6c757d;
-            color: white;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.3s;
+            background-color: #6c757d; color: white; padding: 8px 12px; border: none;
+            border-radius: 5px; cursor: pointer; font-size: 0.9em; transition: background-color 0.3s;
         }
-        .remove-player-btn:hover {
-            background-color: #5a6268;
+        .remove-player-btn:hover { background-color: #5a6268; }
+        .add-player-btn { background-color: #28a745; margin-top: 15px; }
+        .add-player-btn:hover { background-color: #218838; }
+        
+        /* Oznaczenie LIVE */
+        .match-live-status {
+            font-size: 0.8em; padding: 3px 8px; border-radius: 3px; font-weight: bold; margin-left: 10px;
         }
-        .add-player-btn {
-            background-color: #28a745;
-            margin-top: 15px;
-        }
-        .add-player-btn:hover {
-            background-color: #218838;
-        }
+        .match-live-status.live { background-color: #28a745; color: white; }
+        .match-live-status.offline { background-color: #ffc107; color: #212529; }
     </style>
 </head>
 <body>
@@ -187,7 +120,7 @@
                 <input type="password" id="admin-password" required>
             </div>
             <button type="submit" class="submit-btn"><i class="fas fa-unlock-alt"></i> Zaloguj</button>
-            <div id="login-message" class="message-area" style="margin-top: 15px;"></div>
+            <div id="login-message" class="message-area"></div>
         </form>
     </div>
 
@@ -197,11 +130,19 @@
             <h2><i class="fas fa-bullseye"></i> Wprowadź Wynik Meczu i Strzelców</h2>
 
             <form id="match-form">
-                <div class="form-group">
-                    <label for="match-id">Wybierz Mecz:</label>
-                    <select id="match-id" required>
-                        <option value="">-- Ładowanie meczów... --</option>
-                    </select>
+                <div class="select-group">
+                    <div class="form-group">
+                        <label for="filter-group-score">Filtruj wg Grupy:</label>
+                        <select id="filter-group-score" onchange="filterMatchSelect('match-id', this.value)">
+                            <option value="">-- Wszystkie Grupy --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="match-id">Wybierz Mecz:</label>
+                        <select id="match-id" required>
+                            <option value="">-- Ładowanie meczów... --</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="form-row">
@@ -223,13 +164,14 @@
 
                 <button type="submit" class="submit-btn" id="submit-match-score"><i class="fas fa-save"></i> Zapisz Wynik i Strzelców</button>
                 
-                <div id="match-message" class="message-area" style="margin-top: 15px;"></div>
+                <div id="match-message" class="message-area"></div>
             </form>
         </div>
         
-        <div class="content-container" id="new-match-entry">
-            <h2><i class="fas fa-plus-circle"></i> Dodaj Nowy Mecz</h2>
+        <div class="content-container" id="match-management">
+            <h2><i class="fas fa-calendar-alt"></i> Zarządzanie Meczami</h2>
 
+            <h3 class="subsection-header"><i class="fas fa-plus-circle"></i> Dodaj Nowy Mecz</h3>
             <form id="add-match-form">
                 <div class="form-group">
                     <label for="new-match-id">ID Meczu (np. G1M1):</label>
@@ -237,20 +179,67 @@
                 </div>
                 <div class="select-group">
                     <div class="form-group">
+                        <label for="new-match-group">Grupa:</label>
+                        <input type="text" id="new-match-group" required placeholder="Grupa A, PlayOff, Finał...">
+                    </div>
+                    <div class="form-group">
                         <label for="new-home-team">Gospodarze:</label>
-                        <select id="new-home-team" required>
-                            <option value="">-- Ładowanie drużyn... --</option>
-                        </select>
+                        <select id="new-home-team" required><option value="">-- Ładowanie drużyn... --</option></select>
                     </div>
                     <div class="form-group">
                         <label for="new-away-team">Goście:</label>
-                        <select id="new-away-team" required>
-                            <option value="">-- Ładowanie drużyn... --</option>
-                        </select>
+                        <select id="new-away-team" required><option value="">-- Ładowanie drużyn... --</option></select>
                     </div>
                 </div>
                 <button type="submit" class="submit-btn"><i class="fas fa-calendar-plus"></i> Dodaj Mecz</button>
-                <div id="add-match-message" class="message-area" style="margin-top: 15px;"></div>
+                <div id="add-match-message" class="message-area"></div>
+            </form>
+
+            <h3 class="subsection-header" style="margin-top: 40px;"><i class="fas fa-edit"></i> Edytuj/Usuń Mecz i Live Status</h3>
+            
+            <div class="select-group">
+                <div class="form-group">
+                    <label for="filter-group-manage">Filtruj wg Grupy:</label>
+                    <select id="filter-group-manage" onchange="filterMatchSelect('match-id-manage', this.value)">
+                        <option value="">-- Wszystkie Grupy --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="match-id-manage">Wybierz Mecz do Edycji:</label>
+                    <select id="match-id-manage" onchange="loadMatchDataForEdit(this.value)">
+                        <option value="">-- Ładowanie meczów... --</option>
+                    </select>
+                </div>
+            </div>
+
+            <form id="edit-match-form" style="display: none;">
+                
+                <div class="form-group">
+                    <label for="edit-match-id">ID Meczu (do zmiany):</label>
+                    <input type="text" id="edit-match-id" required>
+                </div>
+                <div class="select-group">
+                    <div class="form-group">
+                        <label for="edit-match-group">Grupa:</label>
+                        <input type="text" id="edit-match-group" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-home-team">Gospodarze:</label>
+                        <select id="edit-home-team" required><option value="">-- Ładowanie drużyn... --</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-away-team">Goście:</label>
+                        <select id="edit-away-team" required><option value="">-- Ładowanie drużyn... --</option></select>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 15px; margin-top: 15px;">
+                    <button type="submit" class="submit-btn" style="flex: 1;"><i class="fas fa-save"></i> Zapisz Zmiany w Meczu</button>
+                    <button type="button" id="toggle-live-btn" class="submit-btn live-toggle" style="flex: 1;"><i class="fas fa-broadcast-tower"></i> Włącz/Wyłącz LIVE</button>
+                    <button type="button" id="delete-match-btn" class="submit-btn delete" style="flex: 1;"><i class="fas fa-trash-alt"></i> Usuń Mecz</button>
+                </div>
+
+                <div id="edit-match-message" class="message-area"></div>
             </form>
         </div>
 
@@ -267,7 +256,7 @@
             <form id="edit-team-form" style="display: none;">
                 <h3 class="subsection-header"><i class="fas fa-trophy"></i> Osiągnięcia Drużyny</h3>
                 <div class="form-group">
-                    <label for="team-achievements">Osiągnięcia (oddzielone przecinkami lub akapitami):</label>
+                    <label for="team-achievements">Osiągnięcia (każde w nowej linii lub oddzielone przecinkami):</label>
                     <textarea id="team-achievements" rows="3" placeholder="Puchar 2024, Lider Strzelców, ..."></textarea>
                 </div>
 
@@ -278,7 +267,7 @@
                 <button type="button" class="submit-btn add-player-btn" id="add-player-btn"><i class="fas fa-user-plus"></i> Dodaj Zawodnika</button>
 
                 <button type="submit" class="submit-btn" style="margin-top: 25px;"><i class="fas fa-save"></i> Zapisz Zmiany w Drużynie</button>
-                <div id="edit-team-message" class="message-area" style="margin-top: 15px;"></div>
+                <div id="edit-team-message" class="message-area"></div>
             </form>
         </div>
 
@@ -315,31 +304,29 @@
     // ===========================================
     // ZMIENNE DANYCH I STAŁE ŚCIEŻEK
     // ===========================================
-    let allTeamsData = {}; // Przechowuje dane wszystkich drużyn (Teams/teams)
+    let allTeamsData = {}; 
+    let allMatchesData = {}; // Nowa globalna zmienna na wszystkie mecze
+    let allGroups = new Set(); // Przechowuje unikalne grupy
     let currentMatchTeams = {}; 
     const MATCHES_PATH = "matches/matches"; 
     const TEAMS_PATH_ROOT = "teams/teams"; 
 
     // ===========================================
-    // AUTORYZACJA
+    // AUTORYZACJA I START
     // ===========================================
 
-    // Funkcja sprawdza stan autoryzacji
     function checkAuth() {
         auth.onAuthStateChanged(user => {
             const loginSection = document.getElementById('login-section');
             const adminPanel = document.getElementById('admin-panel');
             
-            // Sprawdź, czy użytkownik jest zalogowany
             if (user) {
-                // Użytkownik zalogowany - Pokaż panel
                 loginSection.style.display = 'none';
                 adminPanel.style.display = 'block';
                 // Ładuj wszystkie dane po zalogowaniu
                 loadMatchAndTeamData(); 
                 loadTeamsForManagement();
             } else {
-                // Użytkownik wylogowany - Pokaż formularz logowania
                 loginSection.style.display = 'block';
                 adminPanel.style.display = 'none';
                 document.getElementById('admin-login-form').reset();
@@ -348,7 +335,6 @@
         });
     }
 
-    // Obsługa formularza logowania (Email + Hasło)
     document.getElementById('admin-login-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const email = document.getElementById('admin-email').value; 
@@ -367,9 +353,6 @@
                     case 'auth/wrong-password':
                         displayMessage = "Błąd: Błędny email lub hasło. Sprawdź, czy admin jest dodany w Firebase Auth.";
                         break;
-                    case 'auth/invalid-email':
-                        displayMessage = "Błąd: Nieprawidłowy format emaila.";
-                        break;
                     default:
                         displayMessage = "Błąd logowania: " + error.message; 
                 }
@@ -379,122 +362,193 @@
             });
     });
 
-    // Wylogowanie
     document.getElementById('admin-logout-btn').addEventListener('click', () => {
         auth.signOut().then(() => {
             document.getElementById('login-message').textContent = "Wylogowano.";
             document.getElementById('login-message').className = "message-area info";
-            document.getElementById('match-form').reset();
-            document.getElementById('home-goal-selectors').innerHTML = '';
-            document.getElementById('away-goal-selectors').innerHTML = '';
         });
     });
 
     // ===========================================
-    // ŁADOWANIE DANYCH: MECZE, DRUŻYNY
+    // LOGIKA ŁADOWANIA I FILTROWANIA DANYCH
     // ===========================================
 
-    // Ładuje drużyny i mecze do list rozwijanych
+    // Główna funkcja ładująca dane
     function loadMatchAndTeamData() {
-        const matchSelect = document.getElementById('match-id');
-        const newHomeSelect = document.getElementById('new-home-team');
-        const newAwaySelect = document.getElementById('new-away-team');
-
-        matchSelect.innerHTML = '<option value="">-- Ładowanie meczów... --</option>';
-        newHomeSelect.innerHTML = '<option value="">-- Ładowanie drużyn... --</option>';
-        newAwaySelect.innerHTML = '<option value="">-- Ładowanie drużyn... --</option>';
-
         // 1. Ładowanie wszystkich drużyn
         db.ref(TEAMS_PATH_ROOT).once('value').then(snapshot => {
             allTeamsData = snapshot.val() || {};
-            
-            const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
-            Object.keys(allTeamsData).forEach(teamId => {
-                const teamName = allTeamsData[teamId].name || teamId;
-                teamOptions.push(`<option value="${teamId}">${teamName} (${teamId})</option>`);
-            });
-
-            newHomeSelect.innerHTML = teamOptions.join('');
-            newAwaySelect.innerHTML = teamOptions.join('');
-
+            populateTeamSelects();
             // 2. Ładowanie meczów (dopiero po załadowaniu drużyn)
-            db.ref(MATCHES_PATH).once('value', snapshot => {
-                const matchesData = snapshot.val();
-                if (matchesData) {
-                    matchSelect.innerHTML = '<option value="">-- Wybierz mecz --</option>';
-                    Object.keys(matchesData).forEach(matchId => {
-                        const match = matchesData[matchId];
-                        const homeName = allTeamsData[match.homeTeamId] ? allTeamsData[match.homeTeamId].name || match.homeTeamId : match.homeTeamId;
-                        const awayName = allTeamsData[match.awayTeamId] ? allTeamsData[match.awayTeamId].name || match.awayTeamId : match.awayTeamId;
-                        
-                        const option = document.createElement('option');
-                        option.value = matchId;
-                        option.textContent = `${matchId}: ${homeName} vs ${awayName}`;
-                        option.dataset.home = match.homeTeamId;
-                        option.dataset.away = match.awayTeamId;
-                        matchSelect.appendChild(option);
-                    });
-                } else {
-                    matchSelect.innerHTML = '<option value="">-- Brak meczów do rozegrania --</option>';
-                }
-            });
+            return db.ref(MATCHES_PATH).once('value');
+        })
+        .then(snapshot => {
+            allMatchesData = snapshot.val() || {};
+            populateMatchSelects();
+        })
+        .catch(error => console.error("Błąd ładowania danych:", error));
+    }
 
-        }).catch(error => console.error("Błąd ładowania wszystkich drużyn:", error));
+    // Wypełnia selecty drużynami (np. do dodawania/edycji meczu)
+    function populateTeamSelects() {
+        const selects = ['new-home-team', 'new-away-team', 'edit-home-team', 'edit-away-team'];
         
-        // Ustawienie Event Listener dla wybierania meczu
-        matchSelect.addEventListener('change', (e) => {
-            const selectedOption = matchSelect.options[matchSelect.selectedIndex];
-            const homeId = selectedOption.dataset.home;
-            const awayId = selectedOption.dataset.away;
+        const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
+        Object.keys(allTeamsData).forEach(teamId => {
+            const teamName = allTeamsData[teamId].name || teamId;
+            teamOptions.push(`<option value="${teamId}">${teamName} (${teamId})</option>`);
+        });
 
-            document.getElementById('home-goal-selectors').innerHTML = '';
-            document.getElementById('away-goal-selectors').innerHTML = '';
-
-            if (homeId && awayId) {
-                currentMatchTeams = {
-                    home: { 
-                        id: homeId, 
-                        name: allTeamsData[homeId] ? allTeamsData[homeId].name || homeId : homeId, 
-                        players: allTeamsData[homeId] ? allTeamsData[homeId].players || {} : {}
-                    },
-                    away: { 
-                        id: awayId, 
-                        name: allTeamsData[awayId] ? allTeamsData[awayId].name || awayId : awayId, 
-                        players: allTeamsData[awayId] ? allTeamsData[awayId].players || {} : {}
-                    }
-                };
-                
-                document.getElementById('home-team-label').textContent = `Wynik ${currentMatchTeams.home.name}:`;
-                document.getElementById('away-team-label').textContent = `Wynik ${currentMatchTeams.away.name}:`;
-
-                generateGoalSelectors('home');
-                generateGoalSelectors('away');
-
-            } else {
-                currentMatchTeams = {};
-                document.getElementById('home-team-label').textContent = 'Wynik Gospodarzy:';
-                document.getElementById('away-team-label').textContent = 'Wynik Gości:';
-            }
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) select.innerHTML = teamOptions.join('');
         });
     }
 
-    // ===========================================
-    // AKCJA 1: WPROWADZENIE WYNIKU MECZOWEGO
-    // (Kod ten został zachowany z poprzedniej wersji i działał)
-    // ===========================================
+    // Wypełnia selecty meczami i grupami
+    function populateMatchSelects() {
+        allGroups.clear();
+        
+        const matchSelects = ['match-id', 'match-id-manage'];
+        const groupFilters = ['filter-group-score', 'filter-group-manage'];
 
-    // ... (generateGoalSelectors, saveMatchScore - kod jest poniżej w bloku <script>) ...
+        // 1. Zbieranie grup i tworzenie opcji dla selectów meczów
+        matchSelects.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) select.innerHTML = '<option value="">-- Wybierz mecz --</option>';
+
+            Object.keys(allMatchesData).forEach(matchId => {
+                const match = allMatchesData[matchId];
+                const homeName = allTeamsData[match.homeTeamId]?.name || match.homeTeamId;
+                const awayName = allTeamsData[match.awayTeamId]?.name || match.awayTeamId;
+                const isLive = match.live ? `<span class="match-live-status live">LIVE</span>` : `<span class="match-live-status offline">OFFLINE</span>`;
+                const groupName = match.group || 'Inne';
+
+                allGroups.add(groupName);
+
+                const option = document.createElement('option');
+                option.value = matchId;
+                option.textContent = `${matchId} (${groupName}): ${homeName} vs ${awayName} ${match.homeScore || 0}-${match.awayScore || 0}`;
+                option.dataset.home = match.homeTeamId;
+                option.dataset.away = match.awayTeamId;
+                option.dataset.group = groupName;
+                option.dataset.live = match.live ? 'true' : 'false';
+                
+                if (select) {
+                    // Dodanie statusu LIVE do opcji, ale jako tekst (do wyświetlenia w treści strony)
+                    option.innerHTML = `${matchId} (${groupName}): ${homeName} vs ${awayName} ${match.homeScore || 0}-${match.awayScore || 0} ${isLive}`;
+                    select.appendChild(option);
+                }
+            });
+        });
+
+        // 2. Wypełnianie filtrów grup
+        const groupOptions = ['<option value="">-- Wszystkie Grupy --</option>'];
+        Array.from(allGroups).sort().forEach(group => {
+            groupOptions.push(`<option value="${group}">${group}</option>`);
+        });
+
+        groupFilters.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) select.innerHTML = groupOptions.join('');
+        });
+
+        // Ustawienie Event Listener dla wybierania meczu do wprowadzania wyniku
+        document.getElementById('match-id').removeEventListener('change', handleMatchScoreSelect);
+        document.getElementById('match-id').addEventListener('change', handleMatchScoreSelect);
+    }
+
+    function filterMatchSelect(selectId, groupFilter) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        Array.from(select.options).forEach(option => {
+            if (option.value === "") { // Zawsze pokazuj opcję "Wybierz mecz"
+                option.style.display = 'block';
+                return;
+            }
+            const matchGroup = option.dataset.group;
+            if (!groupFilter || matchGroup === groupFilter) {
+                option.style.display = 'block';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+        select.value = ""; // Resetuj wybór po filtrowaniu
+        if (selectId === 'match-id') {
+            document.getElementById('home-goal-selectors').innerHTML = '';
+            document.getElementById('away-goal-selectors').innerHTML = '';
+        }
+        if (selectId === 'match-id-manage') {
+            document.getElementById('edit-match-form').style.display = 'none';
+        }
+    }
+    
+    // ===========================================
+    // SEKCJA 1: WPROWADZENIE WYNIKU MECZOWEGO
+    // ===========================================
+    
+    function handleMatchScoreSelect(e) {
+        const matchSelect = e.target;
+        const selectedOption = matchSelect.options[matchSelect.selectedIndex];
+        const homeId = selectedOption.dataset.home;
+        const awayId = selectedOption.dataset.away;
+
+        document.getElementById('home-goal-selectors').innerHTML = '';
+        document.getElementById('away-goal-selectors').innerHTML = '';
+
+        if (homeId && awayId) {
+            currentMatchTeams = {
+                home: { 
+                    id: homeId, 
+                    name: allTeamsData[homeId]?.name || homeId, 
+                    players: allTeamsData[homeId]?.players || {}
+                },
+                away: { 
+                    id: awayId, 
+                    name: allTeamsData[awayId]?.name || awayId, 
+                    players: allTeamsData[awayId]?.players || {}
+                }
+            };
+            
+            document.getElementById('home-team-label').textContent = `Wynik ${currentMatchTeams.home.name}:`;
+            document.getElementById('away-team-label').textContent = `Wynik ${currentMatchTeams.away.name}:`;
+            
+            // Wypełnienie obecnymi wynikami
+            const match = allMatchesData[matchSelect.value];
+            if (match) {
+                document.getElementById('home-score').value = match.homeScore || 0;
+                document.getElementById('away-score').value = match.awayScore || 0;
+            }
+
+            generateGoalSelectors('home');
+            generateGoalSelectors('away');
+
+        } else {
+            currentMatchTeams = {};
+            document.getElementById('home-team-label').textContent = 'Wynik Gospodarzy:';
+            document.getElementById('away-team-label').textContent = 'Wynik Gości:';
+            document.getElementById('home-score').value = 0;
+            document.getElementById('away-score').value = 0;
+        }
+    }
 
     function generateGoalSelectors(teamType) {
+        const matchId = document.getElementById('match-id').value;
+        const match = allMatchesData[matchId];
+
         const scoreInput = document.getElementById(`${teamType}-score`);
         const score = parseInt(scoreInput.value) || 0;
         const container = document.getElementById(`${teamType}-goal-selectors`);
         container.innerHTML = '';
         
-        if (!currentMatchTeams[teamType]) return;
+        if (!currentMatchTeams[teamType] || !match) return;
 
         const team = currentMatchTeams[teamType];
         const players = team.players || {};
+        
+        // Dane o obecnych strzelcach z bazy (do odtworzenia wyboru)
+        const currentScorers = match.scorers ? match.scorers.filter(s => s.teamType === teamType) : [];
 
         if (score === 0) {
             container.innerHTML = `<p style="color: #6c757d;">Drużyna ${team.name} nie strzeliła bramek.</p>`;
@@ -516,12 +570,23 @@
         for (let i = 1; i <= score; i++) {
             const goalDiv = document.createElement('div');
             goalDiv.classList.add('form-group', 'goal-entry');
+            
+            const defaultValue = currentScorers[i-1]?.scorerName || ""; // Ustaw domyślną wartość
+
             goalDiv.innerHTML = `
                 <label>Bramka nr ${i} (${team.name}):</label>
                 <select class="goal-scorer-select" data-team="${teamType}" required>
                     ${playerOptions}
                 </select>
             `;
+            // Musimy ustawić wartość po stworzeniu elementu DOM, by działało poprawnie
+            setTimeout(() => {
+                const selectElement = goalDiv.querySelector('.goal-scorer-select');
+                if (selectElement) {
+                    selectElement.value = defaultValue;
+                }
+            }, 0); 
+            
             container.appendChild(goalDiv);
         }
     }
@@ -537,7 +602,7 @@
         const awayScore = parseInt(document.getElementById('away-score').value);
         const messageArea = document.getElementById('match-message');
 
-        if (!matchId || !currentMatchTeams.home || !currentMatchTeams.away) {
+        if (!matchId) {
             messageArea.textContent = "Wybierz mecz.";
             messageArea.className = "message-area error";
             return;
@@ -566,21 +631,23 @@
             homeScore: homeScore,
             awayScore: awayScore,
             scorers: scorers, 
-            played: true 
+            played: true // Oznacz mecz jako rozegrany
         };
+        
+        // Zachowaj status live i grupę
+        if(allMatchesData[matchId]) {
+            matchData.live = allMatchesData[matchId].live || false;
+            matchData.group = allMatchesData[matchId].group || 'Brak Grupy';
+        }
 
         db.ref(MATCHES_PATH).child(matchId).update(matchData)
             .then(() => {
                 messageArea.textContent = `Wynik meczu ${matchId} (${homeScore}-${awayScore}) oraz lista strzelców zapisane pomyślnie.`;
                 messageArea.className = "message-area success";
                 
-                // Reset formularza po zapisie
+                // Odświeżenie danych i selectów po zapisie
+                loadMatchAndTeamData(); 
                 document.getElementById('match-form').reset();
-                document.getElementById('home-goal-selectors').innerHTML = '';
-                document.getElementById('away-goal-selectors').innerHTML = '';
-                document.getElementById('match-id').value = ""; 
-                document.getElementById('home-team-label').textContent = 'Wynik Gospodarzy:';
-                document.getElementById('away-team-label').textContent = 'Wynik Gości:';
 
             })
             .catch(error => {
@@ -590,17 +657,20 @@
     }
 
     // ===========================================
-    // AKCJA 2: DODAWANIE NOWEGO MECZU
+    // SEKCJA 2: ZARZĄDZANIE MECZAMI
     // ===========================================
+
+    // Dodawanie nowego meczu
     document.getElementById('add-match-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const matchId = document.getElementById('new-match-id').value.toUpperCase().trim();
         const homeTeamId = document.getElementById('new-home-team').value;
         const awayTeamId = document.getElementById('new-away-team').value;
+        const group = document.getElementById('new-match-group').value.trim();
         const messageArea = document.getElementById('add-match-message');
 
-        if (!matchId || !homeTeamId || !awayTeamId) {
-            messageArea.textContent = "Uzupełnij wszystkie pola: ID, Gospodarze, Goście.";
+        if (!matchId || !homeTeamId || !awayTeamId || !group) {
+            messageArea.textContent = "Uzupełnij wszystkie pola: ID, Grupa, Gospodarze, Goście.";
             messageArea.className = "message-area error";
             return;
         }
@@ -610,14 +680,22 @@
             messageArea.className = "message-area error";
             return;
         }
+        
+        if (allMatchesData[matchId]) {
+            messageArea.textContent = "Błąd: Mecz o takim ID już istnieje. Użyj innego ID.";
+            messageArea.className = "message-area error";
+            return;
+        }
 
         const newMatchData = {
             homeTeamId: homeTeamId,
             awayTeamId: awayTeamId,
+            group: group,
             homeScore: 0,
             awayScore: 0,
             scorers: [],
-            played: false
+            played: false,
+            live: false
         };
 
         db.ref(MATCHES_PATH).child(matchId).set(newMatchData)
@@ -625,7 +703,7 @@
                 messageArea.textContent = `Mecz ${matchId} dodany pomyślnie.`;
                 messageArea.className = "message-area success";
                 document.getElementById('add-match-form').reset();
-                loadMatchAndTeamData(); // Odśwież listę meczów
+                loadMatchAndTeamData(); 
             })
             .catch(error => {
                 messageArea.textContent = "Błąd dodawania meczu: " + error.message;
@@ -633,27 +711,178 @@
             });
     });
 
-    // ===========================================
-    // AKCJA 3: ZARZĄDZANIE DRUŻYNAMI I ZAWODNIKAMI
-    // ===========================================
+    // Ładowanie danych meczu do formularza edycji
+    function loadMatchDataForEdit(matchId) {
+        const editForm = document.getElementById('edit-match-form');
+        const match = allMatchesData[matchId];
+        const toggleLiveBtn = document.getElementById('toggle-live-btn');
+        document.getElementById('edit-match-message').textContent = '';
 
-    // Ładuje drużyny do listy rozwijanej do edycji
-    function loadTeamsForManagement() {
-        const teamSelect = document.getElementById('select-team-manage');
-        teamSelect.innerHTML = '<option value="">-- Ładowanie drużyn... --</option>';
+        if (!matchId || !match) {
+            editForm.style.display = 'none';
+            return;
+        }
 
-        db.ref(TEAMS_PATH_ROOT).once('value').then(snapshot => {
-            allTeamsData = snapshot.val() || {}; // Odświeżenie globalnej listy
-            const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
-            Object.keys(allTeamsData).forEach(teamId => {
-                const teamName = allTeamsData[teamId].name || teamId;
-                teamOptions.push(`<option value="${teamId}">${teamName} (${teamId})</option>`);
-            });
-            teamSelect.innerHTML = teamOptions.join('');
-        }).catch(error => console.error("Błąd ładowania drużyn do zarządzania:", error));
+        editForm.style.display = 'block';
+
+        // Ustawianie wartości
+        document.getElementById('edit-match-id').value = matchId; // obecne ID
+        document.getElementById('edit-match-group').value = match.group || '';
+        document.getElementById('edit-home-team').value = match.homeTeamId || '';
+        document.getElementById('edit-away-team').value = match.awayTeamId || '';
+        
+        // Ustawienie przycisku LIVE
+        if (match.live) {
+            toggleLiveBtn.classList.add('active');
+            toggleLiveBtn.innerHTML = '<i class="fas fa-broadcast-tower"></i> LIVE: Włączony (Kliknij, aby wyłączyć)';
+        } else {
+            toggleLiveBtn.classList.remove('active');
+            toggleLiveBtn.innerHTML = '<i class="fas fa-broadcast-tower"></i> LIVE: Wyłączony (Kliknij, aby włączyć)';
+        }
     }
 
-    // Wybór drużyny do edycji
+    // Edycja meczu
+    document.getElementById('edit-match-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const oldMatchId = document.getElementById('match-id-manage').value;
+        const newMatchId = document.getElementById('edit-match-id').value.toUpperCase().trim();
+        const homeTeamId = document.getElementById('edit-home-team').value;
+        const awayTeamId = document.getElementById('edit-away-team').value;
+        const group = document.getElementById('edit-match-group').value.trim();
+        const messageArea = document.getElementById('edit-match-message');
+
+        if (!oldMatchId || !newMatchId || !homeTeamId || !awayTeamId || !group) {
+            messageArea.textContent = "Uzupełnij wszystkie pola.";
+            messageArea.className = "message-area error";
+            return;
+        }
+        if (homeTeamId === awayTeamId) {
+            messageArea.textContent = "Błąd: Drużyny muszą być różne.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const matchDataToUpdate = {
+            homeTeamId: homeTeamId,
+            awayTeamId: awayTeamId,
+            group: group
+        };
+        
+        const currentMatch = allMatchesData[oldMatchId];
+        if (currentMatch) {
+            matchDataToUpdate.live = currentMatch.live || false;
+            matchDataToUpdate.played = currentMatch.played || false;
+            matchDataToUpdate.homeScore = currentMatch.homeScore || 0;
+            matchDataToUpdate.awayScore = currentMatch.awayScore || 0;
+            matchDataToUpdate.scorers = currentMatch.scorers || [];
+        }
+
+        if (oldMatchId === newMatchId) {
+            // Tylko update istniejącego rekordu
+            db.ref(MATCHES_PATH).child(oldMatchId).update(matchDataToUpdate)
+                .then(() => {
+                    messageArea.textContent = `Mecz ${oldMatchId} pomyślnie zaktualizowany.`;
+                    messageArea.className = "message-area success";
+                    loadMatchAndTeamData();
+                })
+                .catch(error => {
+                    messageArea.textContent = "Błąd aktualizacji: " + error.message;
+                    messageArea.className = "message-area error";
+                });
+        } else {
+            // Zmiana ID: usuń stary, dodaj nowy
+            if (allMatchesData[newMatchId]) {
+                messageArea.textContent = `Błąd: Nowe ID (${newMatchId}) już istnieje. Wybierz inne.`;
+                messageArea.className = "message-area error";
+                return;
+            }
+            db.ref(MATCHES_PATH).child(newMatchId).set(matchDataToUpdate)
+                .then(() => db.ref(MATCHES_PATH).child(oldMatchId).remove())
+                .then(() => {
+                    messageArea.textContent = `Mecz ${oldMatchId} pomyślnie przeniesiony do ID: ${newMatchId}.`;
+                    messageArea.className = "message-area success";
+                    loadMatchAndTeamData();
+                    document.getElementById('edit-match-form').style.display = 'none';
+                })
+                .catch(error => {
+                    messageArea.textContent = "Błąd zmiany ID: " + error.message;
+                    messageArea.className = "message-area error";
+                });
+        }
+    });
+
+    // Przełączanie statusu LIVE
+    document.getElementById('toggle-live-btn').addEventListener('click', function() {
+        const matchId = document.getElementById('match-id-manage').value;
+        const messageArea = document.getElementById('edit-match-message');
+        if (!matchId) {
+            messageArea.textContent = "Wybierz mecz, aby zmienić status LIVE.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        const isLiveNow = allMatchesData[matchId]?.live || false;
+        const newLiveStatus = !isLiveNow;
+        const matchRef = db.ref(MATCHES_PATH).child(matchId);
+
+        matchRef.update({ live: newLiveStatus })
+            .then(() => {
+                allMatchesData[matchId].live = newLiveStatus; // Zaktualizuj lokalnie
+                loadMatchDataForEdit(matchId); // Odśwież widok
+                loadMatchAndTeamData(); // Odśwież listy
+                messageArea.textContent = `Status LIVE meczu ${matchId} zmieniony na: ${newLiveStatus ? 'WŁĄCZONY' : 'WYŁĄCZONY'}.`;
+                messageArea.className = "message-area success";
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd zmiany statusu LIVE: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    });
+
+    // Usuwanie meczu
+    document.getElementById('delete-match-btn').addEventListener('click', function() {
+        const matchId = document.getElementById('match-id-manage').value;
+        const messageArea = document.getElementById('edit-match-message');
+
+        if (!matchId) {
+            messageArea.textContent = "Wybierz mecz do usunięcia.";
+            messageArea.className = "message-area error";
+            return;
+        }
+
+        if (!confirm(`Czy na pewno chcesz usunąć mecz ${matchId} (${allMatchesData[matchId]?.group || 'Brak Grupy'})? Tej operacji nie można cofnąć.`)) {
+            return;
+        }
+
+        db.ref(MATCHES_PATH).child(matchId).remove()
+            .then(() => {
+                messageArea.textContent = `Mecz ${matchId} został pomyślnie usunięty.`;
+                messageArea.className = "message-area success";
+                document.getElementById('edit-match-form').style.display = 'none';
+                loadMatchAndTeamData(); // Odśwież listy
+            })
+            .catch(error => {
+                messageArea.textContent = "Błąd usuwania meczu: " + error.message;
+                messageArea.className = "message-area error";
+            });
+    });
+
+
+    // ===========================================
+    // SEKCJA 3: ZARZĄDZANIE DRUŻYNAMI I ZAWODNIKAMI (BEZ ZMIAN)
+    // ===========================================
+
+    function loadTeamsForManagement() {
+        const teamSelect = document.getElementById('select-team-manage');
+        // Wystarczy zaktualizować na podstawie allTeamsData, które zostało załadowane w loadMatchAndTeamData
+        const teamOptions = ['<option value="">-- Wybierz drużynę --</option>'];
+        Object.keys(allTeamsData).forEach(teamId => {
+            const teamName = allTeamsData[teamId].name || teamId;
+            teamOptions.push(`<option value="${teamId}">${teamName} (${teamId})</option>`);
+        });
+        teamSelect.innerHTML = teamOptions.join('');
+    }
+
     document.getElementById('select-team-manage').addEventListener('change', function() {
         const teamId = this.value;
         const editForm = document.getElementById('edit-team-form');
@@ -666,13 +895,11 @@
 
         editForm.style.display = 'block';
         const team = allTeamsData[teamId];
-        playersContainer.innerHTML = ''; // Czyść starych zawodników
+        playersContainer.innerHTML = ''; 
 
-        // Wypełnianie osiągnięć
         const achievements = team.achievements ? team.achievements.join('\n') : '';
         document.getElementById('team-achievements').value = achievements;
 
-        // Wypełnianie zawodników
         const players = team.players || {};
         Object.keys(players).forEach(playerId => {
             addPlayerInput(players[playerId].name, players[playerId].number);
@@ -681,12 +908,10 @@
         document.getElementById('edit-team-message').textContent = '';
     });
 
-    // Dodanie pola na nowego zawodnika
     document.getElementById('add-player-btn').addEventListener('click', () => {
         addPlayerInput('', '');
     });
 
-    // Funkcja pomocnicza do dodawania pola zawodnika
     function addPlayerInput(name = '', number = '') {
         const container = document.getElementById('players-container');
         const playerDiv = document.createElement('div');
@@ -696,27 +921,22 @@
             <input type="text" class="player-name" value="${name}" required placeholder="Imię i Nazwisko / Pseudonim">
             <button type="button" class="remove-player-btn"><i class="fas fa-trash"></i> Usuń</button>
         `;
-        // Dodanie obsługi usuwania
         playerDiv.querySelector('.remove-player-btn').addEventListener('click', () => {
             playerDiv.remove();
         });
         container.appendChild(playerDiv);
     }
 
-    // Zapisywanie zmian w drużynie
     document.getElementById('edit-team-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const teamId = document.getElementById('select-team-manage').value;
         const messageArea = document.getElementById('edit-team-message');
         
-        // 1. Osiągnięcia
         const achievementsText = document.getElementById('team-achievements').value.trim();
-        // Rozbijanie na tablicę (przez nową linię lub przecinek) i filtrowanie pustych
         const achievementsArray = achievementsText 
             ? achievementsText.split(/[\n,]+/).map(item => item.trim()).filter(item => item.length > 0) 
             : [];
 
-        // 2. Zawodnicy
         const newPlayers = {};
         let playerIdCounter = 1;
         let allPlayersValid = true;
@@ -730,7 +950,6 @@
                 return;
             }
 
-            // Używamy unikalnego klucza (playerIdCounter)
             const playerKey = 'player' + playerIdCounter; 
             newPlayers[playerKey] = {
                 name: nameInput,
@@ -752,10 +971,9 @@
 
         db.ref(TEAMS_PATH_ROOT).child(teamId).update(teamUpdateData)
             .then(() => {
-                messageArea.textContent = `Dane drużyny ${teamId} zapisane pomyślnie.`;
+                messageArea.textContent = `Dane drużyny ${allTeamsData[teamId].name || teamId} zapisane pomyślnie.`;
                 messageArea.className = "message-area success";
-                // Odświeżenie danych globalnych i menu (np. dla strzelców)
-                loadMatchAndTeamData(); 
+                loadMatchAndTeamData(); // Odświeżenie globalnej listy drużyn
             })
             .catch(error => {
                 messageArea.textContent = "Błąd zapisu danych drużyny: " + error.message;
