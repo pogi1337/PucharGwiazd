@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* CSS JEST POMINIĘTY ZE WZGLĘDU NA DŁUGOŚĆ, ALE ZOSTAJE TAKI SAM JAK W POPRZEDNIEJ WIADOMOŚCI */
         :root {
             --primary-color: #dc3545;
             --secondary-color: #6c757d;
@@ -91,16 +90,6 @@
         .match-live-status.live { background-color: var(--success-color); color: white; }
         .match-live-status.offline { background-color: #ffc107; color: #212529; }
 
-        #live-html-output {
-            background-color: #f1f1f1;
-            padding: 15px;
-            border: 1px dashed #ccc;
-            border-radius: 5px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            margin-top: 10px;
-        }
         .message-area { padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; }
         .message-area.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .message-area.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; word-break: break-word; }
@@ -263,18 +252,6 @@
             </form>
         </div>
         
-        <div class="content-container" id="live-generator">
-            <h2><i class="fas fa-code"></i> Generator Wyniku LIVE na Stronę Główną</h2>
-            <p>Poniższy kod HTML i CSS możesz wkleić do swojego pliku **index.html** lub na stronę główną, aby automatycznie wyświetlał aktywny mecz oznaczony jako LIVE.</p>
-            
-            <button type="button" class="submit-btn generate" id="generate-live-html-btn"><i class="fas fa-sync-alt"></i> Generuj Kod LIVE</button>
-
-            <div id="live-html-output">
-                Kliknij "Generuj Kod LIVE" po włączeniu LIVE dla meczu, aby zobaczyć aktualny kod.
-            </div>
-            <div id="live-generator-message" class="message-area"></div>
-        </div>
-
         <div class="content-container" id="team-management">
             <h2><i class="fas fa-users-cog"></i> Zarządzanie Drużynami</h2>
 
@@ -321,15 +298,21 @@
     const firebaseConfig = {
         apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
         authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        // !!! KRYTYCZNA POPRAWKA: Dodano ukośnik na końcu adresu URL bazy danych !!!
-        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/", 
+        // !!! POPRAWIONY FORMAT URL dla SDK v8 (bez protokołu https://) !!!
+        databaseURL: "puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app/", 
         projectId: "puchargwiazd-bdaa4",
         storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
         messagingSenderId: "890734185883",
         appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
     };
 
-    firebase.initializeApp(firebaseConfig); 
+    try {
+        firebase.initializeApp(firebaseConfig); 
+    } catch (e) {
+        console.error("Błąd inicjalizacji Firebase (sprawdź klucze API i URL bazy danych):", e.message);
+        // Kontynuacja bez Firebase, ale funkcje JS nie będą działać poprawnie
+    }
+
     const auth = firebase.auth(); 
     const db = firebase.database();
     
@@ -339,7 +322,6 @@
     let allGroups = new Set(); 
     let currentMatchTeams = {}; 
     
-    // ŚCIEŻKI SKORYGOWANE: (matches i teams są na root, jak w bazie)
     const MATCHES_PATH = "matches"; 
     const TEAMS_PATH_ROOT = "teams"; 
     let currentLiveMatchId = null; 
@@ -408,7 +390,7 @@
     });
 
     // ===========================================
-    // LOGIKA APLIKACJI (pozostałe funkcje z poprzednich wersji)
+    // LOGIKA APLIKACJI
     // ===========================================
 
     function loadMatchAndTeamData() {
@@ -421,6 +403,7 @@
         .then(snapshot => {
             allMatchesData = snapshot.val() || {};
             Object.keys(allMatchesData).forEach(matchId => {
+                // Sprawdzenie, który mecz jest LIVE, nadal jest potrzebne dla logiki przycisku LIVE
                 if (allMatchesData[matchId].live) {
                     currentLiveMatchId = matchId;
                 }
@@ -1006,148 +989,6 @@
                 messageArea.className = "message-area error";
             });
     });
-
-
-    document.getElementById('generate-live-html-btn').addEventListener('click', generateLiveHTML);
-
-    function generateLiveHTML() {
-        const outputDiv = document.getElementById('live-html-output');
-        const messageArea = document.getElementById('live-generator-message');
-        
-        if (!currentLiveMatchId || !allMatchesData[currentLiveMatchId]) {
-            outputDiv.innerHTML = 'Brak aktywnego meczu oznaczonego jako LIVE. Użyj panelu Zarządzanie Meczami.';
-            messageArea.textContent = 'Brak aktywnego meczu LIVE do wygenerowania.';
-            messageArea.className = 'message-area info';
-            return;
-        }
-
-        const match = allMatchesData[currentLiveMatchId];
-        const homeName = allTeamsData[match.homeTeamId]?.name || match.homeTeamId;
-        const awayName = allTeamsData[match.awayTeamId]?.name || match.awayTeamId;
-
-        const liveCode = `
-<style>
-    .live-score-box {
-        font-family: 'Roboto', sans-serif; 
-        border: 3px solid #dc3545; 
-        border-radius: 10px; 
-        padding: 15px; 
-        margin: 20px auto; 
-        max-width: 400px;
-        text-align: center;
-        background-color: #fff;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-    .live-score-box h3 {
-        color: #28a745;
-        font-size: 1.5em;
-        margin-top: 0;
-        border-bottom: 2px solid #28a745;
-        padding-bottom: 5px;
-        animation: blink 1s step-start infinite;
-    }
-    .live-match-teams {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 1.4em;
-        font-weight: 700;
-        margin: 10px 0;
-    }
-    .live-score {
-        background-color: #f8d7da;
-        color: #721c24;
-        padding: 5px 15px;
-        border-radius: 5px;
-        font-size: 1.8em;
-    }
-    .live-match-teams div { flex-grow: 1; }
-    .live-match-teams .score-separator { flex-grow: 0; margin: 0 10px; }
-    
-    @keyframes blink {
-        50% { opacity: 0; }
-    }
-</style>
-
-<div id="live-score-display" class="live-score-box">
-    <h3><i class="fas fa-broadcast-tower"></i> MECZ NA ŻYWO</h3>
-    <p style="color: #6c757d;">Grupa: ${match.group || 'Brak Grupy'}</p>
-    <div class="live-match-teams">
-        <div style="text-align: left;">${homeName}</div>
-        <div class="score-separator">vs</div>
-        <div style="text-align: right;">${awayName}</div>
-    </div>
-    <div class="live-score-result" style="margin-top: 10px;">
-        <span class="live-score">${match.homeScore || 0} : ${match.awayScore || 0}</span>
-    </div>
-    <div id="live-scorers-display" style="font-size: 0.9em; margin-top: 10px;">
-        </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<script>
-    const liveFirebaseConfig = {
-        apiKey: "${firebaseConfig.apiKey}",
-        authDomain: "${firebaseConfig.authDomain}",
-        databaseURL: "${firebaseConfig.databaseURL}", // Używa poprawionego URL
-        projectId: "${firebaseConfig.projectId}",
-        storageBucket: "${firebaseConfig.storageBucket}",
-        messagingSenderId: "${firebaseConfig.messagingSenderId}",
-        appId: "${firebaseConfig.appId}"
-    };
-
-    if (!firebase.apps.length) {
-        firebase.initializeApp(liveFirebaseConfig, "liveApp");
-    }
-    const liveDB = firebase.app("liveApp").database();
-    const LIVE_MATCHES_PATH = "matches"; 
-
-    function updateLiveScore() {
-        liveDB.ref(LIVE_MATCHES_PATH).on('value', snapshot => {
-            let liveMatch = null;
-            
-            snapshot.forEach(child => {
-                if (child.val().live) {
-                    liveMatch = child.val();
-                }
-            });
-
-            const container = document.getElementById('live-score-display');
-            const resultDiv = document.querySelector('#live-score-display .live-score-result .live-score');
-            const scorersDiv = document.getElementById('live-scorers-display');
-
-            if (liveMatch && container) {
-                
-                document.querySelector('#live-score-display .live-match-teams div:nth-child(1)').textContent = liveMatch.homeTeamId;
-                document.querySelector('#live-score-display .live-match-teams div:nth-child(3)').textContent = liveMatch.awayTeamId;
-
-                resultDiv.textContent = liveMatch.homeScore + ' : ' + liveMatch.awayScore;
-                
-                if (liveMatch.scorers && liveMatch.scorers.length > 0) {
-                    const scorerNames = liveMatch.scorers.map(s => s.scorerName).join(', ');
-                    scorersDiv.innerHTML = '<span style="font-weight: bold;">Strzelcy:</span> ' + scorerNames;
-                } else {
-                    scorersDiv.textContent = 'Brak strzelców.';
-                }
-                
-                container.style.display = 'block';
-
-            } else if (container) {
-                container.style.display = 'none'; 
-            }
-        });
-    }
-
-    updateLiveScore(); 
-</script>
-`;
-
-        outputDiv.textContent = liveCode;
-        messageArea.textContent = 'Kod HTML i JavaScript (gotowy do wklejenia) został wygenerowany pomyślnie. Pamiętaj, aby na stronie głównej dodać link do Font Awesome w sekcji <head>.';
-        messageArea.className = "message-area success";
-    }
 
     // ===========================================
     // START APLIKACJI
