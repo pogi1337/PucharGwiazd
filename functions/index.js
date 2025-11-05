@@ -93,3 +93,22 @@ exports.setAdminRole = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError("unknown", error.message);
   }
 });
+// ======================================================
+// 3️⃣ Tymczasowa funkcja: jednorazowe nadanie roli admina
+// ======================================================
+
+exports.makeMeAdmin = functions.https.onRequest(async (req, res) => {
+  const email = "kacpernwm77@gmail.com"; // <<< WAŻNE !!!
+
+  try {
+    const user = await admin.auth().getUserByEmail(email);
+
+    await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+
+    return res.send(`✅ Użytkownik ${email} został administratorem.`);
+  } catch (err) {
+    console.error(err);
+    return res.send("❌ Błąd: " + err.message);
+  }
+});
+
