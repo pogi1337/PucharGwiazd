@@ -101,3 +101,49 @@ document.getElementById("grant-admin-btn").addEventListener("click", async () =>
     msg.className = "message error";
   }
 });
+document.getElementById("create-team-btn").addEventListener("click", async () => {
+    const teamId = document.getElementById("team-id").value.trim();
+    const email = document.getElementById("team-email").value.trim();
+    const pass = document.getElementById("team-pass").value.trim();
+    const msg = document.getElementById("team-msg");
+
+    msg.textContent = "Tworzę drużynę...";
+
+    if (!teamId || !email || !pass) {
+        msg.textContent = "Wypełnij wszystkie pola!";
+        msg.className = "message error";
+        return;
+    }
+
+    try {
+        // ✅ 1) Tworzymy konto użytkownika
+        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+
+        // ✅ 2) Dodajemy użytkownika jako manager drużyny
+        await db.collection("users").doc(cred.user.uid).set({
+            role: "teamManager",
+            teamId: teamId
+        });
+
+        // ✅ 3) ZAPISUJEMY DRUŻYNĘ W KOLEKCJI
+        await db.collection("teams").doc(teamId).set({
+            name: teamId,           // ⭐ tu ustawiasz nazwę drużyny
+            email: email,
+            managerUid: cred.user.uid,
+            group: "A",
+            points: 0,
+            goalsFor: 0,
+            goalsAgainst: 0,
+            createdAt: new Date()
+        });
+
+        msg.textContent = "✅ Drużyna została utworzona!";
+        msg.className = "message success";
+
+    } catch (err) {
+        msg.textContent = "Błąd: " + err.message;
+        msg.className = "message error";
+    }
+});
+
+
