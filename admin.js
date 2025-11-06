@@ -1,4 +1,6 @@
-// ✅ FIREBASE CONFIG
+// ==========================================
+// 🔥 FIREBASE CONFIG
+// ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
   authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -9,12 +11,13 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ================================
+
+// ==========================================
 // 🔹 LOGOWANIE ADMINA
-// ================================
+// ==========================================
 document.getElementById("login-btn").addEventListener("click", async () => {
-  const email = document.getElementById("login-email").value;
-  const pass = document.getElementById("login-pass").value;
+  const email = document.getElementById("login-email").value.trim();
+  const pass = document.getElementById("login-pass").value.trim();
   const msg = document.getElementById("login-msg");
 
   msg.textContent = "Logowanie...";
@@ -22,16 +25,16 @@ document.getElementById("login-btn").addEventListener("click", async () => {
   try {
     const cred = await auth.signInWithEmailAndPassword(email, pass);
     const uid = cred.user.uid;
-    const docSnap = await db.collection("users").doc(uid).get();
+    const userDoc = await db.collection("users").doc(uid).get();
 
-    if (!docSnap.exists || docSnap.data().admin !== true) {
-      msg.textContent = "Brak uprawnień admina.";
+    if (!userDoc.exists || userDoc.data().admin !== true) {
+      msg.textContent = "Brak uprawnień administratora.";
       msg.className = "message error";
       await auth.signOut();
       return;
     }
 
-    msg.textContent = "Zalogowano!";
+    msg.textContent = "✅ Zalogowano pomyślnie!";
     msg.className = "message success";
 
     document.getElementById("login-box").style.display = "none";
@@ -46,9 +49,10 @@ document.getElementById("login-btn").addEventListener("click", async () => {
   }
 });
 
-// ================================
+
+// ==========================================
 // 🔹 TWORZENIE DRUŻYNY
-// ================================
+// ==========================================
 document.getElementById("create-team-btn").addEventListener("click", async () => {
   const teamId = document.getElementById("team-id").value.trim();
   const email = document.getElementById("team-email").value.trim();
@@ -68,6 +72,7 @@ document.getElementById("create-team-btn").addEventListener("click", async () =>
     await db.collection("users").doc(cred.user.uid).set({
       role: "teamManager",
       teamId: teamId,
+      email: email
     });
 
     await db.collection("teams").doc(teamId).set({
@@ -89,28 +94,36 @@ document.getElementById("create-team-btn").addEventListener("click", async () =>
   }
 });
 
-// ================================
-// 🔹 NADAWANIE ADMINA
-// ================================
+
+// ==========================================
+// 🔹 NADAWANIE UPRAWNIEŃ ADMINA
+// ==========================================
 document.getElementById("grant-admin-btn").addEventListener("click", async () => {
   const email = document.getElementById("new-admin-email").value.trim();
   const msg = document.getElementById("admin-msg");
+
+  if (!email) {
+    msg.textContent = "Podaj email!";
+    msg.className = "message error";
+    return;
+  }
 
   msg.textContent = "Nadawanie uprawnień...";
 
   try {
     const users = await db.collection("users").where("email", "==", email).get();
+
     if (users.empty) {
       msg.textContent = "Nie znaleziono użytkownika.";
       msg.className = "message error";
       return;
     }
 
-    users.forEach(async (u) => {
+    for (const u of users.docs) {
       await db.collection("users").doc(u.id).set({ admin: true }, { merge: true });
-    });
+    }
 
-    msg.textContent = "✅ Nadano admina!";
+    msg.textContent = "✅ Nadano uprawnienia administratora!";
     msg.className = "message success";
   } catch (err) {
     msg.textContent = "Błąd: " + err.message;
@@ -118,9 +131,10 @@ document.getElementById("grant-admin-btn").addEventListener("click", async () =>
   }
 });
 
-// ================================
-// 🔹 MECZE: DODAWANIE
-// ================================
+
+// ==========================================
+// 🔹 DODAWANIE MECZU
+// ==========================================
 document.getElementById("add-match-btn").addEventListener("click", async () => {
   const teamA = document.getElementById("teamA").value.trim();
   const teamB = document.getElementById("teamB").value.trim();
@@ -134,9 +148,13 @@ document.getElementById("add-match-btn").addEventListener("click", async () => {
   }
 
   await db.collection("matches").add({
-    teamA, teamB, group,
-    date, time,
-    goalsA: 0, goalsB: 0,
+    teamA,
+    teamB,
+    group,
+    date,
+    time,
+    goalsA: 0,
+    goalsB: 0,
     status: "planowany",
     scorers: [],
     createdAt: new Date()
@@ -146,20 +164,27 @@ document.getElementById("add-match-btn").addEventListener("click", async () => {
   loadMatches();
 });
 
-// ================================
+
+// ==========================================
 // 🔹 WCZYTYWANIE MECZÓW
-// ================================
+// ==========================================
 async function loadMatches() {
   const statusFilter = document.getElementById("match-status-filter").value;
   const list = document.getElementById("matches-list");
   list.innerHTML = "<p>Ładowanie...</p>";
 
-  const snapshot = await db.collection("matches")
-    .where("status", "==", statusFilter)
-    .orderBy("date")
-    .get();
+  let query = db.collection("matches").orderBy("date");
+  if (statusFilter && statusFilter !== "wszyscy") {
+    query = query.where("status", "==", statusFilter);
+  }
 
+  const snapshot = await query.get();
   list.innerHTML = "";
+
+  if (snapshot.empty) {
+    list.innerHTML = "<p>Brak meczów do wyświetlenia.</p>";
+    return;
+  }
 
   snapshot.forEach(doc => {
     const m = doc.data();
@@ -167,10 +192,15 @@ async function loadMatches() {
     div.className = "match-card";
     div.innerHTML = `
       <div class="match-header">
-        <strong>${m.teamA} (${m.goalsA}) vs (${m.goalsB}) ${m.teamB}</strong>
-        <small>${m.date} ${m.time}</small>
+        <strong>${m.teamA} (${m.goalsA}) vs (${m.goalsB}) ${m.teamB}</strong><br>
+        <small>${m.date || ""} ${m.time || ""} — Grupa ${m.group}</small>
       </div>
-      <div class="scorer-list">${m.scorers.map(s => `${s.name} (${s.team})`).join(", ") || "Brak strzelców"}</div>
+
+      <div class="scorer-list">
+        ${m.scorers && m.scorers.length > 0 
+          ? m.scorers.map(s => `${s.name} (${s.team})`).join(", ") 
+          : "Brak strzelców"}
+      </div>
 
       <div style="margin-top:8px;">
         <input id="ga-${doc.id}" type="number" value="${m.goalsA}" style="width:60px;">
@@ -190,9 +220,9 @@ async function loadMatches() {
 
       <div style="margin-top:8px;">
         <select id="status-${doc.id}">
-          <option value="planowany" ${m.status==="planowany"?"selected":""}>Planowany</option>
-          <option value="trwa" ${m.status==="trwa"?"selected":""}>Trwa</option>
-          <option value="zakończony" ${m.status==="zakończony"?"selected":""}>Zakończony</option>
+          <option value="planowany" ${m.status === "planowany" ? "selected" : ""}>Planowany</option>
+          <option value="trwa" ${m.status === "trwa" ? "selected" : ""}>Trwa</option>
+          <option value="zakończony" ${m.status === "zakończony" ? "selected" : ""}>Zakończony</option>
         </select>
         <button onclick="changeStatus('${doc.id}')">🔄 Zmień status</button>
       </div>
@@ -201,19 +231,21 @@ async function loadMatches() {
   });
 }
 
-// ================================
-// 🔹 ZMIANA STATUSU (DODANE loadTables)
-// ================================
+
+// ==========================================
+// 🔹 ZMIANA STATUSU
+// ==========================================
 async function changeStatus(id) {
   const status = document.getElementById(`status-${id}`).value;
   await db.collection("matches").doc(id).update({ status });
   loadMatches();
-  loadTables(); // 🔥 DODANE
+  loadTables();
 }
 
-// ================================
-// 🔹 ZAPISYWANIE WYNIKU
-// ================================
+
+// ==========================================
+// 🔹 AKTUALIZACJA WYNIKU
+// ==========================================
 async function updateScore(id) {
   const ga = parseInt(document.getElementById(`ga-${id}`).value);
   const gb = parseInt(document.getElementById(`gb-${id}`).value);
@@ -222,9 +254,10 @@ async function updateScore(id) {
   loadTables();
 }
 
-// ================================
-// 🔹 DODAWANIE STRZELCA (DODANE loadTables)
-// ================================
+
+// ==========================================
+// 🔹 DODAWANIE STRZELCA
+// ==========================================
 async function addScorer(id) {
   const name = document.getElementById(`scorer-${id}`).value.trim();
   const team = document.getElementById(`team-${id}`).value;
@@ -237,12 +270,13 @@ async function addScorer(id) {
 
   document.getElementById(`scorer-${id}`).value = "";
   loadMatches();
-  loadTables(); // 🔥 DODANE
+  loadTables();
 }
 
-// ================================
+
+// ==========================================
 // 🔹 USUWANIE MECZU
-// ================================
+// ==========================================
 async function deleteMatch(id) {
   if (!confirm("Czy na pewno chcesz usunąć mecz?")) return;
   await db.collection("matches").doc(id).delete();
@@ -250,9 +284,10 @@ async function deleteMatch(id) {
   loadTables();
 }
 
-// ================================
-// 🔹 TABELA GRUPOWA + STRZELCY
-// ================================
+
+// ==========================================
+// 🔹 TABELA GRUPOWA + KLASYFIKACJA STRZELCÓW
+// ==========================================
 async function loadTables() {
   const snapshot = await db.collection("matches").get();
 
@@ -261,7 +296,6 @@ async function loadTables() {
 
   snapshot.forEach(doc => {
     const m = doc.data();
-
     if (!teams[m.group]) teams[m.group] = {};
 
     [m.teamA, m.teamB].forEach(t => {
@@ -276,7 +310,10 @@ async function loadTables() {
 
       if (m.goalsA > m.goalsB) teams[m.group][m.teamA].pts += 3;
       else if (m.goalsA < m.goalsB) teams[m.group][m.teamB].pts += 3;
-      else { teams[m.group][m.teamA].pts += 1; teams[m.group][m.teamB].pts += 1; }
+      else {
+        teams[m.group][m.teamA].pts += 1;
+        teams[m.group][m.teamB].pts += 1;
+      }
     }
 
     if (m.scorers) {
@@ -312,5 +349,8 @@ async function loadTables() {
   });
 }
 
-// reload przy zmianie filtra
+// 🔁 Automatyczne odświeżanie tabel co 10 sek.
+setInterval(loadTables, 10000);
+
+// Zmiana filtra statusu -> przeładowanie
 document.getElementById("match-status-filter").addEventListener("change", loadMatches);
