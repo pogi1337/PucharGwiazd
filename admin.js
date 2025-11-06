@@ -1,4 +1,6 @@
-// ✅ Firebase config
+// ==========================
+// 🔥 KONFIGURACJA FIREBASE
+// ==========================
 const firebaseConfig = {
   apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
   authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -9,10 +11,13 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// ✅ LOGOWANIE ADMINA
+
+// ==========================
+// 🔐 LOGOWANIE ADMINA
+// ==========================
 document.getElementById("login-btn").addEventListener("click", async () => {
-  const email = document.getElementById("login-email").value;
-  const pass = document.getElementById("login-pass").value;
+  const email = document.getElementById("login-email").value.trim();
+  const pass = document.getElementById("login-pass").value.trim();
   const msg = document.getElementById("login-msg");
 
   msg.textContent = "Logowanie...";
@@ -20,11 +25,10 @@ document.getElementById("login-btn").addEventListener("click", async () => {
   try {
     const userCred = await auth.signInWithEmailAndPassword(email, pass);
     const uid = userCred.user.uid;
-
     const doc = await db.collection("users").doc(uid).get();
 
-    if (!doc.exists || doc.data().admin !== true) {
-      msg.textContent = "Brak uprawnień admina.";
+    if (!doc.exists || !doc.data().admin) {
+      msg.textContent = "Brak uprawnień administratora!";
       msg.className = "message error";
       await auth.signOut();
       return;
@@ -36,21 +40,25 @@ document.getElementById("login-btn").addEventListener("click", async () => {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("admin-wrapper").style.display = "block";
 
-    loadMatches(); // ✅ Załaduj mecze po zalogowaniu
+    loadMatches();
+    loadTables();
+    loadScorers();
+
   } catch (err) {
     msg.textContent = "Błąd logowania: " + err.message;
     msg.className = "message error";
   }
 });
 
-// ✅ TWORZENIE DRUŻYNY
+
+// ==========================
+// 🏗️ TWORZENIE DRUŻYNY
+// ==========================
 document.getElementById("create-team-btn").addEventListener("click", async () => {
   const teamId = document.getElementById("team-id").value.trim();
   const email = document.getElementById("team-email").value.trim();
   const pass = document.getElementById("team-pass").value.trim();
   const msg = document.getElementById("team-msg");
-
-  msg.textContent = "Tworzę drużynę...";
 
   if (!teamId || !email || !pass) {
     msg.textContent = "Wypełnij wszystkie pola!";
@@ -58,9 +66,10 @@ document.getElementById("create-team-btn").addEventListener("click", async () =>
     return;
   }
 
+  msg.textContent = "Tworzę drużynę...";
+
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, pass);
-
     await db.collection("users").doc(cred.user.uid).set({
       role: "teamManager",
       teamId: teamId
@@ -79,40 +88,37 @@ document.getElementById("create-team-btn").addEventListener("click", async () =>
 
     msg.textContent = "✅ Drużyna została utworzona!";
     msg.className = "message success";
-
   } catch (err) {
     msg.textContent = "Błąd: " + err.message;
     msg.className = "message error";
   }
 });
 
-// ✅ NADAWANIE ADMINA
+
+// ==========================
+// 👑 NADAWANIE ADMINA
+// ==========================
 document.getElementById("grant-admin-btn").addEventListener("click", async () => {
-  const email = document.getElementById("new-admin-email").value;
+  const email = document.getElementById("new-admin-email").value.trim();
   const msg = document.getElementById("admin-msg");
 
   msg.textContent = "Szukam użytkownika...";
 
   try {
-    const list = await auth.fetchSignInMethodsForEmail(email);
+    const usersRef = db.collection("users");
+    const snapshot = await usersRef.where("email", "==", email).get();
 
-    if (list.length === 0) {
-      msg.textContent = "Ten email nie ma jeszcze konta!";
+    if (snapshot.empty) {
+      msg.textContent = "Nie znaleziono użytkownika o tym emailu!";
       msg.className = "message error";
       return;
     }
 
-    msg.textContent = "Użytkownik istnieje. Nadaję admina...";
+    const userDoc = snapshot.docs[0];
+    await usersRef.doc(userDoc.id).set({ admin: true }, { merge: true });
 
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) return;
-      await db.collection("users").doc(user.uid).set({ admin: true }, { merge: true });
-
-      msg.textContent = "Dodano admina!";
-      msg.className = "message success";
-    });
-
-    msg.textContent = "Kolega musi teraz zalogować się raz na panelu.";
+    msg.textContent = "✅ Nadano uprawnienia administratora!";
+    msg.className = "message success";
 
   } catch (err) {
     msg.textContent = "Błąd: " + err.message;
@@ -121,104 +127,193 @@ document.getElementById("grant-admin-btn").addEventListener("click", async () =>
 });
 
 
-// ✅🆕 SEKCJA: MECZE — DODAWANIE, EDYCJA, USUWANIE
-
-// 🔹 Pobranie referencji HTML (jeśli dodałeś w panelu sekcję meczów)
-const matchesContainer = document.createElement("section");
-matchesContainer.innerHTML = `
-  <h2>Zarządzanie meczami</h2>
-  <div id="matches-form">
-    <input id="match-group" placeholder="Grupa (np. A)">
-    <input id="match-teamA" placeholder="Drużyna A (ID)">
-    <input id="match-teamB" placeholder="Drużyna B (ID)">
-    <input id="match-date" type="date">
-    <input id="match-time" type="time">
-    <button id="add-match-btn">➕ Dodaj mecz</button>
-  </div>
-  <div id="matches-list" class="info-box">Ładowanie meczów...</div>
-`;
-document.getElementById("admin-wrapper").appendChild(matchesContainer);
-
-// 🔹 Dodanie nowego meczu
+// ==========================
+// ⚽ DODAWANIE MECZU
+// ==========================
 document.getElementById("add-match-btn").addEventListener("click", async () => {
   const group = document.getElementById("match-group").value.trim();
   const teamA = document.getElementById("match-teamA").value.trim();
   const teamB = document.getElementById("match-teamB").value.trim();
   const date = document.getElementById("match-date").value;
   const time = document.getElementById("match-time").value;
+  const scoreA = Number(document.getElementById("match-scoreA").value) || 0;
+  const scoreB = Number(document.getElementById("match-scoreB").value) || 0;
+  const status = document.getElementById("match-status").value;
+  const msg = document.getElementById("match-msg");
 
-  if (!group || !teamA || !teamB || !date || !time) {
-    alert("Uzupełnij wszystkie pola!");
+  if (!group || !teamA || !teamB) {
+    msg.textContent = "Wypełnij wszystkie pola!";
+    msg.className = "message error";
     return;
   }
 
-  await db.collection("matches").add({
-    group, teamA, teamB, date, time,
-    scoreA: 0,
-    scoreB: 0,
+  try {
+    await db.collection("matches").add({
+      group, teamA, teamB, date, time,
+      scoreA, scoreB, status,
+      createdAt: new Date()
+    });
+
+    msg.textContent = "✅ Mecz zapisany!";
+    msg.className = "message success";
+    loadMatches();
+    loadTables();
+  } catch (err) {
+    msg.textContent = "Błąd: " + err.message;
+    msg.className = "message error";
+  }
+});
+
+
+// ==========================
+// 🥅 DODAWANIE STRZELCÓW
+// ==========================
+document.getElementById("add-scorer-btn").addEventListener("click", async () => {
+  const name = document.getElementById("scorer-name").value.trim();
+  const team = document.getElementById("scorer-team").value.trim();
+  const goals = Number(document.getElementById("scorer-goals").value) || 0;
+
+  if (!name || !team || !goals) return alert("Uzupełnij wszystkie pola!");
+
+  await db.collection("scorers").add({
+    name, team, goals,
     createdAt: new Date()
   });
 
-  alert("✅ Mecz dodany!");
-  loadMatches();
+  loadScorers();
+  document.getElementById("scorer-name").value = "";
+  document.getElementById("scorer-team").value = "";
+  document.getElementById("scorer-goals").value = "";
 });
 
-// 🔹 Wczytanie listy meczów
+
+// ==========================
+// 📅 WCZYTYWANIE MECZÓW
+// ==========================
 async function loadMatches() {
   const list = document.getElementById("matches-list");
-  list.innerHTML = "Ładowanie meczów...";
-
-  const snapshot = await db.collection("matches").orderBy("group").get();
-
-  if (snapshot.empty) {
-    list.innerHTML = "<p>Brak meczów.</p>";
-    return;
-  }
-
   list.innerHTML = "";
 
-  snapshot.forEach(docSnap => {
-    const m = docSnap.data();
-    const matchDiv = document.createElement("div");
-    matchDiv.className = "match-card";
-    matchDiv.style = `
-      border:1px solid #1e1e1e;
-      border-radius:8px;
-      padding:10px;
-      margin:10px 0;
-      background:#111;
-    `;
+  const snapshot = await db.collection("matches").orderBy("createdAt", "desc").get();
 
-    matchDiv.innerHTML = `
-      <strong>Grupa ${m.group}</strong><br>
-      ${m.teamA} vs ${m.teamB}<br>
-      ${m.date} ${m.time}<br>
-      <input type="number" id="scoreA-${docSnap.id}" value="${m.scoreA}" style="width:60px"> :
-      <input type="number" id="scoreB-${docSnap.id}" value="${m.scoreB}" style="width:60px">
-      <button onclick="saveMatch('${docSnap.id}')">💾 Zapisz</button>
-      <button onclick="deleteMatch('${docSnap.id}')">🗑 Usuń</button>
+  snapshot.forEach(doc => {
+    const m = doc.data();
+    const div = document.createElement("div");
+    div.className = "match-card";
+    div.innerHTML = `
+      <strong>${m.teamA}</strong> vs <strong>${m.teamB}</strong><br>
+      Grupa: ${m.group} | ${m.date || ""} ${m.time || ""}<br>
+      Wynik: ${m.scoreA} : ${m.scoreB}<br>
+      Status: ${m.status}<br>
+      <div class="match-actions">
+        <button onclick="deleteMatch('${doc.id}')">🗑 Usuń</button>
+      </div>
     `;
-
-    list.appendChild(matchDiv);
+    list.appendChild(div);
   });
 }
 
-// 🔹 Zapis wyniku meczu
-async function saveMatch(id) {
-  const scoreA = parseInt(document.getElementById(`scoreA-${id}`).value);
-  const scoreB = parseInt(document.getElementById(`scoreB-${id}`).value);
-
-  await db.collection("matches").doc(id).update({
-    scoreA, scoreB
-  });
-
-  alert("✅ Wynik zapisany!");
-}
-
-// 🔹 Usuwanie meczu
 async function deleteMatch(id) {
   if (confirm("Na pewno chcesz usunąć ten mecz?")) {
     await db.collection("matches").doc(id).delete();
     loadMatches();
+    loadTables();
   }
+}
+
+
+// ==========================
+// 🧮 GENEROWANIE TABEL GRUP
+// ==========================
+async function loadTables() {
+  const container = document.getElementById("groups-tables");
+  container.innerHTML = "";
+
+  const teamsSnap = await db.collection("teams").get();
+  const matchesSnap = await db.collection("matches").where("status", "==", "zakonczony").get();
+
+  const teams = {};
+  teamsSnap.forEach(doc => {
+    const t = doc.data();
+    teams[t.name] = {
+      name: t.name,
+      group: t.group,
+      points: 0,
+      goalsFor: 0,
+      goalsAgainst: 0
+    };
+  });
+
+  matchesSnap.forEach(doc => {
+    const m = doc.data();
+    const A = teams[m.teamA];
+    const B = teams[m.teamB];
+    if (!A || !B) return;
+
+    A.goalsFor += m.scoreA;
+    A.goalsAgainst += m.scoreB;
+    B.goalsFor += m.scoreB;
+    B.goalsAgainst += m.scoreA;
+
+    if (m.scoreA > m.scoreB) A.points += 3;
+    else if (m.scoreB > m.scoreA) B.points += 3;
+    else { A.points += 1; B.points += 1; }
+  });
+
+  const groups = {};
+  Object.values(teams).forEach(t => {
+    if (!groups[t.group]) groups[t.group] = [];
+    groups[t.group].push(t);
+  });
+
+  for (const [group, list] of Object.entries(groups)) {
+    const table = document.createElement("table");
+    table.innerHTML = `
+      <thead>
+        <tr><th colspan="5">Grupa ${group}</th></tr>
+        <tr><th>Drużyna</th><th>Punkty</th><th>G+</th><th>G-</th><th>Bilans</th></tr>
+      </thead>
+      <tbody>
+        ${list.sort((a,b)=>b.points-a.points).map(t=>`
+          <tr>
+            <td>${t.name}</td>
+            <td>${t.points}</td>
+            <td>${t.goalsFor}</td>
+            <td>${t.goalsAgainst}</td>
+            <td>${t.goalsFor - t.goalsAgainst}</td>
+          </tr>`).join("")}
+      </tbody>
+    `;
+    container.appendChild(table);
+  }
+}
+
+
+// ==========================
+// ⚽ TABELA STRZELCÓW
+// ==========================
+async function loadScorers() {
+  const tbody = document.querySelector("#scorers-table tbody");
+  tbody.innerHTML = "";
+
+  const snap = await db.collection("scorers").get();
+  const scorers = {};
+
+  snap.forEach(doc => {
+    const s = doc.data();
+    if (!scorers[s.name]) scorers[s.name] = { name: s.name, team: s.team, goals: 0 };
+    scorers[s.name].goals += s.goals;
+  });
+
+  const sorted = Object.values(scorers).sort((a,b) => b.goals - a.goals);
+  sorted.forEach((s, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td>${s.name}</td>
+      <td>${s.team}</td>
+      <td>${s.goals}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
