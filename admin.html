@@ -5,22 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Administratora - Puchar Gwiazd</title>
 
-  <!-- ✅ Firebase COMPAT (działa bez modułów, bez bundle, bez Blaze) -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 
-  <style>
-    body { font-family: Arial; background:#f2f2f2; margin:0; padding:0; }
-    .container { background:white; padding:20px; margin:20px auto; max-width:500px; border-radius:8px; }
-    button { padding:10px 15px; background:#1a73e8; color:white; border:none; border-radius:5px; cursor:pointer; }
-    button:hover { background:#0c5edc; }
-    input { width:100%; padding:10px; margin-bottom:10px; }
-    h2 { color:#1a73e8; }
-    .message { margin-top:10px; font-weight:bold; }
-    .error { color:red; }
-    .success { color:green; }
-  </style>
+  <!-- CSS -->
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
@@ -32,134 +23,42 @@
   <div id="login-msg" class="message"></div>
 </div>
 
-<div class="container" id="admin-panel" style="display:none;">
-  <h2>Tworzenie konta drużyny</h2>
-  <input id="team-id" placeholder="ID drużyny">
-  <input id="team-email" type="email" placeholder="Email drużyny">
-  <input id="team-pass" type="password" placeholder="Hasło drużyny (min. 6 znaków)">
-  <button id="create-team-btn">Utwórz drużynę</button>
-  <div id="team-msg" class="message"></div>
+<div class="panel" id="admin-wrapper" style="display:none;">
+
+  <!-- ✅ SEKCJA: Tworzenie konta drużyny -->
+  <section>
+    <h2>Tworzenie konta drużyny</h2>
+    <input id="team-id" placeholder="ID drużyny">
+    <input id="team-email" type="email" placeholder="Email drużyny">
+    <input id="team-pass" type="password" placeholder="Hasło drużyny (min. 6 znaków)">
+    <button id="create-team-btn">Utwórz drużynę</button>
+    <div id="team-msg" class="message"></div>
+  </section>
+
+  <!-- ✅ SEKCJA: Nadawanie admina -->
+  <section>
+    <h2>Nadawanie admina</h2>
+    <input id="new-admin-email" type="email" placeholder="Email użytkownika">
+    <button id="grant-admin-btn">Nadaj admina</button>
+    <div id="admin-msg" class="message"></div>
+  </section>
+
+  <!-- ✅ SEKCJA: Drużyny (przyszłe funkcje) -->
+  <section>
+    <h2>Drużyny (edycja, zawodnicy — w budowie)</h2>
+    <div class="info-box">Będzie tu lista drużyn + edycja składu.</div>
+  </section>
+
+  <!-- ✅ SEKCJA: Mecze (dodawanie, status, strzelcy — w budowie) -->
+  <section>
+    <h2>Mecze (planowanie — w budowie)</h2>
+    <div class="info-box">Tu dodamy: dodaj mecz, edytuj wynik, dodaj strzelców.</div>
+  </section>
+
 </div>
 
-<div class="container" id="admin-panel-2" style="display:none;">
-  <h2>Nadawanie admina</h2>
-  <input id="new-admin-email" type="email" placeholder="Email użytkownika">
-  <button id="grant-admin-btn">Nadaj admina</button>
-  <div id="admin-msg" class="message"></div>
-</div>
-
-<script>
-  // ✅ Konfiguracja Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-    projectId: "puchargwiazd-bdaa4",
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  // ✅ LOGOWANIE ADMINA
-  document.getElementById("login-btn").addEventListener("click", async () => {
-    const email = document.getElementById("login-email").value;
-    const pass = document.getElementById("login-pass").value;
-    const msg = document.getElementById("login-msg");
-
-    msg.textContent = "Logowanie...";
-
-    try {
-      const userCred = await auth.signInWithEmailAndPassword(email, pass);
-      const uid = userCred.user.uid;
-
-      const doc = await db.collection("users").doc(uid).get();
-
-      if (!doc.exists || doc.data().admin !== true) {
-        msg.textContent = "Brak uprawnień admina.";
-        msg.className = "message error";
-        await auth.signOut();
-        return;
-      }
-
-      // ✅ admin zalogowany
-      msg.textContent = "Zalogowano!";
-      msg.className = "message success";
-
-      document.getElementById("login-box").style.display = "none";
-      document.getElementById("admin-panel").style.display = "block";
-      document.getElementById("admin-panel-2").style.display = "block";
-
-    } catch (err) {
-      msg.textContent = "Błąd logowania: " + err.message;
-      msg.className = "message error";
-    }
-  });
-
-  // ✅ TWORZENIE KONTA DRUŻYNY
-  document.getElementById("create-team-btn").addEventListener("click", async () => {
-    const teamId = document.getElementById("team-id").value;
-    const email = document.getElementById("team-email").value;
-    const pass = document.getElementById("team-pass").value;
-    const msg = document.getElementById("team-msg");
-
-    msg.textContent = "Tworzę konto...";
-
-    try {
-      const cred = await auth.createUserWithEmailAndPassword(email, pass);
-
-      await db.collection("users").doc(cred.user.uid).set({
-        role: "teamManager",
-        teamId: teamId
-      });
-
-      msg.textContent = "Drużyna utworzona!";
-      msg.className = "message success";
-
-    } catch (err) {
-      msg.textContent = "Błąd: " + err.message;
-      msg.className = "message error";
-    }
-  });
-
-  // ✅ NADAWANIE ADMINA
-  document.getElementById("grant-admin-btn").addEventListener("click", async () => {
-    const email = document.getElementById("new-admin-email").value;
-    const msg = document.getElementById("admin-msg");
-
-    msg.textContent = "Szukam użytkownika...";
-
-    try {
-      // Firebase nie pozwala szukać użytkowników po email bez Functions
-      // → Musimy zrobić to inaczej: kolega musi JEDEN RAZ się zalogować
-      // wtedy pojawi się jego UID w Authentication
-
-      const list = await auth.fetchSignInMethodsForEmail(email);
-
-      if (list.length === 0) {
-        msg.textContent = "Ten email nie ma jeszcze konta!";
-        msg.className = "message error";
-        return;
-      }
-
-      msg.textContent = "Użytkownik istnieje. Nadaję admina...";
-
-      // Znajdujemy jego UID z Authentication (nie automatycznie)
-      auth.onAuthStateChanged(async (user) => {
-        if (!user) return;
-        await db.collection("users").doc(user.uid).set({ admin: true }, { merge: true });
-
-        msg.textContent = "Dodano admina!";
-        msg.className = "message success";
-      });
-
-      msg.textContent = "Kolega musi teraz zalogować się raz na panelu, aby dokończyć.";
-
-    } catch (err) {
-      msg.textContent = "Błąd: " + err.message;
-      msg.className = "message error";
-    }
-  });
-</script>
+<!-- JS -->
+<script src="admin.js"></script>
 
 </body>
 </html>
