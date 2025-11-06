@@ -39,7 +39,6 @@ document.getElementById("login-btn").addEventListener("click", async () => {
 
     loadMatches();
     loadTables();
-
   } catch (err) {
     msg.textContent = "Błąd logowania: " + err.message;
     msg.className = "message error";
@@ -68,6 +67,7 @@ document.getElementById("create-team-btn").addEventListener("click", async () =>
     await db.collection("users").doc(cred.user.uid).set({
       role: "teamManager",
       teamId: teamId,
+      email: email
     });
 
     await db.collection("teams").doc(teamId).set({
@@ -119,7 +119,7 @@ document.getElementById("grant-admin-btn").addEventListener("click", async () =>
 });
 
 // ================================
-// 🔹 MECZE: DODAWANIE
+// 🔹 DODAWANIE MECZU
 // ================================
 document.getElementById("add-match-btn").addEventListener("click", async () => {
   const teamA = document.getElementById("teamA").value.trim();
@@ -134,8 +134,7 @@ document.getElementById("add-match-btn").addEventListener("click", async () => {
   }
 
   await db.collection("matches").add({
-    teamA, teamB, group,
-    date, time,
+    teamA, teamB, group, date, time,
     goalsA: 0, goalsB: 0,
     status: "planowany",
     scorers: [],
@@ -154,10 +153,9 @@ async function loadMatches() {
   const list = document.getElementById("matches-list");
   list.innerHTML = "<p>Ładowanie...</p>";
 
-  const snapshot = await db.collection("matches")
-    .where("status", "==", statusFilter)
-    .orderBy("date")
-    .get();
+  let query = db.collection("matches").orderBy("date");
+  if (statusFilter !== "wszystkie") query = query.where("status", "==", statusFilter);
+  const snapshot = await query.get();
 
   list.innerHTML = "";
 
@@ -167,10 +165,10 @@ async function loadMatches() {
     div.className = "match-card";
     div.innerHTML = `
       <div class="match-header">
-        <strong>${m.teamA} (${m.goalsA}) vs (${m.goalsB}) ${m.teamB}</strong>
+        <strong>${m.teamA} (${m.goalsA}) vs (${m.goalsB}) ${m.teamB}</strong><br>
         <small>${m.date} ${m.time}</small>
       </div>
-      <div class="scorer-list">${m.scorers.map(s => `${s.name} (${s.team})`).join(", ") || "Brak strzelców"}</div>
+      <div class="scorer-list">${m.scorers?.map(s => `${s.name} (${s.team})`).join(", ") || "Brak strzelców"}</div>
 
       <div style="margin-top:8px;">
         <input id="ga-${doc.id}" type="number" value="${m.goalsA}" style="width:60px;">
@@ -207,7 +205,8 @@ async function loadMatches() {
 async function changeStatus(id) {
   const status = document.getElementById(`status-${id}`).value;
   await db.collection("matches").doc(id).update({ status });
-  loadMatches();
+  await loadMatches();
+  await loadTables();
 }
 
 // ================================
@@ -217,8 +216,8 @@ async function updateScore(id) {
   const ga = parseInt(document.getElementById(`ga-${id}`).value);
   const gb = parseInt(document.getElementById(`gb-${id}`).value);
   await db.collection("matches").doc(id).update({ goalsA: ga, goalsB: gb });
-  loadMatches();
-  loadTables();
+  await loadMatches();
+  await loadTables();
 }
 
 // ================================
@@ -235,8 +234,8 @@ async function addScorer(id) {
   });
 
   document.getElementById(`scorer-${id}`).value = "";
-  loadMatches();
-  loadTables();
+  await loadMatches();
+  await loadTables();
 }
 
 // ================================
@@ -245,8 +244,8 @@ async function addScorer(id) {
 async function deleteMatch(id) {
   if (!confirm("Czy na pewno chcesz usunąć mecz?")) return;
   await db.collection("matches").doc(id).delete();
-  loadMatches();
-  loadTables();
+  await loadMatches();
+  await loadTables();
 }
 
 // ================================
@@ -263,12 +262,10 @@ async function loadTables() {
 
     if (!teams[m.group]) teams[m.group] = {};
 
-    // zainicjuj drużyny
     [m.teamA, m.teamB].forEach(t => {
       if (!teams[m.group][t]) teams[m.group][t] = { pts: 0, gf: 0, ga: 0 };
     });
 
-    // punkty
     if (m.status === "zakończony") {
       teams[m.group][m.teamA].gf += m.goalsA;
       teams[m.group][m.teamA].ga += m.goalsB;
@@ -280,7 +277,6 @@ async function loadTables() {
       else { teams[m.group][m.teamA].pts += 1; teams[m.group][m.teamB].pts += 1; }
     }
 
-    // strzelcy
     if (m.scorers) {
       m.scorers.forEach(s => {
         const key = s.name + " | " + s.team;
@@ -289,7 +285,6 @@ async function loadTables() {
     }
   });
 
-  // render grup
   const groupDiv = document.getElementById("group-tables");
   groupDiv.innerHTML = "";
   for (const g in teams) {
@@ -304,7 +299,6 @@ async function loadTables() {
     groupDiv.appendChild(tbl);
   }
 
-  // render strzelców
   const scorersTable = document.querySelector("#scorers-table tbody");
   scorersTable.innerHTML = "";
   const sortedScorers = Object.entries(scorersMap).sort((a,b)=>b[1]-a[1]);
