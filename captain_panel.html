@@ -1,293 +1,324 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>Panel Kapitana</title>
+    <meta charset="UTF-8">
+    <title>Panel Kapitana</title>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --blue: #2196f3;
+            --dark: #0a0a0a;
+            --card: #111;
+            --text: #e0e0e0;
+            --border: #1e1e1e;
+        }
 
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      padding: 20px;
-      background: #f2f3f5;
-      margin: 0;
-    }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            padding: 20px;
+            margin: 0;
+        }
 
-    h2, h3 {
-      text-align: center;
-      color: #333;
-    }
+        h2, h3 {
+            color: var(--blue);
+            text-align: center;
+        }
 
-    #team-name {
-      text-align: center;
-      font-weight: 500;
-      margin-bottom: 20px;
-    }
+        #team-name {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
 
-    #players-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 15px;
-    }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
 
-    .player-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      padding: 15px;
-      transition: 0.2s ease;
-    }
+        .player-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 0 10px rgba(33,150,243,0.1);
+            transition: all 0.3s ease;
+        }
 
-    .player-card:hover {
-      transform: translateY(-3px);
-    }
+        .player-card:hover {
+            box-shadow: 0 0 20px rgba(33,150,243,0.3);
+        }
 
-    .player-card h4 {
-      margin: 0;
-      font-size: 1.1em;
-      color: #222;
-    }
+        .player-card input {
+            width: 100%;
+            background: #0d0d0d;
+            border: 1px solid #222;
+            color: var(--text);
+            padding: 8px;
+            margin: 6px 0;
+            border-radius: 6px;
+        }
 
-    .player-actions {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
+        .btn {
+            background: var(--blue);
+            border: none;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 8px;
+            transition: 0.3s;
+        }
 
-    button {
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      color: #fff;
-      font-size: 0.9em;
-      flex: 1;
-    }
+        .btn:hover {
+            background: #1976d2;
+        }
 
-    .btn-view { background: #2196F3; }
-    .btn-edit { background: #4CAF50; }
-    .btn-delete { background: #f44336; }
+        .btn-delete {
+            background: #e53935;
+        }
 
-    .logout {
-      text-align: center;
-      margin-top: 25px;
-      color: #f44336;
-      cursor: pointer;
-      font-weight: 500;
-    }
+        .btn-delete:hover {
+            background: #c62828;
+        }
 
-    /* Modal okno */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
+        .add-btn {
+            display: block;
+            width: 100%;
+            background: var(--blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
 
-    .modal-content {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      width: 90%;
-      max-width: 400px;
-      text-align: left;
-    }
+        .logout {
+            margin-top: 30px;
+            text-align: center;
+            color: #888;
+            cursor: pointer;
+        }
 
-    .modal-content input {
-      width: 100%;
-      padding: 8px;
-      margin: 5px 0 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
 
-    .modal-close {
-      float: right;
-      cursor: pointer;
-      font-weight: bold;
-      color: #666;
-    }
+        .modal-content {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
 
-    .save-btn {
-      background: #4CAF50;
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+        .modal-content input {
+            width: 100%;
+            padding: 8px;
+            margin: 6px 0;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #0d0d0d;
+            color: var(--text);
+        }
 
-    .save-btn:hover { background: #45a049; }
+        .modal-buttons {
+            text-align: right;
+            margin-top: 10px;
+        }
 
-    @media (max-width: 600px) {
-      body { padding: 10px; }
-      .player-card { padding: 12px; }
-    }
-  </style>
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .player-card {
+                padding: 12px;
+            }
+            input { font-size: 14px; }
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <h2>⚽ Panel Kapitana</h2>
+    <p id="team-name">Ładowanie drużyny...</p>
 
-<h2>Panel Kapitana</h2>
-<p id="team-name">Ładowanie...</p>
+    <h3>Zawodnicy</h3>
+    <button class="add-btn" onclick="openModal()">➕ Dodaj zawodnika</button>
+    <div id="players-list"></div>
 
-<h3>Zawodnicy</h3>
-<div id="players-list"></div>
+    <p class="logout" onclick="logout()">🚪 Wyloguj</p>
+</div>
 
-<p class="logout" onclick="logout()">Wyloguj</p>
+<!-- Modal dodawania zawodnika -->
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>Dodaj zawodnika</h3>
 
-<!-- Modal -->
-<div id="playerModal" class="modal">
-  <div class="modal-content">
-    <span class="modal-close" onclick="closeModal()">&times;</span>
-    <h3 id="modal-title">Zawodnik</h3>
+        <input id="new-name" placeholder="Imię">
+        <input id="new-surname" placeholder="Nazwisko">
+        <input id="new-number" placeholder="Numer" type="number">
+        <input id="new-position" placeholder="Pozycja">
 
-    <label>Imię</label>
-    <input id="modal-name">
-
-    <label>Nazwisko</label>
-    <input id="modal-surname">
-
-    <label>Numer</label>
-    <input id="modal-number" type="number">
-
-    <label>Pozycja</label>
-    <input id="modal-position">
-
-    <button class="save-btn" onclick="saveModal()">Zapisz zmiany</button>
-  </div>
+        <div class="modal-buttons">
+            <button class="btn" onclick="addPlayer()">Zapisz</button>
+        </div>
+    </div>
 </div>
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-    projectId: "puchargwiazd-bdaa4",
-  };
+    // FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+        projectId: "puchargwiazd-bdaa4",
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  let currentTeamId = null;
-  let currentPlayerId = null;
+    let teamId = "";
 
-  // ✅ WERYFIKACJA LOGOWANIA
-  auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-      window.location.href = "login_kapitana.html";
-      return;
-    }
+    // 🔐 WERYFIKACJA LOGOWANIA
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+            window.location.href = "login_kapitana.html";
+            return;
+        }
 
-    const doc = await db.collection("users").doc(user.uid).get();
-    if (!doc.exists || doc.data().role !== "teamManager") {
-      auth.signOut();
-      window.location.href = "login_kapitana.html";
-      return;
-    }
+        const doc = await db.collection("users").doc(user.uid).get();
+        if (!doc.exists || doc.data().role !== "teamManager") {
+            auth.signOut();
+            window.location.href = "login_kapitana.html";
+            return;
+        }
 
-    currentTeamId = doc.data().teamId;
-    loadTeam(currentTeamId);
-    loadPlayers(currentTeamId);
-  });
-
-  // ✅ Pobieranie drużyny
-  async function loadTeam(teamId) {
-    const teamDoc = await db.collection("teams").doc(teamId).get();
-    if (teamDoc.exists) {
-      document.getElementById("team-name").textContent = "Drużyna: " + teamDoc.data().name;
-    }
-  }
-
-  // ✅ Pobieranie zawodników
-  async function loadPlayers(teamId) {
-    const list = document.getElementById("players-list");
-    list.innerHTML = "Ładowanie...";
-
-    const snapshot = await db.collection("teams").doc(teamId).collection("players").get();
-    list.innerHTML = "";
-
-    snapshot.forEach(doc => {
-      const player = doc.data();
-      const card = document.createElement("div");
-      card.className = "player-card";
-      card.innerHTML = `
-        <h4>${player.name} ${player.surname}</h4>
-        <p>Numer: <b>${player.number}</b></p>
-        <p>Pozycja: ${player.position}</p>
-        <div class="player-actions">
-          <button class="btn-view" onclick="viewPlayer('${doc.id}')">Podgląd</button>
-          <button class="btn-edit" onclick="editPlayer('${doc.id}')">Edytuj</button>
-          <button class="btn-delete" onclick="deletePlayer('${doc.id}')">Usuń</button>
-        </div>
-      `;
-      list.appendChild(card);
-    });
-  }
-
-  // ✅ Podgląd / Edycja w modalu
-  async function viewPlayer(id) {
-    const playerDoc = await db.collection("teams").doc(currentTeamId).collection("players").doc(id).get();
-    if (!playerDoc.exists) return;
-
-    const p = playerDoc.data();
-    document.getElementById("modal-title").textContent = `${p.name} ${p.surname}`;
-    document.getElementById("modal-name").value = p.name;
-    document.getElementById("modal-surname").value = p.surname;
-    document.getElementById("modal-number").value = p.number;
-    document.getElementById("modal-position").value = p.position;
-    currentPlayerId = id;
-
-    document.getElementById("playerModal").style.display = "flex";
-  }
-
-  function editPlayer(id) { viewPlayer(id); }
-
-  function closeModal() {
-    document.getElementById("playerModal").style.display = "none";
-  }
-
-  async function saveModal() {
-    const name = document.getElementById("modal-name").value;
-    const surname = document.getElementById("modal-surname").value;
-    const number = document.getElementById("modal-number").value;
-    const position = document.getElementById("modal-position").value;
-
-    await db.collection("teams").doc(currentTeamId).collection("players").doc(currentPlayerId).update({
-      name, surname, number, position
+        teamId = doc.data().teamId;
+        loadTeam(teamId);
+        loadPlayers(teamId);
     });
 
-    alert("Zapisano zmiany!");
-    closeModal();
-    loadPlayers(currentTeamId);
-  }
+    // 🏆 Pobranie drużyny
+    async function loadTeam(teamId) {
+        const teamDoc = await db.collection("teams").doc(teamId).get();
+        if (teamDoc.exists) {
+            document.getElementById("team-name").textContent = "Drużyna: " + teamDoc.data().name;
+        }
+    }
 
-  // ✅ Usuwanie zawodnika
-  async function deletePlayer(id) {
-    if (!confirm("Czy na pewno chcesz usunąć tego zawodnika?")) return;
+    // 👥 Pobranie zawodników
+    async function loadPlayers(teamId) {
+        const list = document.getElementById("players-list");
+        list.innerHTML = "";
 
-    await db.collection("teams").doc(currentTeamId).collection("players").doc(id).delete();
-    loadPlayers(currentTeamId);
-  }
+        const snapshot = await db.collection("teams").doc(teamId).collection("players").get();
+        snapshot.forEach(player => {
+            const p = player.data();
 
-  // ✅ Wylogowanie
-  function logout() {
-    auth.signOut();
-    window.location.href = "login_kapitana.html";
-  }
+            const card = document.createElement("div");
+            card.className = "player-card";
+            card.innerHTML = `
+                <label>Imię:</label>
+                <input id="name-${player.id}" value="${p.name}">
+                <label>Nazwisko:</label>
+                <input id="surname-${player.id}" value="${p.surname}">
+                <label>Numer:</label>
+                <input id="number-${player.id}" type="number" value="${p.number}">
+                <label>Pozycja:</label>
+                <input id="position-${player.id}" value="${p.position}">
+                <button class="btn" onclick="savePlayer('${player.id}')">💾 Zapisz</button>
+                <button class="btn btn-delete" onclick="deletePlayer('${player.id}')">🗑 Usuń</button>
+            `;
+            list.appendChild(card);
+        });
+
+        if (snapshot.empty) list.innerHTML = "<p style='text-align:center;color:#888;'>Brak zawodników.</p>";
+    }
+
+    // 💾 Zapisanie zmian zawodnika
+    async function savePlayer(playerId) {
+        const name = document.getElementById(`name-${playerId}`).value;
+        const surname = document.getElementById(`surname-${playerId}`).value;
+        const number = document.getElementById(`number-${playerId}`).value;
+        const position = document.getElementById(`position-${playerId}`).value;
+
+        await db.collection("teams").doc(teamId).collection("players").doc(playerId).update({
+            name, surname, number, position
+        });
+
+        alert("✅ Zapisano zmiany!");
+    }
+
+    // ❌ Usunięcie zawodnika
+    async function deletePlayer(playerId) {
+        if (confirm("Czy na pewno chcesz usunąć tego zawodnika?")) {
+            await db.collection("teams").doc(teamId).collection("players").doc(playerId).delete();
+            loadPlayers(teamId);
+        }
+    }
+
+    // ➕ Dodawanie zawodnika
+    async function addPlayer() {
+        const name = document.getElementById("new-name").value.trim();
+        const surname = document.getElementById("new-surname").value.trim();
+        const number = document.getElementById("new-number").value.trim();
+        const position = document.getElementById("new-position").value.trim();
+
+        if (!name || !surname) return alert("Wpisz imię i nazwisko!");
+
+        await db.collection("teams").doc(teamId).collection("players").add({
+            name, surname, number, position
+        });
+
+        closeModal();
+        loadPlayers(teamId);
+    }
+
+    // 🔓 Modal
+    function openModal() {
+        document.getElementById("addModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("addModal").style.display = "none";
+        document.getElementById("new-name").value = "";
+        document.getElementById("new-surname").value = "";
+        document.getElementById("new-number").value = "";
+        document.getElementById("new-position").value = "";
+    }
+
+    // 🚪 Wylogowanie
+    function logout() {
+        auth.signOut();
+        window.location.href = "login_kapitana.html";
+    }
 </script>
-
 </body>
 </html>
