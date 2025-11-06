@@ -1,319 +1,39 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Kapitanów - Edycja Składu</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+function checkAuth() {
+    auth.onAuthStateChanged(user => {
+        const managementSection = document.getElementById('player-management');
+        const deniedSection = document.getElementById('access-denied');
 
-    <style>
-        body { 
-            font-family: 'Montserrat', sans-serif; 
-            padding: 10px; 
-            background: linear-gradient(135deg, #e0f2f7 0%, #bbdefb 100%);
-            color: #212121;
-            min-height: 100vh;
-        }
-        .section { 
-            max-width: 600px; 
-            margin: 20px auto; 
-            padding: 25px; 
-            border: 1px solid #64b5f6; 
-            background-color: white; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
-        }
-        h1, h2 { 
-            color: #1565c0; 
-            text-align: center; 
-            font-weight: 700;
-        }
-        h2 { font-size: 1.5em; margin-bottom: 20px; }
-        h3 { 
-            color: #007bff; 
-            margin-top: 25px; 
-            border-bottom: 2px solid #e0e0e0; 
-            padding-bottom: 8px; 
-            font-weight: 700;
-        }
-        input, button { padding: 14px; margin: 5px 0; border-radius: 8px; border: 1px solid #bdbdbd; width: 100%; box-sizing: border-box; font-size: 1em; transition: border-color 0.3s; }
-        input:focus { border-color: #2196f3; outline: none; box-shadow: 0 0 5px rgba(33, 150, 243, 0.5); }
-        #player-number-input { font-weight: 700; text-align: center; width: 30%; margin-right: 1%; display: inline-block; background-color: #e3f2fd; }
-        #player-name-input { width: 69%; display: inline-block; }
-        .primary-btn { background-color: #4caf50; color: white; cursor: pointer; border: none; transition: background-color 0.3s, transform 0.2s; width: 100%; margin-top: 15px; font-weight: 700; }
-        .primary-btn:hover { background-color: #388e3c; transform: translateY(-2px); }
-        .delete-btn { background-color: #f44336; width: 90px; padding: 10px; margin: 0; flex-shrink: 0; }
-        .delete-btn:hover { background-color: #d32f2f; }
-        .logout-btn { background-color: #757575; margin-top: 30px; }
-        .logout-btn:hover { background-color: #5d5d5d; }
-        .player-list { list-style: none; padding: 0; }
-        .player-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f0f0f0; font-size: 1.1em; }
-        .player-list li:hover { background-color: #f9f9f9; }
-        .player-info { display: flex; align-items: center; font-weight: 500; color: #333; flex-grow: 1; padding-right: 15px; }
-        .player-number { font-size: 1.2em; font-weight: 700; color: #1976d2; margin-right: 10px; min-width: 30px; text-align: left; }
-        .message-area { padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; text-align: center; border: 1px solid transparent;}
-        .message-area.success { background-color: #e8f5e9; color: #388e3c; border-color: #a5d6a7; }
-        .message-area.error { background-color: #ffebee; color: #d32f2f; border-color: #ef9a9a; }
-        .message-area.info { background-color: #e3f2fd; color: #1976d2; border-color: #90caf9; }
-        
-        /* Ukryj sekcję logowania, która jest teraz pusta */
-        #login-section { display: none; } 
+        if (user) {
+            document.getElementById('loading-indicator').style.display = 'block';
 
-        @media (max-width: 600px) {
-            .section { padding: 15px; margin: 10px auto; }
-            #player-number-input, #player-name-input { width: 100%; margin-right: 0; display: block; }
-            .player-list li { flex-direction: column; align-items: stretch; padding-bottom: 15px; padding-top: 15px; }
-            .player-list li .player-info { width: 100%; margin-bottom: 10px; padding-right: 0; font-size: 1.3em; }
-            .player-list li .player-number { font-size: 1.5em; margin-right: 15px; min-width: 40px; }
-            .delete-btn { width: 100%; margin-left: 0; }
-        }
-    </style>
-</head>
-<body>
+            // ✅ teamId zapisany przez login_kapitana.html
+            const savedTeamId = localStorage.getItem("teamId");
 
-<h1 id="main-title">Panel Kapitanów</h1>
+            if (savedTeamId) {
+                currentTeamId = savedTeamId;
 
-<div class="section" id="login-section"></div> <div class="section" id="player-management" style="display: none;">
-    <h2 id="team-name-display">Edycja Składu dla: --</h2>
-    
-    <div id="loading-indicator" class="message-area info" style="display: none;">
-        <i class="fas fa-spinner fa-spin"></i> Weryfikacja konta...
-    </div>
+                deniedSection.style.display = 'none';
+                managementSection.style.display = 'block';
 
-    <h3><i class="fas fa-user-plus"></i> Dodaj Nowego Zawodnika</h3>
-    <input id="player-number-input" type="number" min="1" max="99" placeholder="Numer zawodnika (1-99)" required>
-    <input id="player-name-input" placeholder="Imię i Nazwisko Zawodnika">
-    <button onclick="addPlayer()" class="primary-btn"><i class="fas fa-check"></i> Dodaj Zawodnika</button>
-    <div id="add-player-message" class="message-area"></div>
-    
-    <h3><i class="fas fa-users"></i> Aktualny Skład</h3>
-    <ul id="player-list" class="player-list">
-        <li>Brak danych do wyświetlenia.</li>
-    </ul>
-    <button onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
-</div>
+                // Pobierz nazwę drużyny
+                db.ref(`${TEAM_BASE_PATH}/${currentTeamId}/name`).once('value')
+                    .then(nameSnapshot => {
+                        currentTeamName = nameSnapshot.val() || currentTeamId;
+                        document.getElementById("team-name-display").textContent =
+                            `Edycja Składu dla: ${currentTeamName}`;
 
-<div class="section" id="access-denied" style="display: none; text-align: center;">
-    <h2>Brak dostępu</h2>
-    <p>Sesja wygasła lub brak uprawnień. Proszę zalogować się ponownie: <a href="login_kapitana.html">strona logowania</a>.</p>
-</div>
-
-<script>
-    // ===========================================
-    // KONFIGURACJA FIREBASE
-    // ===========================================
-    const firebaseConfig = {
-        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", // POPRAWIONE: Dodano https://
-        projectId: "puchargwiazd-bdaa4",
-        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-        messagingSenderId: "890734185883",
-        appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-    };
-
-    try {
-        firebase.initializeApp(firebaseConfig);
-    } catch (e) {
-        console.error("Błąd inicjalizacji Firebase:", e.message);
-    }
-
-    const auth = firebase.auth();
-    const db = firebase.database();
-    const TEAM_BASE_PATH = "teams";
-    let currentTeamId = null; 
-    let currentTeamName = null;
-
-    // ===========================================
-    // LOGIKA SESJI I AUTORYZACJI
-    // ===========================================
-
-    function checkAuth() {
-        // Główny element sprawdzający, czy user ma token Firebase
-        auth.onAuthStateChanged(user => {
-            const managementSection = document.getElementById('player-management');
-            const deniedSection = document.getElementById('access-denied');
-            
-            if (user) {
-                document.getElementById('loading-indicator').style.display = 'block';
-
-                // Wymuś odświeżenie tokenu, aby uzyskać Custom Claim (teamId)
-                user.getIdTokenResult(true) 
-                    .then(idTokenResult => {
-                        currentTeamId = idTokenResult.claims.teamId;
-                        
-                        if (currentTeamId) {
-                            // Pomyślna weryfikacja
-                            deniedSection.style.display = 'none';
-                            managementSection.style.display = 'block';
-                            
-                            // Pobierz nazwę drużyny i załaduj skład
-                            db.ref(`${TEAM_BASE_PATH}/${currentTeamId}/name`).once('value')
-                                .then(nameSnapshot => {
-                                    currentTeamName = nameSnapshot.val() || currentTeamId;
-                                    document.getElementById("team-name-display").textContent = `Edycja Składu dla: ${currentTeamName}`;
-                                    loadTeamPlayers(currentTeamId);
-                                    document.getElementById('loading-indicator').style.display = 'none';
-                                });
-
-                        } else {
-                            // Zalogowany, ale nie jest kapitanem (brak teamId)
-                            showAccessDenied("Brak przypisanego ID drużyny. Wyloguj się i zaloguj ponownie.");
-                            auth.signOut();
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Błąd pobierania tokena:", error);
-                        showAccessDenied("Błąd weryfikacji tokena. Spróbuj zalogować się ponownie.");
-                        auth.signOut();
+                        loadTeamPlayers(currentTeamId);
+                        document.getElementById('loading-indicator').style.display = 'none';
                     });
+
             } else {
-                // Brak zalogowanego użytkownika - przekierowanie do logowania
-                showAccessDenied("Sesja wygasła.");
+                // ❌ Nie znaleziono teamId → panel nie wie, którą drużynę wyświetlić
+                showAccessDenied("Brak ID drużyny. Zaloguj się ponownie.");
+                auth.signOut();
             }
-        });
-    }
 
-    function showAccessDenied(message) {
-         document.getElementById('player-management').style.display = 'none';
-         document.getElementById('access-denied').style.display = 'block';
-         // Opcjonalnie wyświetl wiadomość błędu
-         console.warn(message);
-    }
-
-    function logout() {
-        auth.signOut().then(() => {
-             // Wyczyść ewentualne pozostałości i przekieruj do logowania
-             if (sessionStorage.getItem('loggedInTeamId')) {
-                 sessionStorage.removeItem('loggedInTeamId');
-             }
-             window.location.href = "login_kapitana.html"; 
-        });
-    }
-
-    // ===========================================
-    // LOGIKA ZARZĄDZANIA SKŁADEM
-    // ===========================================
-
-    function loadTeamPlayers(teamId) {
-        const teamRef = db.ref(`${TEAM_BASE_PATH}/${teamId}/players`);
-        teamRef.on("value", snapshot => {
-            renderPlayers(snapshot.val());
-        });
-    }
-
-    function renderPlayers(playersData) {
-        const playerList = document.getElementById("player-list");
-        playerList.innerHTML = "";
-
-        if (!playersData) {
-            playerList.innerHTML = '<li><i class="fas fa-info-circle"></i> Skład nieuzupełniony. Dodaj pierwszego zawodnika!</li>';
-            return;
+        } else {
+            showAccessDenied("Sesja wygasła. Zaloguj się ponownie.");
         }
-
-        const sortedPlayers = Object.entries(playersData).map(([id, player]) => ({
-            id,
-            ...player
-        })).sort((a, b) => (a.number || 999) - (b.number || 999));
-
-        sortedPlayers.forEach(player => {
-            const listItem = document.createElement("li");
-            const playerNumber = player.number !== undefined && player.number !== null ? player.number : '—'; 
-            
-            listItem.innerHTML = `
-                <span class="player-info">
-                    <span class="player-number">${playerNumber}</span>
-                    ${player.name}
-                </span>
-                <button class="delete-btn" onclick="deletePlayer('${player.id}')"><i class="fas fa-trash-alt"></i> Usuń</button>
-            `;
-            playerList.appendChild(listItem);
-        });
-    }
-
-    function addPlayer() {
-        const playerNameInput = document.getElementById("player-name-input");
-        const playerNumberInput = document.getElementById("player-number-input");
-        const messageArea = document.getElementById("add-player-message");
-        
-        const playerName = playerNameInput.value.trim();
-        const playerNumber = parseInt(playerNumberInput.value.trim());
-
-        messageArea.textContent = '';
-        messageArea.className = 'message-area';
-
-        if (!currentTeamId) {
-             messageArea.textContent = "Błąd sesji. Wyloguj się i zaloguj ponownie.";
-             messageArea.className = "message-area error";
-             return;
-        }
-        if (!playerName) {
-             messageArea.textContent = "⚠️ Podaj imię i nazwisko zawodnika.";
-             messageArea.className = "message-area error";
-             return;
-        }
-        
-        if (isNaN(playerNumber) || playerNumber < 1 || playerNumber > 99) {
-            messageArea.textContent = "🚨 Proszę podać prawidłowy numer zawodnika (od 1 do 99).";
-            messageArea.className = "message-area error";
-            return;
-        }
-
-        db.ref(`${TEAM_BASE_PATH}/${currentTeamId}/players`).once('value')
-            .then(snapshot => {
-                const players = snapshot.val();
-                let numberTaken = false;
-                for (let key in players) {
-                    if (players[key].number === playerNumber) {
-                        numberTaken = true;
-                        break;
-                    }
-                }
-
-                if (numberTaken) {
-                    messageArea.textContent = `⚠️ Numer ${playerNumber} jest już zajęty w Twojej drużynie! Wybierz inny.`;
-                    messageArea.className = "message-area error";
-                } else {
-                    db.ref(`${TEAM_BASE_PATH}/${currentTeamId}/players`).push({
-                        name: playerName,
-                        number: playerNumber 
-                    }).then(() => {
-                        messageArea.textContent = "Zawodnika dodano pomyślnie!";
-                        messageArea.className = "message-area success";
-                    }).catch(error => {
-                        messageArea.textContent = "Błąd zapisu: " + error.message;
-                        messageArea.className = "message-area error";
-                    });
-
-                    playerNameInput.value = ""; 
-                    playerNumberInput.value = ""; 
-                }
-            })
-            .catch(error => {
-                console.error("Błąd sprawdzania numeru: ", error);
-                messageArea.textContent = "Wystąpił błąd podczas sprawdzania numerów.";
-                messageArea.className = "message-area error";
-            });
-    }
-
-    function deletePlayer(playerId) {
-        if (!currentTeamId) return alert("Błąd sesji.");
-        
-        if (confirm("Czy na pewno chcesz usunąć tego zawodnika ze składu?")) {
-            db.ref(`${TEAM_BASE_PATH}/${currentTeamId}/players/${playerId}`).remove()
-                .then(() => console.log("Zawodnika usunięto."))
-                .catch(error => console.error("Błąd usuwania: ", error));
-        }
-    }
-    
-    document.addEventListener('DOMContentLoaded', checkAuth);
-</script>
-
-</body>
-</html>
+    });
+}
