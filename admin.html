@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel Administratora - Puchar Gwiazd</title>
 
   <!-- Firebase -->
@@ -11,207 +11,166 @@
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 
   <style>
+    :root {
+      --primary: #007bff;
+      --dark: #0a0a0a;
+      --bg: #111827;
+      --card: #1f2937;
+      --text: #f3f4f6;
+    }
     body {
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(180deg, #0a0a0f 0%, #111827 100%);
-      color: #e5e7eb;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 0;
-    }
-
-    h2 {
-      color: #38bdf8;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    .container, .panel section {
-      background: #1e293b;
-      border-radius: 12px;
       padding: 20px;
-      margin: 15px auto;
-      max-width: 650px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
-
+    h2, h3 { color: var(--primary); margin-bottom: 10px; }
     input, select {
       width: 100%;
       padding: 10px;
+      margin: 6px 0;
       border-radius: 8px;
       border: none;
-      margin: 8px 0;
-      background: #334155;
-      color: #f1f5f9;
-      font-size: 15px;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      background: #2563eb;
-      border: none;
-      border-radius: 8px;
+      background: #374151;
       color: white;
-      font-weight: bold;
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
       cursor: pointer;
+      margin-top: 8px;
       transition: 0.2s;
     }
-
-    button:hover { background: #1d4ed8; }
-
-    .message { margin-top: 10px; font-size: 14px; text-align: center; }
-    .message.success { color: #22c55e; }
-    .message.error { color: #ef4444; }
-
-    .matches-list, .table-container, .scorers-container {
-      margin-top: 20px;
+    button:hover { background: #005dc1; }
+    .container, .panel {
+      max-width: 600px;
+      margin: auto;
+      background: var(--card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
     }
+    .message { margin-top: 10px; font-size: 14px; }
+    .success { color: #00ff9d; }
+    .error { color: #ff6b6b; }
+    section { margin-bottom: 30px; }
 
     .match-card {
-      background: #0f172a;
+      background: #222;
       padding: 12px;
       border-radius: 10px;
       margin-bottom: 10px;
-      border: 1px solid #1e3a8a;
     }
-
-    .match-card input, .match-card select {
-      margin: 4px 0;
-    }
-
-    .match-actions {
+    .match-header {
       display: flex;
       justify-content: space-between;
-      gap: 6px;
-      flex-wrap: wrap;
+      align-items: center;
     }
-
-    .match-actions button {
-      flex: 1;
-      font-size: 13px;
+    .scorer-list {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #a0aec0;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: #0f172a;
-      color: #e5e7eb;
-      border-radius: 8px;
-      overflow: hidden;
+      margin-top: 10px;
     }
-
     th, td {
-      padding: 10px;
-      border-bottom: 1px solid #1e3a8a;
+      border: 1px solid #333;
+      padding: 6px;
       text-align: center;
     }
-
     th {
-      background: #1e3a8a;
-      color: #f9fafb;
-      text-transform: uppercase;
-      font-size: 13px;
+      background: #1e40af;
+      color: white;
+    }
+    td {
+      background: #1f2937;
     }
 
     @media (max-width: 600px) {
-      .container, .panel section {
-        padding: 15px;
-        margin: 10px;
-      }
-      input, select, button {
-        font-size: 14px;
-      }
+      body { padding: 10px; }
+      .panel { padding: 15px; }
+      .match-header { flex-direction: column; align-items: flex-start; gap: 4px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ✅ Logowanie admina -->
-  <div class="container" id="login-box">
-    <h2>Logowanie Admina</h2>
-    <input id="login-email" type="email" placeholder="Email">
-    <input id="login-pass" type="password" placeholder="Hasło">
-    <button id="login-btn">Zaloguj</button>
-    <div id="login-msg" class="message"></div>
-  </div>
+<!-- ✅ LOGOWANIE ADMINA -->
+<div class="container" id="login-box">
+  <h2>Logowanie admina</h2>
+  <input id="login-email" type="email" placeholder="Email" />
+  <input id="login-pass" type="password" placeholder="Hasło" />
+  <button id="login-btn">Zaloguj</button>
+  <div id="login-msg" class="message"></div>
+</div>
 
-  <!-- ✅ Panel admina -->
-  <div class="panel" id="admin-wrapper" style="display:none;">
+<!-- ✅ PANEL ADMINA -->
+<div class="panel" id="admin-wrapper" style="display:none;">
 
-    <!-- Tworzenie drużyny -->
-    <section>
-      <h2>Tworzenie drużyny</h2>
-      <input id="team-id" placeholder="ID drużyny">
-      <input id="team-email" type="email" placeholder="Email drużyny">
-      <input id="team-pass" type="password" placeholder="Hasło drużyny">
-      <button id="create-team-btn">Utwórz drużynę</button>
-      <div id="team-msg" class="message"></div>
-    </section>
+  <!-- ✅ TWORZENIE DRUŻYNY -->
+  <section>
+    <h2>Tworzenie konta drużyny</h2>
+    <input id="team-id" placeholder="Nazwa drużyny" />
+    <input id="team-email" type="email" placeholder="Email drużyny" />
+    <input id="team-pass" type="password" placeholder="Hasło drużyny" />
+    <button id="create-team-btn">Utwórz drużynę</button>
+    <div id="team-msg" class="message"></div>
+  </section>
 
-    <!-- Nadawanie admina -->
-    <section>
-      <h2>Nadawanie uprawnień admina</h2>
-      <input id="new-admin-email" type="email" placeholder="Email użytkownika">
-      <button id="grant-admin-btn">Nadaj admina</button>
-      <div id="admin-msg" class="message"></div>
-    </section>
+  <!-- ✅ NADAWANIE ADMINA -->
+  <section>
+    <h2>Nadawanie admina</h2>
+    <input id="new-admin-email" type="email" placeholder="Email użytkownika" />
+    <button id="grant-admin-btn">Nadaj admina</button>
+    <div id="admin-msg" class="message"></div>
+  </section>
 
-    <!-- ✅ Zarządzanie meczami -->
-    <section>
-      <h2>Zarządzanie meczami</h2>
+  <!-- ✅ ZARZĄDZANIE MECZAMI -->
+  <section>
+    <h2>Zarządzanie meczami</h2>
+    <select id="match-status-filter">
+      <option value="planowany">Planowane</option>
+      <option value="trwa">Trwające</option>
+      <option value="zakończony">Zakończone</option>
+    </select>
 
-      <input id="match-group" placeholder="Grupa (np. A)">
-      <input id="match-teamA" placeholder="Drużyna A">
-      <input id="match-teamB" placeholder="Drużyna B">
-      <input id="match-date" type="date">
-      <input id="match-time" type="time">
-      <input id="match-scoreA" type="number" placeholder="Gole drużyny A">
-      <input id="match-scoreB" type="number" placeholder="Gole drużyny B">
-      
-      <select id="match-status">
-        <option value="planowany">Planowany</option>
-        <option value="trwa">Trwa</option>
-        <option value="zakonczony">Zakończony</option>
-      </select>
+    <input id="teamA" placeholder="Drużyna A" />
+    <input id="teamB" placeholder="Drużyna B" />
+    <input id="group" placeholder="Grupa (np. A, B)" />
+    <input id="match-date" type="date" />
+    <input id="match-time" type="time" />
+    <button id="add-match-btn">Dodaj mecz</button>
+    <div id="matches-list"></div>
+  </section>
 
-      <button id="add-match-btn">Dodaj / Zaktualizuj mecz</button>
-      <div id="match-msg" class="message"></div>
+  <!-- ✅ TABELA GRUPOWA -->
+  <section>
+    <h2>Tabela grupowa</h2>
+    <div id="group-tables"></div>
+  </section>
 
-      <h3 style="text-align:center;margin-top:20px;">Strzelcy bramek</h3>
-      <input id="scorer-name" placeholder="Imię i nazwisko strzelca">
-      <input id="scorer-team" placeholder="Drużyna">
-      <input id="scorer-goals" type="number" placeholder="Liczba bramek">
-      <button id="add-scorer-btn">Dodaj strzelca</button>
+  <!-- ✅ TABELA STRZELCÓW -->
+  <section>
+    <h2>Tabela strzelców</h2>
+    <table id="scorers-table">
+      <thead>
+        <tr><th>Zawodnik</th><th>Drużyna</th><th>Bramki</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</div>
 
-      <div class="matches-list" id="matches-list"></div>
-    </section>
-
-    <!-- ✅ Tabele -->
-    <section class="table-container">
-      <h2>Tabela grup</h2>
-      <div id="groups-tables"></div>
-    </section>
-
-    <section class="scorers-container">
-      <h2>Klasyfikacja strzelców</h2>
-      <table id="scorers-table">
-        <thead>
-          <tr>
-            <th>Miejsce</th>
-            <th>Zawodnik</th>
-            <th>Drużyna</th>
-            <th>Bramki</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-
-  </div>
-
-  <!-- JS -->
-  <script src="admin.js"></script>
+<!-- JS -->
+<script src="admin.js"></script>
 
 </body>
 </html>
