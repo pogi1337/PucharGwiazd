@@ -156,7 +156,7 @@ document.getElementById("add-match-btn").addEventListener("click", async () => {
     goalsA: 0,
     goalsB: 0,
     status: "planowany",
-    scorers: [],
+    scorers: [], // zawsze pusta tablica
     createdAt: new Date()
   });
 
@@ -197,7 +197,7 @@ async function loadMatches() {
       </div>
 
       <div class="scorer-list">
-        ${m.scorers && m.scorers.length > 0 
+        ${Array.isArray(m.scorers) && m.scorers.length > 0 
           ? m.scorers.map(s => `${s.name} (${s.team})`).join(", ") 
           : "Brak strzelców"}
       </div>
@@ -289,64 +289,77 @@ async function deleteMatch(id) {
 // 🔹 TABELA GRUPOWA + KLASYFIKACJA STRZELCÓW
 // ==========================================
 async function loadTables() {
-  const snapshot = await db.collection("matches").get();
+  try {
+    const snapshot = await db.collection("matches").get();
 
-  const teams = {};
-  const scorersMap = {};
+    const teams = {};
+    const scorersMap = {};
 
-  snapshot.forEach(doc => {
-    const m = doc.data();
-    if (!teams[m.group]) teams[m.group] = {};
+    snapshot.forEach(doc => {
+      const m = doc.data();
+      if (!teams[m.group]) teams[m.group] = {};
 
-    [m.teamA, m.teamB].forEach(t => {
-      if (!teams[m.group][t]) teams[m.group][t] = { pts: 0, gf: 0, ga: 0 };
-    });
-
-    if (m.status === "zakończony") {
-      teams[m.group][m.teamA].gf += m.goalsA;
-      teams[m.group][m.teamA].ga += m.goalsB;
-      teams[m.group][m.teamB].gf += m.goalsB;
-      teams[m.group][m.teamB].ga += m.goalsA;
-
-      if (m.goalsA > m.goalsB) teams[m.group][m.teamA].pts += 3;
-      else if (m.goalsA < m.goalsB) teams[m.group][m.teamB].pts += 3;
-      else {
-        teams[m.group][m.teamA].pts += 1;
-        teams[m.group][m.teamB].pts += 1;
-      }
-    }
-
-    if (m.scorers) {
-      m.scorers.forEach(s => {
-        const key = s.name + " | " + s.team;
-        scorersMap[key] = (scorersMap[key] || 0) + 1;
+      [m.teamA, m.teamB].forEach(t => {
+        if (!teams[m.group][t]) teams[m.group][t] = { pts: 0, gf: 0, ga: 0 };
       });
-    }
-  });
 
-  const groupDiv = document.getElementById("group-tables");
-  groupDiv.innerHTML = "";
-  for (const g in teams) {
-    const tbl = document.createElement("table");
-    tbl.innerHTML = `<tr><th>Grupa ${g}</th><th>PKT</th><th>GF</th><th>GA</th></tr>`;
-    const sorted = Object.entries(teams[g]).sort((a,b)=>b[1].pts-a[1].pts);
-    sorted.forEach(([t,v])=>{
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${t}</td><td>${v.pts}</td><td>${v.gf}</td><td>${v.ga}</td>`;
-      tbl.appendChild(row);
+      if (m.status === "zakończony") {
+        teams[m.group][m.teamA].gf += m.goalsA;
+        teams[m.group][m.teamA].ga += m.goalsB;
+        teams[m.group][m.teamB].gf += m.goalsB;
+        teams[m.group][m.teamB].ga += m.goalsA;
+
+        if (m.goalsA > m.goalsB) teams[m.group][m.teamA].pts += 3;
+        else if (m.goalsA < m.goalsB) teams[m.group][m.teamB].pts += 3;
+        else {
+          teams[m.group][m.teamA].pts += 1;
+          teams[m.group][m.teamB].pts += 1;
+        }
+      }
+
+      // ✅ Naprawione miejsce — bezpieczne przetwarzanie strzelców
+      if (Array.isArray(m.scorers)) {
+        m.scorers.forEach(s => {
+          const key = s.name + " | " + s.team;
+          scorersMap[key] = (scorersMap[key] || 0) + 1;
+        });
+      } else if (m.scorers && typeof m.scorers === "object") {
+        Object.values(m.scorers).forEach(s => {
+          if (s && s.name && s.team) {
+            const key = s.name + " | " + s.team;
+            scorersMap[key] = (scorersMap[key] || 0) + 1;
+          }
+        });
+      }
     });
-    groupDiv.appendChild(tbl);
-  }
 
-  const scorersTable = document.querySelector("#scorers-table tbody");
-  scorersTable.innerHTML = "";
-  const sortedScorers = Object.entries(scorersMap).sort((a,b)=>b[1]-a[1]);
-  sortedScorers.forEach(([key, goals])=>{
-    const [name, team] = key.split(" | ");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${name}</td><td>${team}</td><td>${goals}</td>`;
-    scorersTable.appendChild(tr);
-  });
+    const groupDiv = document.getElementById("group-tables");
+    groupDiv.innerHTML = "";
+    for (const g in teams) {
+      const tbl = document.createElement("table");
+      tbl.innerHTML = `<tr><th>Grupa ${g}</th><th>PKT</th><th>GF</th><th>GA</th></tr>`;
+      const sorted = Object.entries(teams[g]).sort((a,b)=>b[1].pts-a[1].pts);
+      sorted.forEach(([t,v])=>{
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${t}</td><td>${v.pts}</td><td>${v.gf}</td><td>${v.ga}</td>`;
+        tbl.appendChild(row);
+      });
+      groupDiv.appendChild(tbl);
+    }
+
+    const scorersTable = document.querySelector("#scorers-table tbody");
+    scorersTable.innerHTML = "";
+    const sortedScorers = Object.entries(scorersMap).sort((a,b)=>b[1]-a[1]);
+    sortedScorers.forEach(([key, goals])=>{
+      const [name, team] = key.split(" | ");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${name}</td><td>${team}</td><td>${goals}</td>`;
+      scorersTable.appendChild(tr);
+    });
+
+  } catch (err) {
+    console.error("Błąd podczas ładowania tabel:", err);
+  }
 }
 
 // 🔁 Automatyczne odświeżanie tabel co 10 sek.
