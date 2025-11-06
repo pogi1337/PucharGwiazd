@@ -316,4 +316,111 @@ async function loadScorers() {
     `;
     tbody.appendChild(tr);
   });
+  // ============================
+// ✅ MECZE: Dodawanie + Strzelcy
+// ============================
+const matchesList = document.getElementById("matches-list");
+const addMatchBtn = document.getElementById("add-match-btn");
+
+// 🔸 Dodawanie meczu
+addMatchBtn.addEventListener("click", async () => {
+  const teamA = document.getElementById("match-teamA").value.trim();
+  const teamB = document.getElementById("match-teamB").value.trim();
+  const group = document.getElementById("match-group").value;
+  if (!teamA || !teamB) return alert("Wpisz obie drużyny!");
+
+  await db.collection("matches").add({
+    teamA, teamB, goalsA: 0, goalsB: 0,
+    status: "planowany", group,
+    scorers: [], createdAt: new Date()
+  });
+
+  alert("✅ Mecz dodany!");
+  loadMatches();
+});
+
+// 🔸 Wczytywanie meczów
+async function loadMatches() {
+  const snap = await db.collection("matches").orderBy("createdAt", "desc").get();
+  matchesList.innerHTML = "";
+
+  snap.forEach(doc => {
+    const match = doc.data();
+    const div = document.createElement("div");
+    div.className = "match-card";
+
+    div.innerHTML = `
+      <h3>${match.teamA} (${match.goalsA}) vs (${match.goalsB}) ${match.teamB}</h3>
+      <p>Status: ${match.status} | Grupa: ${match.group}</p>
+
+      <input id="scorer-${doc.id}" placeholder="Dodaj strzelca">
+      <select id="team-${doc.id}">
+        <option value="${match.teamA}">${match.teamA}</option>
+        <option value="${match.teamB}">${match.teamB}</option>
+      </select>
+      <button onclick="addScorer('${doc.id}')">⚽ Dodaj gola</button>
+
+      <div class="scorers">
+        ${match.scorers.map(s => `<p>${s.name} (${s.team})</p>`).join("")}
+      </div>
+
+      <button onclick="toggleMatchStatus('${doc.id}', '${match.status}')">🔁 Zmień status</button>
+      <button onclick="deleteMatch('${doc.id}')">🗑 Usuń</button>
+    `;
+    matchesList.appendChild(div);
+  });
 }
+loadMatches();
+
+// 🔸 Dodawanie strzelca
+window.addScorer = async (matchId) => {
+  const nameInput = document.getElementById(`scorer-${matchId}`);
+  const teamSelect = document.getElementById(`team-${matchId}`);
+  const name = nameInput.value.trim();
+  const team = teamSelect.value;
+
+  if (!name) return alert("Podaj nazwisko strzelca!");
+
+  const matchRef = db.collection("matches").doc(matchId);
+  const matchDoc = await matchRef.get();
+  const match = matchDoc.data();
+
+  // ✅ Dodaj strzelca do meczu
+  const newScorers = [...match.scorers, { name, team }];
+  let goalsA = match.goalsA;
+  let goalsB = match.goalsB;
+  if (team === match.teamA) goalsA++;
+  if (team === match.teamB) goalsB++;
+
+  await matchRef.update({ scorers: newScorers, goalsA, goalsB });
+
+  // ✅ Zaktualizuj tabelę strzelców
+  const scorerRef = db.collection("scorers").doc(name);
+  const scorerDoc = await scorerRef.get();
+  if (scorerDoc.exists) {
+    await scorerRef.update({ goals: scorerDoc.data().goals + 1 });
+  } else {
+    await scorerRef.set({ name, goals: 1, team });
+  }
+
+  loadMatches();
+};
+
+// 🔸 Zmiana statusu meczu
+window.toggleMatchStatus = async (id, currentStatus) => {
+  const statuses = ["planowany", "trwa", "zakończony"];
+  const next = statuses[(statuses.indexOf(currentStatus) + 1) % statuses.length];
+  await db.collection("matches").doc(id).update({ status: next });
+  loadMatches();
+};
+
+// 🔸 Usuwanie meczu
+window.deleteMatch = async (id) => {
+  if (confirm("Na pewno usunąć mecz?")) {
+    await db.collection("matches").doc(id).delete();
+    loadMatches();
+  }
+};
+
+}
+
