@@ -1,209 +1,210 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Administratora — Puchar Gwiazd</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Administratora - Puchar Gwiazd</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: radial-gradient(circle at top, #0b132b, #000);
-      color: #e0e0e0;
-      min-height: 100vh;
-      padding: 30px;
+    :root {
+      --blue: #00bfff;
+      --dark: #0a0a1f;
+      --mid: #101028;
+      --text: #e4e4e4;
     }
 
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: rgba(20, 20, 40, 0.8);
-      border-radius: 16px;
-      padding: 20px 30px;
-      box-shadow: 0 0 25px rgba(0, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+
+    .container, .panel section {
+      background: var(--mid);
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 500px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,255,255,0.1);
     }
 
     h2 {
-      color: #00bfff;
-      margin-top: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      user-select: none;
-      font-size: 1.2rem;
-    }
-
-    h2 span {
-      font-size: 1.3rem;
-      transition: transform 0.3s ease;
-    }
-
-    .panel {
-      margin: 10px 0 20px;
-      padding: 15px;
-      background: rgba(0, 0, 30, 0.4);
-      border-radius: 10px;
-      border: 1px solid rgba(0, 255, 255, 0.2);
-      display: none;
-      animation: slideDown 0.4s ease;
-    }
-
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
+      color: var(--blue);
+      margin-bottom: 15px;
+      text-align: center;
     }
 
     input, select {
       width: 100%;
       padding: 10px;
-      margin: 6px 0;
-      border: 1px solid #333;
+      margin-bottom: 10px;
       border-radius: 8px;
-      background: rgba(255,255,255,0.1);
-      color: #fff;
+      border: 1px solid #333;
+      background: #181830;
+      color: var(--text);
     }
 
     button {
-      background: #00bfff;
-      color: white;
+      width: 100%;
+      padding: 10px 15px;
+      background: var(--blue);
       border: none;
       border-radius: 8px;
-      padding: 10px 15px;
+      color: white;
+      font-weight: bold;
       cursor: pointer;
-      font-weight: 600;
-      transition: 0.3s;
+      transition: 0.2s;
     }
     button:hover {
-      background: #0099cc;
+      background: #0088cc;
     }
 
-    .message { margin-top: 8px; font-weight: bold; }
-    .error { color: #ff4b4b; }
-    .success { color: #00ff9d; }
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .error { color: #ff5555; }
+    .success { color: #00ff99; }
 
     .match-card {
-      background: rgba(10, 10, 30, 0.8);
-      border: 1px solid rgba(0, 255, 255, 0.2);
+      background: #0d0d26;
+      border: 1px solid var(--blue);
       border-radius: 10px;
-      padding: 10px;
+      padding: 12px;
       margin: 10px 0;
+      color: white;
+      transition: 0.3s;
     }
 
-    .match-card strong {
-      color: #00bfff;
+    .match-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 10px rgba(0,191,255,0.4);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
+      color: white;
     }
 
     th, td {
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid #222;
       padding: 8px;
-      text-align: left;
+      text-align: center;
     }
 
     th {
-      color: #00bfff;
+      color: var(--blue);
     }
 
-    #admin-wrapper {
-      display: none;
+    .panel {
+      padding-bottom: 40px;
     }
 
-    .accordion-open span {
-      transform: rotate(90deg);
+    .group-section {
+      background: #101028;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .container, .panel section {
+        margin: 10px;
+        padding: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- 🔹 Logowanie -->
-    <div id="login-box">
-      <h2>🔐 Logowanie administratora</h2>
-      <input type="email" id="login-email" placeholder="Email">
-      <input type="password" id="login-pass" placeholder="Hasło">
-      <button id="login-btn">Zaloguj</button>
-      <div id="login-msg" class="message"></div>
+
+<!-- 🔹 LOGOWANIE ADMINA -->
+<div class="container" id="login-box">
+  <h2>Logowanie admina</h2>
+  <input id="login-email" type="email" placeholder="Email" />
+  <input id="login-pass" type="password" placeholder="Hasło" />
+  <button id="login-btn">Zaloguj</button>
+  <div id="login-msg" class="message"></div>
+</div>
+
+<!-- 🔹 PANEL ADMINA -->
+<div class="panel" id="admin-wrapper" style="display:none;">
+
+  <!-- ✅ TWORZENIE DRUŻYNY -->
+  <section>
+    <h2>Tworzenie drużyny</h2>
+    <input id="team-id" placeholder="Nazwa drużyny" />
+    <input id="team-email" type="email" placeholder="Email drużyny" />
+    <input id="team-pass" type="password" placeholder="Hasło (min. 6 znaków)" />
+    <button id="create-team-btn">Utwórz drużynę</button>
+    <div id="team-msg" class="message"></div>
+  </section>
+
+  <!-- ✅ NADAWANIE ADMINA -->
+  <section>
+    <h2>Nadawanie uprawnień admina</h2>
+    <input id="new-admin-email" type="email" placeholder="Email użytkownika" />
+    <button id="grant-admin-btn">Nadaj admina</button>
+    <div id="admin-msg" class="message"></div>
+  </section>
+
+  <!-- ✅ ZARZĄDZANIE MECZAMI -->
+  <section>
+    <h2>Zarządzanie meczami</h2>
+    <input id="teamA" placeholder="Drużyna A" />
+    <input id="teamB" placeholder="Drużyna B" />
+    <input id="group" placeholder="Grupa (np. A)" />
+    <input id="match-date" type="date" />
+    <input id="match-time" type="time" />
+    <button id="add-match-btn">Dodaj mecz</button>
+
+    <h3 style="margin-top:15px;">Filtr statusu</h3>
+    <select id="match-status-filter">
+      <option value="wszyscy">Wszyscy</option>
+      <option value="planowany">Planowane</option>
+      <option value="trwa">Trwające</option>
+      <option value="zakończony">Zakończone</option>
+    </select>
+
+    <div id="matches-list"></div>
+  </section>
+
+  <!-- ✅ TABELA GRUPOWA -->
+  <section>
+    <h2>Tabele grup</h2>
+    <div id="group-tables" class="group-section">
+      <p>Ładowanie tabel...</p>
     </div>
+  </section>
 
-    <!-- 🔹 Panel admina -->
-    <div id="admin-wrapper">
-      <h2 onclick="togglePanel('team-panel')">⚽ Tworzenie drużyny <span>▶</span></h2>
-      <div id="team-panel" class="panel">
-        <input id="team-id" placeholder="Nazwa drużyny">
-        <input id="team-email" placeholder="Email">
-        <input id="team-pass" type="password" placeholder="Hasło">
-        <button id="create-team-btn">Utwórz drużynę</button>
-        <div id="team-msg" class="message"></div>
-      </div>
+  <!-- ✅ KLASYFIKACJA STRZELCÓW -->
+  <section>
+    <h2>Klasyfikacja strzelców</h2>
+    <table id="scorers-table">
+      <thead>
+        <tr>
+          <th>Zawodnik</th>
+          <th>Drużyna</th>
+          <th>Bramki</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="3">Ładowanie...</td></tr>
+      </tbody>
+    </table>
+  </section>
 
-      <h2 onclick="togglePanel('admin-panel')">👑 Nadawanie admina <span>▶</span></h2>
-      <div id="admin-panel" class="panel">
-        <input id="new-admin-email" placeholder="Email użytkownika">
-        <button id="grant-admin-btn">Nadaj admina</button>
-        <div id="admin-msg" class="message"></div>
-      </div>
+</div>
 
-      <h2 onclick="togglePanel('match-panel')">🏆 Zarządzanie meczami <span>▶</span></h2>
-      <div id="match-panel" class="panel">
-        <div>
-          <input id="teamA" placeholder="Drużyna A">
-          <input id="teamB" placeholder="Drużyna B">
-          <input id="group" placeholder="Grupa">
-          <input id="match-date" type="date">
-          <input id="match-time" type="time">
-          <button id="add-match-btn">Dodaj mecz</button>
-        </div>
-
-        <label for="match-status-filter">Filtruj mecze:</label>
-        <select id="match-status-filter">
-          <option value="planowany">Planowane</option>
-          <option value="trwa">Trwające</option>
-          <option value="zakończony">Zakończone</option>
-        </select>
-
-        <div id="matches-list"></div>
-      </div>
-
-      <h2 onclick="togglePanel('tables-panel')">📊 Tabele i strzelcy <span>▶</span></h2>
-      <div id="tables-panel" class="panel">
-        <div id="group-tables"></div>
-
-        <h3>Klasyfikacja strzelców</h3>
-        <table id="scorers-table">
-          <thead>
-            <tr><th>Zawodnik</th><th>Drużyna</th><th>Bramki</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function togglePanel(id) {
-      const panel = document.getElementById(id);
-      const header = panel.previousElementSibling;
-      const arrow = header.querySelector('span');
-      if (panel.style.display === "block") {
-        panel.style.display = "none";
-        arrow.style.transform = "rotate(0deg)";
-      } else {
-        panel.style.display = "block";
-        arrow.style.transform = "rotate(90deg)";
-      }
-    }
-  </script>
-
-  <script src="admin.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
