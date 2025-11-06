@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Administratora - Puchar Gwiazd</title>
 
-  <!-- Firebase compat -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
@@ -30,7 +30,7 @@
       border-radius: 12px;
       padding: 20px;
       margin: 15px auto;
-      max-width: 600px;
+      max-width: 650px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
 
@@ -58,21 +58,14 @@
       transition: 0.2s;
     }
 
-    button:hover {
-      background: #1d4ed8;
-    }
+    button:hover { background: #1d4ed8; }
 
-    .message {
-      margin-top: 10px;
-      font-size: 14px;
-      text-align: center;
-    }
-
+    .message { margin-top: 10px; font-size: 14px; text-align: center; }
     .message.success { color: #22c55e; }
     .message.error { color: #ef4444; }
 
-    .matches-list {
-      margin-top: 15px;
+    .matches-list, .table-container, .scorers-container {
+      margin-top: 20px;
     }
 
     .match-card {
@@ -83,7 +76,7 @@
       border: 1px solid #1e3a8a;
     }
 
-    .match-card input {
+    .match-card input, .match-card select {
       margin: 4px 0;
     }
 
@@ -96,6 +89,28 @@
 
     .match-actions button {
       flex: 1;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #0f172a;
+      color: #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1e3a8a;
+      text-align: center;
+    }
+
+    th {
+      background: #1e3a8a;
+      color: #f9fafb;
+      text-transform: uppercase;
       font-size: 13px;
     }
 
@@ -112,7 +127,7 @@
 </head>
 <body>
 
-  <!-- ✅ LOGOWANIE ADMINA -->
+  <!-- ✅ Logowanie admina -->
   <div class="container" id="login-box">
     <h2>Logowanie Admina</h2>
     <input id="login-email" type="email" placeholder="Email">
@@ -121,7 +136,7 @@
     <div id="login-msg" class="message"></div>
   </div>
 
-  <!-- ✅ PANEL ADMINA -->
+  <!-- ✅ Panel admina -->
   <div class="panel" id="admin-wrapper" style="display:none;">
 
     <!-- Tworzenie drużyny -->
@@ -142,25 +157,60 @@
       <div id="admin-msg" class="message"></div>
     </section>
 
-    <!-- Mecze -->
+    <!-- ✅ Zarządzanie meczami -->
     <section>
       <h2>Zarządzanie meczami</h2>
+
       <input id="match-group" placeholder="Grupa (np. A)">
       <input id="match-teamA" placeholder="Drużyna A">
       <input id="match-teamB" placeholder="Drużyna B">
       <input id="match-date" type="date">
       <input id="match-time" type="time">
-      <input id="match-scoreA" type="number" placeholder="Wynik drużyny A">
-      <input id="match-scoreB" type="number" placeholder="Wynik drużyny B">
-      <button id="add-match-btn">Dodaj mecz</button>
+      <input id="match-scoreA" type="number" placeholder="Gole drużyny A">
+      <input id="match-scoreB" type="number" placeholder="Gole drużyny B">
+      
+      <select id="match-status">
+        <option value="planowany">Planowany</option>
+        <option value="trwa">Trwa</option>
+        <option value="zakonczony">Zakończony</option>
+      </select>
+
+      <button id="add-match-btn">Dodaj / Zaktualizuj mecz</button>
       <div id="match-msg" class="message"></div>
+
+      <h3 style="text-align:center;margin-top:20px;">Strzelcy bramek</h3>
+      <input id="scorer-name" placeholder="Imię i nazwisko strzelca">
+      <input id="scorer-team" placeholder="Drużyna">
+      <input id="scorer-goals" type="number" placeholder="Liczba bramek">
+      <button id="add-scorer-btn">Dodaj strzelca</button>
 
       <div class="matches-list" id="matches-list"></div>
     </section>
 
+    <!-- ✅ Tabele -->
+    <section class="table-container">
+      <h2>Tabela grup</h2>
+      <div id="groups-tables"></div>
+    </section>
+
+    <section class="scorers-container">
+      <h2>Klasyfikacja strzelców</h2>
+      <table id="scorers-table">
+        <thead>
+          <tr>
+            <th>Miejsce</th>
+            <th>Zawodnik</th>
+            <th>Drużyna</th>
+            <th>Bramki</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
   </div>
 
-  <!-- ✅ SKRYPT JS -->
+  <!-- JS -->
   <script src="admin.js"></script>
 
 </body>
