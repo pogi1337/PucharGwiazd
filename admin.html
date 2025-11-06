@@ -10,55 +10,158 @@
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="admin.css">
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(180deg, #0a0a0f 0%, #111827 100%);
+      color: #e5e7eb;
+      margin: 0;
+      padding: 0;
+    }
+
+    h2 {
+      color: #38bdf8;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .container, .panel section {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px auto;
+      max-width: 600px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin: 8px 0;
+      background: #334155;
+      color: #f1f5f9;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      background: #2563eb;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .message {
+      margin-top: 10px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .message.success { color: #22c55e; }
+    .message.error { color: #ef4444; }
+
+    .matches-list {
+      margin-top: 15px;
+    }
+
+    .match-card {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #1e3a8a;
+    }
+
+    .match-card input {
+      margin: 4px 0;
+    }
+
+    .match-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .match-actions button {
+      flex: 1;
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      .container, .panel section {
+        padding: 15px;
+        margin: 10px;
+      }
+      input, select, button {
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<div class="container" id="login-box">
-  <h2>Logowanie admina</h2>
-  <input id="login-email" type="email" placeholder="Email">
-  <input id="login-pass" type="password" placeholder="Hasło">
-  <button id="login-btn">Zaloguj</button>
-  <div id="login-msg" class="message"></div>
-</div>
+  <!-- ✅ LOGOWANIE ADMINA -->
+  <div class="container" id="login-box">
+    <h2>Logowanie Admina</h2>
+    <input id="login-email" type="email" placeholder="Email">
+    <input id="login-pass" type="password" placeholder="Hasło">
+    <button id="login-btn">Zaloguj</button>
+    <div id="login-msg" class="message"></div>
+  </div>
 
-<div class="panel" id="admin-wrapper" style="display:none;">
+  <!-- ✅ PANEL ADMINA -->
+  <div class="panel" id="admin-wrapper" style="display:none;">
 
-  <!-- ✅ SEKCJA: Tworzenie konta drużyny -->
-  <section>
-    <h2>Tworzenie konta drużyny</h2>
-    <input id="team-id" placeholder="ID drużyny">
-    <input id="team-email" type="email" placeholder="Email drużyny">
-    <input id="team-pass" type="password" placeholder="Hasło drużyny (min. 6 znaków)">
-    <button id="create-team-btn">Utwórz drużynę</button>
-    <div id="team-msg" class="message"></div>
-  </section>
+    <!-- Tworzenie drużyny -->
+    <section>
+      <h2>Tworzenie drużyny</h2>
+      <input id="team-id" placeholder="ID drużyny">
+      <input id="team-email" type="email" placeholder="Email drużyny">
+      <input id="team-pass" type="password" placeholder="Hasło drużyny">
+      <button id="create-team-btn">Utwórz drużynę</button>
+      <div id="team-msg" class="message"></div>
+    </section>
 
-  <!-- ✅ SEKCJA: Nadawanie admina -->
-  <section>
-    <h2>Nadawanie admina</h2>
-    <input id="new-admin-email" type="email" placeholder="Email użytkownika">
-    <button id="grant-admin-btn">Nadaj admina</button>
-    <div id="admin-msg" class="message"></div>
-  </section>
+    <!-- Nadawanie admina -->
+    <section>
+      <h2>Nadawanie uprawnień admina</h2>
+      <input id="new-admin-email" type="email" placeholder="Email użytkownika">
+      <button id="grant-admin-btn">Nadaj admina</button>
+      <div id="admin-msg" class="message"></div>
+    </section>
 
-  <!-- ✅ SEKCJA: Drużyny (przyszłe funkcje) -->
-  <section>
-    <h2>Drużyny (edycja, zawodnicy — w budowie)</h2>
-    <div class="info-box">Będzie tu lista drużyn + edycja składu.</div>
-  </section>
+    <!-- Mecze -->
+    <section>
+      <h2>Zarządzanie meczami</h2>
+      <input id="match-group" placeholder="Grupa (np. A)">
+      <input id="match-teamA" placeholder="Drużyna A">
+      <input id="match-teamB" placeholder="Drużyna B">
+      <input id="match-date" type="date">
+      <input id="match-time" type="time">
+      <input id="match-scoreA" type="number" placeholder="Wynik drużyny A">
+      <input id="match-scoreB" type="number" placeholder="Wynik drużyny B">
+      <button id="add-match-btn">Dodaj mecz</button>
+      <div id="match-msg" class="message"></div>
 
-  <!-- ✅ SEKCJA: Mecze (dodawanie, status, strzelcy — w budowie) -->
-  <section>
-    <h2>Mecze (planowanie — w budowie)</h2>
-    <div class="info-box">Tu dodamy: dodaj mecz, edytuj wynik, dodaj strzelców.</div>
-  </section>
+      <div class="matches-list" id="matches-list"></div>
+    </section>
 
-</div>
+  </div>
 
-<!-- JS -->
-<script src="admin.js"></script>
+  <!-- ✅ SKRYPT JS -->
+  <script src="admin.js"></script>
 
 </body>
 </html>
