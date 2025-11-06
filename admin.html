@@ -12,251 +12,304 @@
 
   <style>
     body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #0e1117;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(180deg, #0d1117, #0a0f1a);
       color: #fff;
       margin: 0;
       padding: 0;
     }
-    .container, .panel {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-    }
     h2 {
-      color: #5da9ff;
-      margin-bottom: 10px;
+      color: #00b7ff;
+      border-bottom: 2px solid #007acc;
+      padding-bottom: 4px;
     }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      border-radius: 6px;
-      border: none;
-      font-size: 15px;
+    .container, .panel {
+      max-width: 500px;
+      margin: 2rem auto;
+      background: #161b22;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0, 183, 255, 0.2);
     }
     input, select {
-      background: #1e2633;
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: none;
+      background: #0d1117;
       color: #fff;
     }
     button {
-      background: #0078ff;
+      background: #007acc;
       color: white;
+      border: none;
+      padding: 10px 15px;
+      margin-top: 5px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s;
+      width: 100%;
+      transition: 0.3s;
     }
-    button:hover { background: #3399ff; }
-    .message { margin-top: 5px; font-size: 14px; }
-    .error { color: #ff5555; }
-    .success { color: #66ff99; }
-
-    section {
-      background: #1a1f29;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 20px;
-      box-shadow: 0 0 10px #0005;
+    button:hover {
+      background: #00b7ff;
     }
-
-    .match-card {
-      background: #232a36;
-      border-radius: 10px;
-      padding: 10px;
+    .message {
       margin-top: 10px;
+      text-align: center;
     }
-
-    .match-card h4 {
-      margin: 5px 0;
-      color: #4da3ff;
+    .success {
+      color: #4caf50;
     }
-
+    .error {
+      color: #ff5252;
+    }
+    section {
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9em;
+    }
+    th, td {
+      border: 1px solid #007acc;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background: #007acc;
+      color: white;
+    }
     @media (max-width: 600px) {
-      body { font-size: 16px; }
-      input, button, select { font-size: 16px; }
-      section { padding: 12px; }
+      .container, .panel { width: 90%; }
+      h2 { font-size: 1.2em; }
+      input, button { font-size: 1em; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ✅ Logowanie -->
-  <div class="container" id="login-box">
-    <h2>Logowanie admina</h2>
-    <input id="login-email" type="email" placeholder="Email" />
-    <input id="login-pass" type="password" placeholder="Hasło" />
-    <button id="login-btn">Zaloguj</button>
-    <div id="login-msg" class="message"></div>
-  </div>
+<!-- ✅ LOGOWANIE -->
+<div class="container" id="login-box">
+  <h2>Logowanie admina</h2>
+  <input id="login-email" type="email" placeholder="Email">
+  <input id="login-pass" type="password" placeholder="Hasło">
+  <button id="login-btn">Zaloguj</button>
+  <div id="login-msg" class="message"></div>
+</div>
 
-  <!-- ✅ Panel admina -->
-  <div class="panel" id="admin-wrapper" style="display:none;">
-    
-    <section>
-      <h2>Tworzenie konta drużyny</h2>
-      <input id="team-id" placeholder="ID drużyny" />
-      <input id="team-email" type="email" placeholder="Email drużyny" />
-      <input id="team-pass" type="password" placeholder="Hasło (min. 6 znaków)" />
-      <button id="create-team-btn">Utwórz drużynę</button>
-      <div id="team-msg" class="message"></div>
-    </section>
+<!-- ✅ PANEL ADMINA -->
+<div class="panel" id="admin-wrapper" style="display:none;">
 
-    <section>
-      <h2>Zarządzanie meczami</h2>
-      <input id="teamA" placeholder="Drużyna A" />
-      <input id="teamB" placeholder="Drużyna B" />
-      <input id="group" placeholder="Grupa (np. A)" />
-      <button id="add-match-btn">Dodaj mecz</button>
-      <div id="matches-list"></div>
-    </section>
+  <!-- ✅ Tworzenie drużyny -->
+  <section>
+    <h2>Tworzenie konta drużyny</h2>
+    <input id="team-id" placeholder="Nazwa drużyny">
+    <input id="team-email" type="email" placeholder="Email drużyny">
+    <input id="team-pass" type="password" placeholder="Hasło (min. 6 znaków)">
+    <button id="create-team-btn">Utwórz drużynę</button>
+    <div id="team-msg" class="message"></div>
+  </section>
 
-    <section>
-      <h2>Tabele grupowe i strzelców</h2>
-      <div id="tables"></div>
-    </section>
+  <!-- ✅ Mecze -->
+  <section>
+    <h2>Zarządzanie meczami</h2>
+    <input id="match-teamA" placeholder="Drużyna A">
+    <input id="match-teamB" placeholder="Drużyna B">
+    <select id="match-group">
+      <option value="A">Grupa A</option>
+      <option value="B">Grupa B</option>
+    </select>
+    <button id="add-match-btn">Dodaj mecz</button>
+    <div id="match-msg" class="message"></div>
+    <div id="matches-list"></div>
+  </section>
 
-  </div>
+  <!-- ✅ Tabela grupowa -->
+  <section>
+    <h2>Tabela grup</h2>
+    <div id="tables"></div>
+  </section>
 
-  <script>
-    // 🔥 Firebase init
-    const firebaseConfig = {
-      apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-      authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-      projectId: "puchargwiazd-bdaa4",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  <!-- ✅ Klasyfikacja strzelców -->
+  <section>
+    <h2>Klasyfikacja strzelców</h2>
+    <div id="scorers"></div>
+  </section>
+</div>
 
-    // ✅ Logowanie admina
-    document.getElementById("login-btn").addEventListener("click", async () => {
-      const email = loginEmail.value;
-      const pass = loginPass.value;
-      const msg = loginMsg;
-      msg.textContent = "Logowanie...";
-      try {
-        const cred = await auth.signInWithEmailAndPassword(email, pass);
-        const doc = await db.collection("users").doc(cred.user.uid).get();
-        if (!doc.exists || !doc.data().admin) throw new Error("Brak uprawnień admina");
-        msg.textContent = "Zalogowano!";
-        msg.className = "message success";
-        loginBox.style.display = "none";
-        adminWrapper.style.display = "block";
-        loadMatches();
-      } catch (e) {
-        msg.textContent = e.message;
+<script>
+  // 🔥 Firebase init
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+    projectId: "puchargwiazd-bdaa4",
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // ✅ Logowanie admina
+  document.getElementById("login-btn").addEventListener("click", async () => {
+    const email = document.getElementById("login-email").value;
+    const pass = document.getElementById("login-pass").value;
+    const msg = document.getElementById("login-msg");
+
+    msg.textContent = "Logowanie...";
+    try {
+      const cred = await auth.signInWithEmailAndPassword(email, pass);
+      const doc = await db.collection("users").doc(cred.user.uid).get();
+
+      if (!doc.exists || !doc.data().admin) {
+        msg.textContent = "Brak uprawnień administratora.";
         msg.className = "message error";
+        await auth.signOut();
+        return;
       }
-    });
 
-    // ✅ Tworzenie drużyny
-    document.getElementById("create-team-btn").addEventListener("click", async () => {
-      const teamId = teamIdInput.value.trim();
-      const email = teamEmail.value.trim();
-      const pass = teamPass.value.trim();
-      const msg = teamMsg;
-      if (!teamId || !email || !pass) return alert("Wypełnij wszystkie pola!");
-      try {
-        const cred = await auth.createUserWithEmailAndPassword(email, pass);
-        await db.collection("users").doc(cred.user.uid).set({
-          role: "teamManager",
-          teamId
-        });
-        await db.collection("teams").doc(teamId).set({
-          name: teamId,
-          group: "A",
-          points: 0, goalsFor: 0, goalsAgainst: 0,
-        });
-        msg.textContent = "Drużyna utworzona!";
-        msg.className = "message success";
-      } catch (e) {
-        msg.textContent = e.message;
-        msg.className = "message error";
-      }
-    });
+      msg.textContent = "Zalogowano!";
+      msg.className = "message success";
+      document.getElementById("login-box").style.display = "none";
+      document.getElementById("admin-wrapper").style.display = "block";
+      loadMatches();
 
-    // ✅ Dodawanie meczu
-    document.getElementById("add-match-btn").addEventListener("click", async () => {
-      const teamA = teamAInput.value.trim();
-      const teamB = teamBInput.value.trim();
-      const group = groupInput.value.trim();
-      if (!teamA || !teamB || !group) return alert("Uzupełnij wszystkie pola!");
+    } catch (err) {
+      msg.textContent = "Błąd logowania: " + err.message;
+      msg.className = "message error";
+    }
+  });
+
+  // ✅ Tworzenie drużyny
+  document.getElementById("create-team-btn").addEventListener("click", async () => {
+    const id = document.getElementById("team-id").value;
+    const email = document.getElementById("team-email").value;
+    const pass = document.getElementById("team-pass").value;
+    const msg = document.getElementById("team-msg");
+    try {
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      await db.collection("teams").doc(id).set({
+        name: id, email, managerUid: cred.user.uid, group: "A",
+        points: 0, goalsFor: 0, goalsAgainst: 0
+      });
+      msg.textContent = "Drużyna dodana!";
+      msg.className = "message success";
+    } catch (e) {
+      msg.textContent = "Błąd: " + e.message;
+      msg.className = "message error";
+    }
+  });
+
+  // ✅ Dodawanie meczu
+  document.getElementById("add-match-btn").addEventListener("click", async () => {
+    const a = document.getElementById("match-teamA").value;
+    const b = document.getElementById("match-teamB").value;
+    const g = document.getElementById("match-group").value;
+    const msg = document.getElementById("match-msg");
+    try {
       await db.collection("matches").add({
-        teamA, teamB, group,
-        goalsA: 0, goalsB: 0,
-        status: "planowany",
-        scorers: []
+        teamA: a, teamB: b, goalsA: 0, goalsB: 0, group: g, status: "planowany", scorers: []
       });
-      alert("Mecz dodany!");
+      msg.textContent = "Mecz dodany!";
+      msg.className = "message success";
       loadMatches();
+    } catch (e) {
+      msg.textContent = "Błąd: " + e.message;
+      msg.className = "message error";
+    }
+  });
+
+  // ✅ Wczytywanie i wyświetlanie meczów
+  async function loadMatches() {
+    const list = document.getElementById("matches-list");
+    list.innerHTML = "<p>Ładowanie meczów...</p>";
+    const snap = await db.collection("matches").get();
+    list.innerHTML = "";
+    snap.forEach(doc => {
+      const d = doc.data();
+      const div = document.createElement("div");
+      div.style.border = "1px solid #007acc";
+      div.style.padding = "10px";
+      div.style.margin = "5px 0";
+      div.style.borderRadius = "8px";
+      div.innerHTML = `
+        <b>${d.teamA}</b> ${d.goalsA} : ${d.goalsB} <b>${d.teamB}</b> (${d.group})<br>
+        Status: ${d.status}<br>
+        <button onclick="updateScore('${doc.id}', ${d.goalsA}, ${d.goalsB})">Zmień wynik</button>
+        <button onclick="addScorer('${doc.id}')">Dodaj strzelca</button>
+        <button onclick="deleteMatch('${doc.id}')">Usuń</button>
+      `;
+      list.appendChild(div);
     });
+    renderTables();
+  }
 
-    // ✅ Wczytywanie i wyświetlanie meczów
-    async function loadMatches() {
-      const list = document.getElementById("matches-list");
-      list.innerHTML = "<p>Ładowanie...</p>";
-      const snap = await db.collection("matches").get();
-      list.innerHTML = "";
-      snap.forEach(doc => {
-        const m = doc.data();
-        const div = document.createElement("div");
-        div.className = "match-card";
-        div.innerHTML = `
-          <h4>${m.teamA} vs ${m.teamB} (${m.group})</h4>
-          <p>Wynik: <input id="ga-${doc.id}" value="${m.goalsA}" type="number" style="width:60px;"> -
-          <input id="gb-${doc.id}" value="${m.goalsB}" type="number" style="width:60px;"></p>
-          <p>Status:
-            <select id="st-${doc.id}">
-              <option ${m.status=="planowany"?"selected":""}>planowany</option>
-              <option ${m.status=="trwa"?"selected":""}>trwa</option>
-              <option ${m.status=="zakończony"?"selected":""}>zakończony</option>
-            </select>
-          </p>
-          <p>Dodaj strzelca:
-            <input id="scorer-${doc.id}" placeholder="Nazwisko">
-            <select id="team-${doc.id}">
-              <option>${m.teamA}</option>
-              <option>${m.teamB}</option>
-            </select>
-            <button onclick="addScorer('${doc.id}')">⚽</button>
-          </p>
-          <p><button onclick="saveMatch('${doc.id}')">💾 Zapisz</button>
-          <button onclick="deleteMatch('${doc.id}')">❌ Usuń</button></p>
-          <small>Strzelcy: ${m.scorers.map(s=>s.name+" ("+s.team+")").join(", ") || "brak"}</small>
-        `;
-        list.appendChild(div);
-      });
-    }
+  // ✅ Edycja wyniku
+  async function updateScore(id, gA, gB) {
+    const a = prompt("Nowe gole dla drużyny A:", gA);
+    const b = prompt("Nowe gole dla drużyny B:", gB);
+    if (a === null || b === null) return;
+    await db.collection("matches").doc(id).update({ goalsA: parseInt(a), goalsB: parseInt(b) });
+    loadMatches();
+  }
 
-    // ✅ Zapisz wynik / status
-    async function saveMatch(id) {
-      const ga = parseInt(document.getElementById(`ga-${id}`).value);
-      const gb = parseInt(document.getElementById(`gb-${id}`).value);
-      const st = document.getElementById(`st-${id}`).value;
-      await db.collection("matches").doc(id).update({ goalsA: ga, goalsB: gb, status: st });
-      alert("Zapisano zmiany!");
-      loadMatches();
-    }
+  // ✅ Dodawanie strzelca
+  async function addScorer(id) {
+    const name = prompt("Imię strzelca:");
+    const team = prompt("Drużyna:");
+    if (!name || !team) return;
+    const matchRef = db.collection("matches").doc(id);
+    await matchRef.update({ scorers: firebase.firestore.FieldValue.arrayUnion({ name, team }) });
+    loadMatches();
+  }
 
-    // ✅ Usuń mecz
-    async function deleteMatch(id) {
-      if (!confirm("Na pewno usunąć mecz?")) return;
+  // ✅ Usuwanie meczu
+  async function deleteMatch(id) {
+    if (confirm("Na pewno usunąć mecz?")) {
       await db.collection("matches").doc(id).delete();
       loadMatches();
     }
+  }
 
-    // ✅ Dodaj strzelca
-    async function addScorer(id) {
-      const name = document.getElementById(`scorer-${id}`).value.trim();
-      const team = document.getElementById(`team-${id}`).value;
-      if (!name) return alert("Podaj nazwisko!");
-      const docRef = db.collection("matches").doc(id);
-      await docRef.update({
-        scorers: firebase.firestore.FieldValue.arrayUnion({ name, team })
-      });
-      document.getElementById(`scorer-${id}`).value = "";
-      loadMatches();
+  // ✅ Renderowanie tabeli i strzelców
+  async function renderTables() {
+    const matches = (await db.collection("matches").get()).docs.map(d => d.data());
+    const tablesDiv = document.getElementById("tables");
+    const scorersDiv = document.getElementById("scorers");
+
+    const tables = {}, scorers = {};
+
+    for (const m of matches) {
+      if (!tables[m.group]) tables[m.group] = {};
+      for (const t of [m.teamA, m.teamB]) if (!tables[m.group][t]) tables[m.group][t] = { pts: 0, gf: 0, ga: 0 };
+      tables[m.group][m.teamA].gf += m.goalsA;
+      tables[m.group][m.teamB].gf += m.goalsB;
+      tables[m.group][m.teamA].ga += m.goalsB;
+      tables[m.group][m.teamB].ga += m.goalsA;
+      if (m.goalsA > m.goalsB) tables[m.group][m.teamA].pts += 3;
+      else if (m.goalsA < m.goalsB) tables[m.group][m.teamB].pts += 3;
+      else tables[m.group][m.teamA].pts += 1, tables[m.group][m.teamB].pts += 1;
+
+      if (m.scorers) {
+        m.scorers.forEach(s => scorers[s.name] = (scorers[s.name] || 0) + 1);
+      }
     }
 
-  </script>
+    tablesDiv.innerHTML = "";
+    for (const g in tables) {
+      let html = `<h3>Grupa ${g}</h3><table><tr><th>Drużyna</th><th>PKT</th><th>GF</th><th>GA</th></tr>`;
+      const sorted = Object.entries(tables[g]).sort((a,b)=>b[1].pts-a[1].pts);
+      sorted.forEach(([t,v])=> html += `<tr><td>${t}</td><td>${v.pts}</td><td>${v.gf}</td><td>${v.ga}</td></tr>`);
+      html += "</table>";
+      tablesDiv.innerHTML += html;
+    }
+
+    const sortedScorers = Object.entries(scorers).sort((a,b)=>b[1]-a[1]);
+    scorersDiv.innerHTML = "<table><tr><th>Zawodnik</th><th>Bramki</th></tr>" + 
+      sortedScorers.map(([n,g])=>`<tr><td>${n}</td><td>${g}</td></tr>`).join("") + "</table>";
+  }
+</script>
+
 </body>
 </html>
