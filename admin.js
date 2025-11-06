@@ -39,6 +39,7 @@ document.getElementById("login-btn").addEventListener("click", async () => {
 
     loadMatches();
     loadTables();
+
   } catch (err) {
     msg.textContent = "Błąd logowania: " + err.message;
     msg.className = "message error";
@@ -67,7 +68,6 @@ document.getElementById("create-team-btn").addEventListener("click", async () =>
     await db.collection("users").doc(cred.user.uid).set({
       role: "teamManager",
       teamId: teamId,
-      email: email
     });
 
     await db.collection("teams").doc(teamId).set({
@@ -119,7 +119,7 @@ document.getElementById("grant-admin-btn").addEventListener("click", async () =>
 });
 
 // ================================
-// 🔹 DODAWANIE MECZU
+// 🔹 MECZE: DODAWANIE
 // ================================
 document.getElementById("add-match-btn").addEventListener("click", async () => {
   const teamA = document.getElementById("teamA").value.trim();
@@ -134,7 +134,8 @@ document.getElementById("add-match-btn").addEventListener("click", async () => {
   }
 
   await db.collection("matches").add({
-    teamA, teamB, group, date, time,
+    teamA, teamB, group,
+    date, time,
     goalsA: 0, goalsB: 0,
     status: "planowany",
     scorers: [],
@@ -153,9 +154,10 @@ async function loadMatches() {
   const list = document.getElementById("matches-list");
   list.innerHTML = "<p>Ładowanie...</p>";
 
-  let query = db.collection("matches").orderBy("date");
-  if (statusFilter !== "wszystkie") query = query.where("status", "==", statusFilter);
-  const snapshot = await query.get();
+  const snapshot = await db.collection("matches")
+    .where("status", "==", statusFilter)
+    .orderBy("date")
+    .get();
 
   list.innerHTML = "";
 
@@ -165,10 +167,10 @@ async function loadMatches() {
     div.className = "match-card";
     div.innerHTML = `
       <div class="match-header">
-        <strong>${m.teamA} (${m.goalsA}) vs (${m.goalsB}) ${m.teamB}</strong><br>
+        <strong>${m.teamA} (${m.goalsA}) vs (${m.goalsB}) ${m.teamB}</strong>
         <small>${m.date} ${m.time}</small>
       </div>
-      <div class="scorer-list">${m.scorers?.map(s => `${s.name} (${s.team})`).join(", ") || "Brak strzelców"}</div>
+      <div class="scorer-list">${m.scorers.map(s => `${s.name} (${s.team})`).join(", ") || "Brak strzelców"}</div>
 
       <div style="margin-top:8px;">
         <input id="ga-${doc.id}" type="number" value="${m.goalsA}" style="width:60px;">
@@ -200,13 +202,13 @@ async function loadMatches() {
 }
 
 // ================================
-// 🔹 ZMIANA STATUSU
+// 🔹 ZMIANA STATUSU (DODANE loadTables)
 // ================================
 async function changeStatus(id) {
   const status = document.getElementById(`status-${id}`).value;
   await db.collection("matches").doc(id).update({ status });
-  await loadMatches();
-  await loadTables();
+  loadMatches();
+  loadTables(); // 🔥 DODANE
 }
 
 // ================================
@@ -216,12 +218,12 @@ async function updateScore(id) {
   const ga = parseInt(document.getElementById(`ga-${id}`).value);
   const gb = parseInt(document.getElementById(`gb-${id}`).value);
   await db.collection("matches").doc(id).update({ goalsA: ga, goalsB: gb });
-  await loadMatches();
-  await loadTables();
+  loadMatches();
+  loadTables();
 }
 
 // ================================
-// 🔹 DODAWANIE STRZELCA
+// 🔹 DODAWANIE STRZELCA (DODANE loadTables)
 // ================================
 async function addScorer(id) {
   const name = document.getElementById(`scorer-${id}`).value.trim();
@@ -234,8 +236,8 @@ async function addScorer(id) {
   });
 
   document.getElementById(`scorer-${id}`).value = "";
-  await loadMatches();
-  await loadTables();
+  loadMatches();
+  loadTables(); // 🔥 DODANE
 }
 
 // ================================
@@ -244,8 +246,8 @@ async function addScorer(id) {
 async function deleteMatch(id) {
   if (!confirm("Czy na pewno chcesz usunąć mecz?")) return;
   await db.collection("matches").doc(id).delete();
-  await loadMatches();
-  await loadTables();
+  loadMatches();
+  loadTables();
 }
 
 // ================================
