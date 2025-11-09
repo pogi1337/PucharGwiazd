@@ -1,103 +1,129 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panel Administratora - Puchar Gwiazd</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Puchar Gwiazd – Panel Administratora</title>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 
-  <style>
-    /* pozostaje taki sam */
-  </style>
+    <!-- STYLE (Twój admin.css podmieniony na link) -->
+    <link rel="stylesheet" href="admin.css" />
 </head>
+
 <body>
 
-<!-- LOGIN -->
+<!-- ============================= -->
+<!--           LOGOWANIE           -->
+<!-- ============================= -->
 <div class="container" id="login-box">
-  <h2>Logowanie admina</h2>
-  <input id="login-email" type="email" placeholder="Email" />
-  <input id="login-pass" type="password" placeholder="Hasło" />
-  <button id="login-btn">Zaloguj</button>
-  <div id="login-msg" class="message"></div>
+    <h2>Logowanie admina</h2>
+
+    <input id="login-email" type="email" placeholder="Email" />
+    <input id="login-pass" type="password" placeholder="Hasło" />
+
+    <button id="login-btn">Zaloguj</button>
+    <div id="login-msg" class="message"></div>
 </div>
 
-<!-- PANEL ADMINA -->
+<!-- ============================= -->
+<!--          PANEL ADMINA         -->
+<!-- ============================= -->
 <div class="panel" id="admin-wrapper" style="display:none;">
 
-  <!-- TWORZENIE DRUŻYNY -->
-  <section>
-    <h2>Tworzenie drużyny</h2>
-    <input id="team-id" placeholder="Nazwa drużyny" />
-    <input id="team-email" type="email" placeholder="Email drużyny" />
-    <input id="team-pass" type="password" placeholder="Hasło (min. 6 znaków)" />
-    <button id="create-team-btn">Utwórz drużynę</button>
-    <div id="team-msg" class="message"></div>
-  </section>
+    <!-- ======================= -->
+    <!--   TWORZENIE DRUŻYNY    -->
+    <!-- ======================= -->
+    <section>
+        <h2>Tworzenie drużyny</h2>
 
-  <!-- NADAWANIE ADMINA -->
-  <section>
-    <h2>Nadawanie uprawnień admina</h2>
-    <input id="new-admin-email" type="email" placeholder="Email użytkownika" />
-    <button id="grant-admin-btn">Nadaj admina</button>
-    <div id="admin-msg" class="message"></div>
-  </section>
+        <input id="team-id" placeholder="Nazwa drużyny" />
+        <input id="team-email" type="email" placeholder="Email drużyny" />
+        <input id="team-pass" type="password" placeholder="Hasło (min. 6 znaków)" />
 
-  <!-- MECZE -->
-  <section>
-    <h2>Zarządzanie meczami</h2>
+        <button id="create-team-btn">Utwórz drużynę</button>
+        <div id="team-msg" class="message"></div>
+    </section>
 
-    <!-- WYBÓR DRUŻYN Z BAZY -->
-    <select id="teamA"></select>
-    <select id="teamB"></select>
+    <!-- ======================= -->
+    <!--    NADAWANIE ADMINA     -->
+    <!-- ======================= -->
+    <section>
+        <h2>Nadawanie uprawnień admina</h2>
 
-    <input id="group" placeholder="Grupa (np. A)" />
-    <input id="match-date" type="date" />
-    <input id="match-time" type="time" />
-    <button id="add-match-btn">Dodaj mecz</button>
+        <input id="new-admin-email" type="email" placeholder="Email użytkownika" />
+        <button id="grant-admin-btn">Nadaj admina</button>
 
-    <h3 style="margin-top:15px;">Filtr statusu</h3>
-    <select id="match-status-filter">
-      <option value="wszyscy">Wszyscy</option>
-      <option value="planowany">Planowane</option>
-      <option value="trwa">Trwające</option>
-      <option value="zakończony">Zakończone</option>
-    </select>
+        <div id="admin-msg" class="message"></div>
+    </section>
 
-    <div id="matches-list"></div>
-  </section>
+    <!-- ======================= -->
+    <!--      ZARZĄDZANIE MECZAMI -->
+    <!-- ======================= -->
+    <section>
+        <h2>Zarządzanie meczami</h2>
 
-  <!-- TABELA GRUPOWA (EDYTOWALNA) -->
-  <section>
-    <h2>Tabele grup</h2>
-    <div id="group-tables" class="group-section"></div>
-  </section>
+        <!-- Drużyny z bazy -->
+        <select id="teamA"></select>
+        <select id="teamB"></select>
 
-  <!-- STRZELCY (EDYCJA) -->
-  <section>
-    <h2>Klasyfikacja strzelców</h2>
+        <input id="group" placeholder="Grupa (np. A)" />
+        <input id="match-date" type="date" />
+        <input id="match-time" type="time" />
 
-    <!-- Dodawanie strzelca -->
-    <input id="scorer-name" placeholder="Zawodnik" />
-    <select id="scorer-team"></select>
-    <input id="scorer-goals" type="number" placeholder="Bramki" />
-    <button id="add-scorer-btn">Dodaj / Zapisz strzelca</button>
+        <button id="add-match-btn">Dodaj mecz</button>
 
-    <table id="scorers-table">
-      <thead>
-        <tr>
-          <th>Zawodnik</th>
-          <th>Drużyna</th>
-          <th>Bramki</th>
-          <th>Akcje</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+        <h3 style="margin-top:15px;">Filtr statusu</h3>
+        <select id="match-status-filter">
+            <option value="wszyscy">Wszyscy</option>
+            <option value="planowany">Planowane</option>
+            <option value="trwa">Trwające</option>
+            <option value="zakończony">Zakończone</option>
+        </select>
+
+        <div id="matches-list"></div>
+    </section>
+
+    <!-- ======================= -->
+    <!--     TABELA GRUPOWA     -->
+    <!-- ======================= -->
+    <section>
+        <h2>Tabele grup</h2>
+
+        <!-- Tu JS wygeneruje tabele -->
+        <div id="group-tables" class="group-section">
+            <p>Ładowanie...</p>
+        </div>
+    </section>
+
+    <!-- ======================= -->
+    <!--    KLASYFIKACJA STRZELCÓW -->
+    <!-- ======================= -->
+    <section>
+        <h2>Klasyfikacja strzelców</h2>
+
+        <!-- Dodawanie / edycja strzelca -->
+        <input id="scorer-name" placeholder="Zawodnik" />
+        <select id="scorer-team"></select>
+        <input id="scorer-goals" type="number" placeholder="Bramki" />
+
+        <button id="add-scorer-btn">Dodaj / Zapisz strzelca</button>
+
+        <table id="scorers-table">
+            <thead>
+                <tr>
+                    <th>Zawodnik</th>
+                    <th>Drużyna</th>
+                    <th>Bramki</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
 
 </div>
 
