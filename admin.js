@@ -1,5 +1,5 @@
 // ==========================================
-// admin.js - Panel Administratora
+// admin.js - Panel Administratora (Wersja z osobną kolekcją Scorers)
 // ==========================================
 
 // 1. KONFIGURACJA FIREBASE
@@ -26,30 +26,24 @@ const loginBox = document.getElementById('login-box');
 const adminPanel = document.getElementById('admin-wrapper');
 const loginMsg = document.getElementById('login-msg');
 
-// Obsługa przycisku logowania
 document.getElementById('login-btn').addEventListener('click', async () => {
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
 
     if (!email || !pass) return;
-
     loginMsg.textContent = "Logowanie...";
     
     try {
         await auth.signInWithEmailAndPassword(email, pass);
-        // onAuthStateChanged zajmie się resztą
     } catch (err) {
         loginMsg.textContent = "Błąd: " + err.message;
-        loginMsg.className = "message error"; // Zakładając, że masz klasę .error w CSS
     }
 });
 
-// Sprawdzanie uprawnień po zalogowaniu
 auth.onAuthStateChanged(async user => {
     if (user) {
         try {
             const doc = await db.collection('users').doc(user.uid).get();
-            // Sprawdzamy czy user ma pole admin: true LUB role: 'admin'
             if (doc.exists && (doc.data().admin === true || doc.data().role === 'admin')) {
                 loginBox.style.display = 'none';
                 adminPanel.style.display = 'block';
@@ -60,8 +54,6 @@ auth.onAuthStateChanged(async user => {
         } catch (e) {
             loginMsg.textContent = e.message;
             auth.signOut();
-            loginBox.style.display = 'block';
-            adminPanel.style.display = 'none';
         }
     } else {
         loginBox.style.display = 'block';
@@ -74,7 +66,8 @@ auth.onAuthStateChanged(async user => {
 // ==========================================
 function initAdminPanel() {
     loadTeamsSelect();
-    loadMatches(); // Nasłuchiwanie meczów
+    loadMatches();        // Ładuje mecze
+    loadGlobalScorers();  // Ładuje tabelę strzelców z kolekcji 'scorers'
 }
 
 // --- A. ŁADOWANIE DRUŻYN DO SELECTÓW ---
@@ -83,13 +76,13 @@ async function loadTeamsSelect() {
     const selectB = document.getElementById('teamB');
     const selectScorerTeam = document.getElementById('scorer-team');
     
-    if(!selectA || !selectB) return;
+    if(!selectA) return;
 
     selectA.innerHTML = '<option value="">Wybierz drużynę A</option>';
     selectB.innerHTML = '<option value="">Wybierz drużynę B</option>';
     if(selectScorerTeam) selectScorerTeam.innerHTML = '<option value="">Wybierz drużynę</option>';
 
-    const snapshot = await db.collection('teams').get();
+    const snapshot = await db.collection('teams').orderBy('name').get();
     
     snapshot.forEach(doc => {
         const t = doc.data();
@@ -111,7 +104,7 @@ document.getElementById('add-match-btn').addEventListener('click', async () => {
     const time = document.getElementById('match-time').value;
 
     if (!teamA || !teamB || !group) {
-        alert("Wybierz obie drużyny i wpisz grupę.");
+        alert("Wybierz drużyny i grupę.");
         return;
     }
 
@@ -124,22 +117,19 @@ document.getElementById('add-match-btn').addEventListener('click', async () => {
             group: group,
             date: date,
             time: time,
-            status: 'scheduled', // WAŻNE: To musi być 'scheduled', 'live' lub 'finished'
-            scorers: [] // Pusta tablica na start (a nie string!)
+            status: 'scheduled'
         });
-        alert("Mecz dodany pomyślnie!");
+        alert("Mecz dodany!");
     } catch (e) {
-        console.error(e);
         alert("Błąd dodawania meczu.");
     }
 });
 
-// --- C. LISTA MECZÓW (Real-time) ---
+// --- C. LISTA MECZÓW (Z funkcją dodawania gola do Globalnej Tabeli) ---
 function loadMatches() {
     const container = document.getElementById('matches-list');
     const statusFilter = document.getElementById('match-status-filter').value;
 
-    // Używamy onSnapshot dla podglądu na żywo
     db.collection('matches').orderBy('date', 'desc').onSnapshot(snapshot => {
         container.innerHTML = '';
         
@@ -151,37 +141,20 @@ function loadMatches() {
         snapshot.forEach(doc => {
             const m = doc.data();
             
-            // Filtr statusu (client-side dla uproszczenia)
+            // Filtr statusu
             if (statusFilter !== 'wszyscy') {
-                // Mapowanie polskich nazw z filtra na angielskie w bazie
                 const mapStatus = { 'planowany': 'scheduled', 'trwa': 'live', 'zakończony': 'finished' };
                 if (m.status !== mapStatus[statusFilter]) return; 
             }
 
             const matchEl = document.createElement('div');
             matchEl.className = 'match-card';
-            // Dodajmy trochę styli inline, jeśli nie masz w CSS
             matchEl.style.background = "#222";
             matchEl.style.color = "#fff";
             matchEl.style.padding = "15px";
             matchEl.style.marginBottom = "15px";
             matchEl.style.borderRadius = "8px";
             matchEl.style.border = m.status === 'live' ? "2px solid #e53935" : "1px solid #444";
-
-            // Status selection Logic
-            const statusOptions = `
-                <option value="scheduled" ${m.status === 'scheduled' ? 'selected' : ''}>📅 Planowany</option>
-                <option value="live" ${m.status === 'live' ? 'selected' : ''}>🔴 NA ŻYWO</option>
-                <option value="finished" ${m.status === 'finished' ? 'selected' : ''}>🏁 Zakończony</option>
-            `;
-
-            // Strzelcy - wyświetlanie
-            let scorersHtml = '';
-            if (Array.isArray(m.scorers)) {
-                scorersHtml = m.scorers.map((s, idx) => 
-                    `<span style="font-size:0.8em; color:#bbb;">⚽ ${s.name} (${s.team}) <span style="cursor:pointer;color:red;" onclick="removeScorer('${doc.id}', ${idx})">[x]</span></span><br>`
-                ).join('');
-            }
 
             matchEl.innerHTML = `
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
@@ -190,28 +163,26 @@ function loadMatches() {
                 </div>
                 
                 <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-                    <input type="number" id="gA-${doc.id}" value="${m.goalsA}" style="width:50px; text-align:center;">
-                    <span>:</span>
-                    <input type="number" id="gB-${doc.id}" value="${m.goalsB}" style="width:50px; text-align:center;">
+                    <h2 style="margin:0 10px;">${m.goalsA} : ${m.goalsB}</h2>
                     
-                    <select id="st-${doc.id}" onchange="updateStatus('${doc.id}', this.value)">
-                        ${statusOptions}
+                    <select id="st-${doc.id}" onchange="updateStatus('${doc.id}', this.value)" style="padding:5px;">
+                        <option value="scheduled" ${m.status === 'scheduled' ? 'selected' : ''}>Planowany</option>
+                        <option value="live" ${m.status === 'live' ? 'selected' : ''}>🔴 NA ŻYWO</option>
+                        <option value="finished" ${m.status === 'finished' ? 'selected' : ''}>🏁 Zakończony</option>
                     </select>
                     
-                    <button onclick="updateScore('${doc.id}')" style="background:#2196f3;color:white;border:none;padding:5px 10px;cursor:pointer;">Zapisz Wynik</button>
-                    <button onclick="deleteMatch('${doc.id}')" style="background:#d32f2f;color:white;border:none;padding:5px 10px;cursor:pointer;">Usuń</button>
+                    <button onclick="deleteMatch('${doc.id}')" style="background:#d32f2f;color:white;border:none;padding:5px 10px;">Usuń</button>
                 </div>
 
-                <div style="border-top:1px solid #444; padding-top:10px;">
-                    <small>Strzelcy:</small><br>
-                    ${scorersHtml}
-                    <div style="margin-top:5px;">
-                        <input type="text" id="sc-name-${doc.id}" placeholder="Nazwisko strzelca" style="width:120px;">
+                <div style="background:#333; padding:10px; border-radius:5px;">
+                    <small>Dodaj Gola (Aktualizuje wynik meczu + Tabelę Strzelców)</small><br>
+                    <div style="margin-top:5px; display:flex; gap:5px;">
+                        <input type="text" id="sc-name-${doc.id}" placeholder="Nazwisko" style="width:100px;">
                         <select id="sc-team-${doc.id}">
                             <option value="${m.teamA}">${m.teamA}</option>
                             <option value="${m.teamB}">${m.teamB}</option>
                         </select>
-                        <button onclick="addMatchScorer('${doc.id}')" style="font-size:0.8em;">+ Dodaj Gola</button>
+                        <button onclick="addGoalAndGlobalScorer('${doc.id}', '${m.teamA}', '${m.teamB}')" style="background:#28a745;color:white;border:none;padding:5px 10px;">⚽ GOL!</button>
                     </div>
                 </div>
             `;
@@ -220,69 +191,117 @@ function loadMatches() {
     });
 }
 
-// --- D. AKCJE NA MECZACH ---
-
-// 1. Aktualizacja wyniku i statusu
-window.updateScore = async (id) => {
-    const gA = parseInt(document.getElementById(`gA-${id}`).value);
-    const gB = parseInt(document.getElementById(`gB-${id}`).value);
+// --- D. LOGIKA "DUAL WRITE" (Mecz + Tabela Strzelców) ---
+window.addGoalAndGlobalScorer = async (matchId, teamAName, teamBName) => {
+    const nameInput = document.getElementById(`sc-name-${matchId}`);
+    const teamSelect = document.getElementById(`sc-team-${matchId}`);
     
-    await db.collection('matches').doc(id).update({
-        goalsA: gA,
-        goalsB: gB
-    });
-    // Status aktualizuje się osobnym eventem onchange, ale wynik zapisujemy guzikiem
-    alert("Wynik zapisany!");
+    const playerName = nameInput.value.trim();
+    const teamName = teamSelect.value; // To będzie teamA lub teamB
+
+    if (!playerName) return alert("Wpisz nazwisko strzelca!");
+
+    // 1. Zaktualizuj wynik meczu w kolekcji 'matches'
+    const matchRef = db.collection('matches').doc(matchId);
+    const updateData = {};
+    
+    if (teamName === teamAName) {
+        updateData.goalsA = firebase.firestore.FieldValue.increment(1);
+    } else {
+        updateData.goalsB = firebase.firestore.FieldValue.increment(1);
+    }
+    
+    await matchRef.update(updateData);
+
+    // 2. Zaktualizuj globalną kolekcję 'scorers'
+    // Najpierw sprawdzamy, czy ten zawodnik już istnieje
+    const scorersRef = db.collection('scorers');
+    const snapshot = await scorersRef.where('name', '==', playerName).where('team', '==', teamName).get();
+
+    if (snapshot.empty) {
+        // Jeśli nie ma - tworzymy nowego
+        await scorersRef.add({
+            name: playerName,
+            team: teamName,
+            goals: 1
+        });
+    } else {
+        // Jeśli jest - inkrementujemy gole
+        const docId = snapshot.docs[0].id;
+        await scorersRef.doc(docId).update({
+            goals: firebase.firestore.FieldValue.increment(1)
+        });
+    }
+
+    alert(`Gol dodany dla: ${playerName}!`);
+    nameInput.value = ''; // Wyczyść pole
+    loadGlobalScorers(); // Odśwież tabelę na dole
 };
 
+// --- E. INNE FUNKCJE MECZOWE ---
 window.updateStatus = async (id, newStatus) => {
     await db.collection('matches').doc(id).update({ status: newStatus });
 };
 
 window.deleteMatch = async (id) => {
-    if(confirm("Czy na pewno usunąć ten mecz?")) {
+    if(confirm("Usunąć mecz?")) {
         await db.collection('matches').doc(id).delete();
     }
 };
 
-// 2. Zarządzanie strzelcami wewnątrz meczu
-window.addMatchScorer = async (matchId) => {
-    const nameInput = document.getElementById(`sc-name-${matchId}`);
-    const teamSelect = document.getElementById(`sc-team-${matchId}`);
-    
-    const name = nameInput.value.trim();
-    const team = teamSelect.value;
+// --- F. TABELA STRZELCÓW (Globalna) ---
+// Ta funkcja wyświetla zawartość kolekcji 'scorers' w tabeli na dole panelu admina
+function loadGlobalScorers() {
+    const tbody = document.querySelector('#scorers-table tbody');
+    if(!tbody) return;
 
-    if (!name) return alert("Wpisz nazwisko strzelca");
+    // Nasłuchujemy zmian w kolekcji scorers
+    db.collection('scorers').orderBy('goals', 'desc').onSnapshot(snapshot => {
+        tbody.innerHTML = '';
+        
+        if (snapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="4">Brak strzelców w bazie.</td></tr>';
+            return;
+        }
 
-    const matchRef = db.collection('matches').doc(matchId);
-    
-    // Używamy arrayUnion żeby dodać obiekt do tablicy
-    await matchRef.update({
-        scorers: firebase.firestore.FieldValue.arrayUnion({
-            name: name,
-            team: team
-        })
+        snapshot.forEach(doc => {
+            const s = doc.data();
+            const row = `
+                <tr>
+                    <td>${s.name}</td>
+                    <td>${s.team}</td>
+                    <td><strong>${s.goals}</strong></td>
+                    <td>
+                        <button onclick="deleteGlobalScorer('${doc.id}')" style="background:red;color:white;border:none;">X</button>
+                        <button onclick="editGlobalScorer('${doc.id}', ${s.goals})" style="background:#444;color:white;border:none;">+1</button>
+                        <button onclick="editGlobalScorer('${doc.id}', -1)" style="background:#444;color:white;border:none;">-1</button>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
     });
+}
 
-    nameInput.value = ''; // Wyczyść pole
-};
-
-window.removeScorer = async (matchId, index) => {
-    // Firestore nie pozwala łatwo usunąć elementu po indeksie przez update()
-    // Musimy pobrać dokument, zmodyfikować tablicę i zapisać całość.
-    const matchRef = db.collection('matches').doc(matchId);
-    const doc = await matchRef.get();
-    
-    if (doc.exists) {
-        let scorers = doc.data().scorers || [];
-        scorers.splice(index, 1); // Usuń element z tablicy
-        await matchRef.update({ scorers: scorers });
+// Funkcje pomocnicze do edycji tabeli ręcznie
+window.deleteGlobalScorer = async (id) => {
+    if(confirm("Usunąć zawodnika z listy króla strzelców?")) {
+        await db.collection('scorers').doc(id).delete();
     }
-};
+}
 
+window.editGlobalScorer = async (id, change) => {
+    // Jeśli change to konkretna liczba (np. -1), to dodajemy ją
+    // Ale w argumencie przekazałem aktualne gole dla +1 (błąd logiczny w przycisku wyżej poprawiony poniżej)
+    // Poprawa logiki:
+    const val = change === -1 ? -1 : 1; 
+    
+    await db.collection('scorers').doc(id).update({
+        goals: firebase.firestore.FieldValue.increment(val)
+    });
+}
 
-// --- E. TWORZENIE DRUŻYNY (Baza) ---
+// --- G. TWORZENIE DRUŻYNY ---
 document.getElementById('create-team-btn').addEventListener('click', async () => {
     const name = document.getElementById('team-id').value;
     const email = document.getElementById('team-email').value;
@@ -292,36 +311,32 @@ document.getElementById('create-team-btn').addEventListener('click', async () =>
     await db.collection('teams').add({
         name: name,
         email: email,
-        group: 'A', // Domyślna
+        group: 'A', 
         points: 0
     });
     
-    alert(`Dodano drużynę ${name}. Pamiętaj utworzyć konto w Authentication ręcznie!`);
-    loadTeamsSelect(); // Odśwież selecty
+    alert(`Dodano drużynę ${name}.`);
+    loadTeamsSelect();
 });
 
-// --- F. NADAWANIE ADMINA ---
-document.getElementById('grant-admin-btn').addEventListener('click', async () => {
-   const email = document.getElementById('new-admin-email').value;
-   // To wymagałoby Cloud Functions, bo z poziomu klienta nie wylistujesz wszystkich userów po emailu 
-   // w łatwy sposób bez odpowiednich indeksów i uprawnień.
-   // Ale spróbujmy prostej metody szukania w kolekcji 'users' jeśli tam trzymasz dane:
-   
-   try {
-       const snapshot = await db.collection('users').where('email', '==', email).get();
-       if (snapshot.empty) {
-           alert("Nie znaleziono użytkownika w bazie 'users' z tym emailem.");
-           return;
-       }
-       snapshot.forEach(async doc => {
-           await db.collection('users').doc(doc.id).update({ role: 'admin', admin: true });
-       });
-       alert("Nadano uprawnienia!");
-   } catch(e) {
-       console.error(e);
-       alert("Błąd. Upewnij się, że masz kolekcję 'users' z polami email.");
-   }
+// --- H. RĘCZNE DODAWANIE DO TABELI STRZELCÓW (Bez meczu) ---
+document.getElementById('add-scorer-btn').addEventListener('click', async () => {
+    const name = document.getElementById('scorer-name').value;
+    const team = document.getElementById('scorer-team').value;
+    const goals = parseInt(document.getElementById('scorer-goals').value);
+
+    if(!name || !team) return alert("Uzupełnij dane");
+
+    await db.collection('scorers').add({
+        name: name,
+        team: team,
+        goals: goals || 0
+    });
+    
+    // Czyść pola
+    document.getElementById('scorer-name').value = '';
+    document.getElementById('scorer-goals').value = '';
 });
 
-// Obsługa filtra w HTML
+// Obsługa filtra
 document.getElementById('match-status-filter').addEventListener('change', loadMatches);
