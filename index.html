@@ -7,37 +7,30 @@
     <meta name="description" content="Oficjalna strona Pucharu Gwiazd. Sprawdź najnowsze wyniki, nadchodzące mecze i tabele grup.">
     
     <!-- ZMIENIONE: Importy Firebase V11 dla Firestore i Autentykacji -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // DODANE: Importy dla Autentykacji
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        
-        // ======================================
-        // LOGIKA JAVASCRIPT
-        // ======================================
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // UWAGA: Zmienne globalne __app_id, __firebase_config i __initial_auth_token są dostarczane przez środowisko Canvas.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    // 🔥 NORMALNA konfiguracja Firebase (Twoja)
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "puchargwiazd-bdaa4",
+        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+        messagingSenderId: "890734185883",
+        appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
+    };
 
-        // Ścieżka do publicznej kolekcji meczów w Firestore
-        const PATH_MATCHES = `artifacts/${appId}/public/data/matches`;
-        
-        let db;
+    // Ścieżka w Firestore, JEŚLI używasz Firestore
+    const PATH_MATCHES = "matches"; 
+    let db;
 
-        // Inicjalizacja Firebase, Autentykacja i Start nasłuchiwania
-        function initializeFirebase() {
-            try {
-                if (Object.keys(firebaseConfig).length === 0) {
-                    console.error("Błąd: Konfiguracja Firebase jest pusta.");
-                    return;
-                }
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                const auth = getAuth(app); // Pobranie instancji Auth
-
+    function initializeFirebase() {
+        try {
+            const app = initializeApp(firebaseConfig);
+            
                 // ZMIENIONE: Dodanie autentykacji, która jest niezbędna do odczytu publicznych danych
                 if (initialAuthToken) {
                     // Próba logowania tokenem
@@ -476,3 +469,4 @@
     </button>
 </body>
 </html>
+
