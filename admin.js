@@ -10,7 +10,6 @@ function showMessage(message, type = 'info', isConfirm = false, callback = null)
     const loginMsgEl = document.getElementById('login-msg');
     
     if (loginMsgEl) {
-        // 🔥 POPRAWKA: Upewnienie się, że komunikat nie próbuje użyć niezdefiniowanej zmiennej.
         loginMsgEl.textContent = message;
         loginMsgEl.className = `message ${type}`;
         if (!isConfirm && type !== 'error') {
@@ -176,6 +175,8 @@ function setupAuthStateListener() {
 
 function initAdminPanel() {
     // Ta funkcja jest wywoływana tylko PO udanym logowaniu/autoryzacji
+    if (!initializeFirebaseClients()) return;
+    
     loadTeamsSelect();
     loadMatches();
     loadGlobalScorers();
