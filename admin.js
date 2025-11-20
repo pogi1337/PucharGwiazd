@@ -55,6 +55,12 @@ const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial
 // Globalne obiekty Firebase
 let app, auth, db;
 
+// 🔥🔥🔥 NAPRAWIONE: DEFINICJE ŚCIEŻEK PRZED FUNKCJAMI, KTÓRE ICH UŻYWAJĄ 🔥🔥🔥
+const PATH_USERS = `artifacts/${appId}/users`;
+const PATH_TEAMS = `artifacts/${appId}/public/data/teams`;
+const PATH_MATCHES = `artifacts/${appId}/public/data/matches`;
+const PATH_SCORERS = `artifacts/${appId}/public/data/scorers`;
+
 
 // ==========================================
 // 2. LOGOWANIE I ZABEZPIECZENIA
@@ -114,7 +120,6 @@ document.getElementById('login-btn').addEventListener('click', async () => {
         showMessage(`Błąd: ${err.message}`, 'error', false);
     }
 });
-
 
 // Główny strażnik dostępu - sprawdza uprawnienia przy każdym odświeżeniu
 function setupAuthStateListener() {
