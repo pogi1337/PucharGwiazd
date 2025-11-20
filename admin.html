@@ -5,104 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Panel Administratora</title>
 
+    <!-- !!! KROK 1: Upewniamy się, że plik CSS jest poprawnie zaimportowany !!! -->
+    <link rel="stylesheet" href="admin.css" />
+
+    <!-- Firebase SDK (Musi być wczytany przed Twoim skryptem) -->
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 
-    <link rel="stylesheet" href="admin.css" />
-
     <style>
-        /* Dodatkowy styl bezpieczeństwa - ukrywa panel domyślnie */
+        /* Styl bezpieczeństwa: ukrywa panel, dopóki JS nie potwierdzi, że to admin */
         #admin-wrapper {
             display: none;
         }
-        /* Styl dla wiadomości */
-        .message { margin-top: 10px; font-weight: bold; }
-        .error { color: red; }
-        .success { color: green; }
     </style>
 </head>
 
 <body>
 
+    <!-- ============================= -->
+    <!-- 1. OKNO LOGOWANIA -->
+    <!-- ============================= -->
     <div class="container" id="login-box">
         <h2>🔐 Logowanie Admina</h2>
-        <input id="login-email" type="email" placeholder="Email" style="display:block; margin: 10px auto; padding: 8px;">
-        <input id="login-pass" type="password" placeholder="Hasło" style="display:block; margin: 10px auto; padding: 8px;">
-        <button id="login-btn" style="padding: 10px 20px; cursor: pointer;">Zaloguj</button>
+        <input id="login-email" type="email" placeholder="Email">
+        <input id="login-pass" type="password" placeholder="Hasło">
+        <button id="login-btn">Zaloguj</button>
         <div id="login-msg" class="message"></div>
     </div>
 
+    <!-- ============================= -->
+    <!-- 2. PANEL WŁAŚCIWY (UKRYTY DOMYŚLNIE) -->
+    <!-- ============================= -->
     <div class="panel" id="admin-wrapper">
         
         <div style="text-align: right; padding: 10px;">
             <button onclick="firebase.auth().signOut()">🚪 Wyloguj</button>
         </div>
 
-        <section style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #f9f9f9;">
+        <!-- A. TWORZENIE DRUŻYNY -->
+        <section>
             <h3>➕ Tworzenie drużyny</h3>
-            <input id="team-id" placeholder="Nazwa drużyny">
-            <input id="team-email" type="email" placeholder="Email kapitana">
-            <button id="create-team-btn">Utwórz drużynę</button>
+            <div class="form-row">
+                <input id="team-id" placeholder="Nazwa drużyny">
+                <input id="team-email" type="email" placeholder="Email kapitana">
+                <button id="create-team-btn">Utwórz drużynę</button>
+            </div>
         </section>
 
-        <section style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #f9f9f9;">
+        <!-- B. ZARZĄDZANIE MECZAMI -->
+        <section>
             <h3>⚽ Zarządzanie meczami</h3>
             
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+            <!-- Dodawanie nowego meczu -->
+            <div class="form-row match-creation-row">
                 <select id="teamA"></select>
                 <span>VS</span>
                 <select id="teamB"></select>
                 <input id="group" placeholder="Grupa (np. A)" style="width: 80px;">
                 <input id="match-date" type="date">
                 <input id="match-time" type="time">
-                <button id="add-match-btn" style="background-color: #28a745; color: white;">Dodaj Mecz</button>
+                <button id="add-match-btn" style="background-color: #00bfff;">Dodaj Mecz</button>
             </div>
 
-            <hr>
-            <label>Pokaż: </label>
-            <select id="match-status-filter">
-                <option value="wszyscy">Wszystkie mecze</option>
-                <option value="planowany">Planowane</option>
-                <option value="trwa">Na Żywo</option>
-                <option value="zakończony">Zakończone</option>
-            </select>
+            <!-- Filtr i Lista -->
+            <hr style="border-color: #1e3a5f; margin: 20px 0;">
+            <div style="margin-bottom: 20px;">
+                <label style="color: #00bfff;">Filtruj status:</label>
+                <select id="match-status-filter" style="width: auto;">
+                    <option value="wszyscy">Wszystkie mecze</option>
+                    <option value="planowany">Planowane</option>
+                    <option value="trwa">Na Żywo</option>
+                    <option value="zakończony">Zakończone</option>
+                </select>
+            </div>
             
-            <div id="matches-list" style="margin-top: 20px;"></div>
+            <div id="matches-list"></div>
         </section>
 
-        <section style="border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #f9f9f9;">
+        <!-- C. KLASYFIKACJA STRZELCÓW -->
+        <section>
             <h3>🏆 Król Strzelców (Globalna Tabela)</h3>
             
-            <div style="margin-bottom: 10px;">
+            <div class="form-row" style="margin-bottom: 20px;">
                 <input id="scorer-name" placeholder="Nazwisko">
                 <select id="scorer-team"></select>
-                <input id="scorer-goals" type="number" placeholder="Gole" style="width: 60px;">
-                <button id="add-scorer-btn">Dodaj ręcznie</button>
+                <input id="scorer-goals" type="number" placeholder="Gole" style="width: 80px;">
+                <button id="add-scorer-btn" style="background-color: #007bff;">Dodaj ręcznie</button>
             </div>
 
-            <table id="scorers-table" border="1" cellpadding="8" style="width: 100%; border-collapse: collapse; background: white;">
-                <thead>
-                    <tr style="background: #eee;">
-                        <th>Zawodnik</th>
-                        <th>Drużyna</th>
-                        <th>Bramki</th>
-                        <th>Akcje</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="table-wrapper">
+                <table id="scorers-table">
+                    <thead>
+                        <tr>
+                            <th>Zawodnik</th>
+                            <th>Drużyna</th>
+                            <th>Bramki</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </section>
 
-        <section style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #f9f9f9;">
+        <!-- D. NADAWANIE ADMINA -->
+        <section>
             <h3>🛡 Nadaj Admina</h3>
-            <input id="new-admin-email" type="email" placeholder="Email użytkownika">
-            <button id="grant-admin-btn">Nadaj uprawnienia</button>
+            <div class="form-row">
+                <input id="new-admin-email" type="email" placeholder="Email użytkownika">
+                <button id="grant-admin-btn" style="background-color: #00bfff;">Nadaj uprawnienia</button>
+            </div>
             <div id="admin-msg" class="message"></div>
         </section>
 
     </div>
 
+    <!-- KLUCZOWE: Skrypt jest ładowany na końcu -->
     <script src="admin.js"></script>
 
 </body>
