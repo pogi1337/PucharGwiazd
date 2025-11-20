@@ -14,9 +14,7 @@
         
         // ======================================
         // KONFIGURACJA ZMIENNYCH GLOBALNYCH (Canvas safe)
-        // ZASTĄPIONO GLOBALNE ZMIENNE CANVAS NA POZIOMIE DEFINICJI, ABY ZAPOBIEC BŁĘDOWI "PUSTA KONFIGURACJA"
-        // Używamy hardkodowanej konfiguracji podanej przez Ciebie wcześniej
-        // Opcja: Jeśli __firebase_config jest puste, użyjemy tego:
+        // ======================================
         const HARDCODED_CONFIG = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -30,7 +28,6 @@
         let firebaseConfig;
 
         try {
-            // Próba użycia zmiennej Canvas. Jeśli nie istnieje, JSON.parse rzuci wyjątek
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 firebaseConfig = JSON.parse(__firebase_config);
             } else {
@@ -52,30 +49,35 @@
         // Inicjalizacja Firebase i Autentykacja
         function initializeFirebase() {
             try {
-                // Usuwamy rzucanie błędu, ponieważ obsługa konfiguracji jest już poza tym blokiem
-                
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 const auth = getAuth(app);
 
-                // Logowanie tokenem lub anonimowe
-                const authPromise = initialAuthToken
-                    ? signInWithCustomToken(auth, initialAuthToken).catch(error => {
-                        console.error("Błąd tokena, próba anonimowego:", error);
-                        return signInAnonymously(auth);
-                    })
-                    : signInAnonymously(auth);
+                // 🔥 KLUCZOWA POPRAWKA: Używamy tylko signInWithCustomToken (lub anonimowo jeśli klucz to pozwala)
+                // Usunięto warunkowe tworzenie konta, które rzucało błąd auth/admin-restricted-operation.
+                
+                let authPromise;
+                if (initialAuthToken) {
+                     // ZAWSZE próbujemy logować tokenem dostarczonym przez środowisko (najbezpieczniejsza opcja)
+                    authPromise = signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    // Jeśli tokena nie ma, próbujemy anonimowo (co może się nie udać, ale jest to awaryjna opcja)
+                    authPromise = signInAnonymously(auth);
+                }
 
                 authPromise.then(() => {
                     console.log("Uwierzytelnienie udane. Rozpoczynam nasłuchiwanie.");
                     listenForMatches();
                     startCountdown();
                 }).catch((error) => {
-                     console.error("Błąd autentykacji, brak dostępu do danych:", error);
+                     console.error("Błąd autentykacji, brak dostępu do danych (Sprawdź reguły Firebase):", error);
+                     // W przypadku błędu autentykacji, nadal próbujemy wyświetlić błąd na stronie
+                     const errorMessage = '<p style="color: red; text-align: center;">BŁĄD DOSTĘPU: Baza danych jest zablokowana lub brak uprawnień.</p>';
+                     document.getElementById('recent-results').innerHTML = `<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>${errorMessage}`;
+                     document.getElementById('upcoming-matches').innerHTML = `<h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3>${errorMessage}`;
                 });
                 
             } catch (error) {
-                // Ten blok catch łapie błędy, które wystąpiłyby po inicjalizacji
                 console.error("Krytyczny błąd inicjalizacji Firebase:", error);
                 const errorMessage = '<p style="color: red; text-align: center;">KRYTYCZNY BŁĄD: Nie można połączyć się z serwerem.</p>';
                 document.getElementById('recent-results').innerHTML = `<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>${errorMessage}`;
