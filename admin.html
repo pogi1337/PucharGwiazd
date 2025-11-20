@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="admin.css" />
 
     <!-- Firebase SDK (Musi być wczytany przed Twoim skryptem) -->
+    <!-- Używasz składni compat, co jest w porządku, ale docelowy kod JS jest modularny -->
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
@@ -122,7 +123,8 @@
     </div>
 
     <!-- KLUCZOWE: Skrypt jest ładowany na końcu -->
-    <script src="admin.js"></script>
+    <!-- 🔥 NAPRAWIONE: Dodano type="module" -->
+    <script src="admin.js" type="module"></script> 
 
 </body>
 </html>
