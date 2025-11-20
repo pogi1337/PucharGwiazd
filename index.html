@@ -6,8 +6,216 @@
     <title>Puchar Gwiazd - Strona Główna</title>
     <meta name="description" content="Oficjalna strona Pucharu Gwiazd. Sprawdź najnowsze wyniki, nadchodzące mecze i tabele grup.">
     
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- ZMIENIONE: Importy Firebase V11 dla Firestore i Autentykacji -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, query, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // DODANE: Importy dla Autentykacji
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // ======================================
+        // LOGIKA JAVASCRIPT
+        // ======================================
+
+        // UWAGA: Zmienne globalne __app_id, __firebase_config i __initial_auth_token są dostarczane przez środowisko Canvas.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Ścieżka do publicznej kolekcji meczów w Firestore
+        const PATH_MATCHES = `artifacts/${appId}/public/data/matches`;
+        
+        let db;
+
+        // Inicjalizacja Firebase, Autentykacja i Start nasłuchiwania
+        function initializeFirebase() {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.error("Błąd: Konfiguracja Firebase jest pusta.");
+                    return;
+                }
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                const auth = getAuth(app); // Pobranie instancji Auth
+
+                // ZMIENIONE: Dodanie autentykacji, która jest niezbędna do odczytu publicznych danych
+                if (initialAuthToken) {
+                    // Próba logowania tokenem
+                    signInWithCustomToken(auth, initialAuthToken)
+                        .then(() => {
+                            console.log("Autentykacja udana z tokenem.");
+                            listenForMatches();
+                        })
+                        .catch((error) => {
+                            console.error("Błąd autentykacji tokenem, próba anonimowego:", error);
+                            signInAnonymously(auth)
+                                .then(() => listenForMatches())
+                                .catch(err => console.error("Błąd anonimowej autentykacji:", err));
+                        });
+                } else {
+                    // Brak tokena, logowanie anonimowe
+                    signInAnonymously(auth)
+                        .then(() => {
+                            console.log("Autentykacja anonimowa udana.");
+                            listenForMatches();
+                        })
+                        .catch(err => console.error("Błąd anonimowej autentykacji:", err));
+                }
+
+                startCountdown();
+            } catch (error) {
+                console.error("Błąd inicjalizacji Firebase:", error);
+                document.getElementById('recent-results').innerHTML = '<p style="color: red;">Błąd ładowania wyników: Skontaktuj się z administratorem.</p>';
+                document.getElementById('upcoming-matches').innerHTML = '<p style="color: red;">Błąd ładowania wyników: Skontaktuj się z administratorem.</p>';
+            }
+        }
+
+        // --------------------------------------
+        // FUNKCJA RENDERUJĄCA POJEDYNCZY MECZ
+        // --------------------------------------
+        function renderMatchItem(match) {
+            const statusClass = match.status === 'trwa' ? 'live' : (match.status === 'zakończony' ? 'finished' : 'scheduled');
+            const statusText = match.status === 'trwa' ? 'LIVE' : (match.status === 'zakończony' ? 'KONIEC' : 'PLAN');
+            
+            const scoreDisplay = (match.status === 'planowany') 
+                ? '- -' 
+                : `${match.scoreA || 0} : ${match.scoreB || 0}`;
+                
+            const details = (match.status === 'planowany')
+                ? `${match.date || ''} ${match.time || ''}`
+                : `Grupa ${match.group || '?'}`;
+
+            return `
+                <div class="match-item">
+                    <span class="team-name">${match.teamA || 'Drużyna A'}</span>
+                    <span class="score-box-container">${scoreDisplay}</span>
+                    <span class="team-name">${match.teamB || 'Drużyna B'}</span>
+                    <span class="status-tag ${statusClass}">${statusText}</span>
+                    <span style="font-size: 0.7em; margin-left: auto; color: #777;">${details}</span>
+                </div>
+            `;
+        }
+
+        // --------------------------------------
+        // NASŁUCHIWANIE I AKTUALIZACJA MECZÓW
+        // --------------------------------------
+        function listenForMatches() {
+            // Zabezpieczenie przed wywołaniem bez inicjalizacji
+            if (!db) {
+                console.error("Błąd: Firestore nie jest zainicjowany.");
+                return;
+            }
+            
+            const matchesRef = collection(db, PATH_MATCHES);
+            const q = query(matchesRef);
+
+            // onSnapshot zapewnia aktualizację w czasie rzeczywistym
+            onSnapshot(q, (snapshot) => {
+                const liveAndUpcomingList = [];
+                const finishedList = [];
+
+                snapshot.docs.forEach(doc => {
+                    const match = doc.data();
+                    
+                    if (match.status === 'zakończony') {
+                        finishedList.push(match);
+                    } else {
+                        // Live i zaplanowane lądują w jednej kolumnie (Nadchodzące)
+                        liveAndUpcomingList.push(match);
+                    }
+                });
+
+                // Sortowanie Live/Zaplanowanych (Live zawsze na górze)
+                liveAndUpcomingList.sort((a, b) => {
+                    if (a.status === 'trwa' && b.status !== 'trwa') return -1;
+                    if (a.status !== 'trwa' && b.status === 'trwa') return 1;
+                    return 0;
+                });
+                
+                // Sortowanie zakończonych (najnowsze na górze)
+                finishedList.sort((a, b) => {
+                    // Zakładając, że każdy mecz ma 'timestamp' lub pole 'date' do sortowania
+                    const dateA = a.date + a.time;
+                    const dateB = b.date + b.time;
+                    return dateB.localeCompare(dateA); // Ostatnio zakończone na górze
+                });
+
+
+                // 1. Renderowanie meczów na żywo i planowanych
+                const upcomingContainer = document.getElementById('upcoming-matches');
+                upcomingContainer.innerHTML = '<h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3>';
+                
+                if (liveAndUpcomingList.length > 0) {
+                    liveAndUpcomingList.forEach(match => {
+                        upcomingContainer.innerHTML += renderMatchItem(match);
+                    });
+                } else {
+                    upcomingContainer.innerHTML += '<p style="text-align: center; color: #999; font-style: italic;">Brak zaplanowanych i aktywnych meczów.</p>';
+                }
+
+
+                // 2. Renderowanie zakończonych wyników
+                const recentContainer = document.getElementById('recent-results');
+                recentContainer.innerHTML = '<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>';
+                
+                if (finishedList.length > 0) {
+                    // Wyświetl tylko 5 ostatnich wyników, aby nie zaśmiecać strony głównej
+                    finishedList.slice(0, 5).forEach(match => {
+                        recentContainer.innerHTML += renderMatchItem(match);
+                    });
+                } else {
+                    recentContainer.innerHTML += '<p style="text-align: center; color: #999; font-style: italic;">Brak zakończonych spotkań.</p>';
+                }
+
+            }, (error) => {
+                console.error("Błąd nasłuchiwania meczów:", error);
+            });
+        }
+        
+        // --------------------------------------
+        // LOGIKA DLA PRZYCISKU THEME I COUNTDOWN (wymagane, by nie było błędów z brakującymi funkcjami)
+        // --------------------------------------
+        
+        function startCountdown() {
+            const tournamentStartTime = new Date("2025-12-01T18:00:00").getTime(); // Przykładowa data
+            const countdownEl = document.getElementById('countdown');
+
+            // Usuń placeholder
+            countdownEl.innerHTML = ''; 
+
+            const updateCountdown = () => {
+                const now = new Date().getTime();
+                const distance = tournamentStartTime - now;
+
+                if (distance < 0) {
+                    countdownEl.innerHTML = '<div>TURNIEJ TRWA!</div>';
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                countdownEl.innerHTML = `
+                    <div>${days}<span>Dni</span></div>
+                    <div>${hours}<span>Godziny</span></div>
+                    <div>${minutes}<span>Minuty</span></div>
+                    <div>${seconds}<span>Sekundy</span></div>
+                `;
+            };
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+
+        // Start aplikacji po załadowaniu DOM
+        window.addEventListener('load', initializeFirebase);
+    </script>
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -119,20 +327,29 @@
         }
         body.dark-mode .stats-column h3 { color: #90caf9; border-bottom-color: #90caf9; }
         
-        .match-item { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px dashed #eee; font-size: 0.85em; }
-        body.dark-mode .match-item { border-bottom: 1px dashed #444; }
-
-        .team-name { font-weight: 700; flex-grow: 1; min-width: 30px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 3px; text-align: right; }
-        .team-name:last-of-type { text-align: left; }
-        .score-box-container {
-            display: flex; align-items: center; justify-content: center; width: 50px; flex-shrink: 0;
-            font-size: 1em; font-weight: 900; color: #000;
+        /* POPRAWIONY STYL DLA ELEMENTU MECZU */
+        .match-item { 
+            display: flex; align-items: center; padding: 8px 5px; 
+            border-bottom: 1px solid #eee; font-size: 0.9em; 
+            transition: background-color 0.3s ease;
         }
-        body.dark-mode .score-box-container { color: #fff; }
+        body.dark-mode .match-item { border-bottom: 1px solid #444; }
+        .match-item:hover { background-color: #f7f7f7; }
+        body.dark-mode .match-item:hover { background-color: #3f51b530; }
+
+
+        .team-name { font-weight: 700; flex: 1; min-width: 30px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 5px; text-align: right; }
+        .team-name:last-of-type { text-align: left; }
+        
+        .score-box-container {
+            display: flex; align-items: center; justify-content: center; width: 60px; flex-shrink: 0;
+            font-size: 1.1em; font-weight: 900; color: #1565c0; padding: 0 5px;
+        }
+        body.dark-mode .score-box-container { color: #90caf9; }
 
         .status-tag {
-            font-size: 0.6em; font-weight: bold; padding: 2px 4px; border-radius: 4px; flex-shrink: 0;
-            margin-left: 3px; text-align: center;
+            font-size: 0.7em; font-weight: bold; padding: 3px 6px; border-radius: 4px; flex-shrink: 0;
+            margin-left: 5px; text-align: center;
         }
         .scheduled { background-color: #ffc107; color: #333; }
         .live { background-color: #dc3545; color: white; animation: pulse 1.5s infinite; }
@@ -230,11 +447,13 @@
         <div class="stats-summary">
             <div id="upcoming-matches" class="stats-column">
                 <h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3>
+                <!-- Treść będzie ładowana dynamicznie przez JS -->
                 <p style="text-align: center;">Ładowanie...</p>
             </div>
             
             <div id="recent-results" class="stats-column">
                 <h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>
+                <!-- Treść będzie ładowana dynamicznie przez JS -->
                 <p style="text-align: center;">Ładowanie...</p>
             </div>
         </div>
@@ -255,6 +474,5 @@
     <button id="theme-toggle" title="Przełącz tryb ciemny">
         <i class="fas fa-moon"></i>
     </button>
-
-    <script src="script.js"></script>           <script src="firebase_matches.js"></script> </body>
+</body>
 </html>
