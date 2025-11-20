@@ -14,9 +14,34 @@
         
         // ======================================
         // KONFIGURACJA ZMIENNYCH GLOBALNYCH (Canvas safe)
-        // ======================================
+        // ZASTĄPIONO GLOBALNE ZMIENNE CANVAS NA POZIOMIE DEFINICJI, ABY ZAPOBIEC BŁĘDOWI "PUSTA KONFIGURACJA"
+        // Używamy hardkodowanej konfiguracji podanej przez Ciebie wcześniej
+        // Opcja: Jeśli __firebase_config jest puste, użyjemy tego:
+        const HARDCODED_CONFIG = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
+        };
+
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        let firebaseConfig;
+
+        try {
+            // Próba użycia zmiennej Canvas. Jeśli nie istnieje, JSON.parse rzuci wyjątek
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } else {
+                firebaseConfig = HARDCODED_CONFIG;
+                console.warn("Użyto hardkodowanej konfiguracji Firebase.");
+            }
+        } catch (e) {
+            console.error("Błąd parsowania __firebase_config, użyto hardkodowanej konfiguracji.");
+            firebaseConfig = HARDCODED_CONFIG;
+        }
+
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Ścieżka do publicznej kolekcji meczów
@@ -27,10 +52,7 @@
         // Inicjalizacja Firebase i Autentykacja
         function initializeFirebase() {
             try {
-                if (Object.keys(firebaseConfig).length === 0) {
-                    // Krytyczny błąd: konfiguracja jest pusta
-                    throw new Error("Konfiguracja Firebase jest pusta.");
-                }
+                // Usuwamy rzucanie błędu, ponieważ obsługa konfiguracji jest już poza tym blokiem
                 
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
@@ -53,6 +75,7 @@
                 });
                 
             } catch (error) {
+                // Ten blok catch łapie błędy, które wystąpiłyby po inicjalizacji
                 console.error("Krytyczny błąd inicjalizacji Firebase:", error);
                 const errorMessage = '<p style="color: red; text-align: center;">KRYTYCZNY BŁĄD: Nie można połączyć się z serwerem.</p>';
                 document.getElementById('recent-results').innerHTML = `<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>${errorMessage}`;
