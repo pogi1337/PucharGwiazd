@@ -40,10 +40,8 @@ let firebaseConfig;
 
 try {
     if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        // Próba użycia zmiennej Canvas
         firebaseConfig = JSON.parse(__firebase_config);
     } else {
-        // Użycie konfiguracji awaryjnej
         firebaseConfig = HARDCODED_CONFIG;
         console.warn("Użyto hardkodowanej konfiguracji Firebase w admin.js.");
     }
@@ -54,14 +52,8 @@ try {
 
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-// Globalne obiekty Firebase, które zostaną zainicjalizowane w initAdminPanel()
+// Globalne obiekty Firebase
 let app, auth, db;
-
-// Ścieżki do kolekcji (wymagane w Canvas)
-const PATH_USERS = `artifacts/${appId}/users`;
-const PATH_TEAMS = `artifacts/${appId}/public/data/teams`;
-const PATH_MATCHES = `artifacts/${appId}/public/data/matches`;
-const PATH_SCORERS = `artifacts/${appId}/public/data/scorers`;
 
 
 // ==========================================
@@ -69,6 +61,23 @@ const PATH_SCORERS = `artifacts/${appId}/public/data/scorers`;
 // ==========================================
 const loginBox = document.getElementById('login-box');
 const adminPanel = document.getElementById('admin-wrapper');
+
+// 🔥 FUNKCJA INICJALIZUJĄCA FIREBASE 🔥
+function initializeFirebaseClients() {
+    try {
+        if (!app) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("Firebase Clients initialized successfully.");
+        }
+    } catch (e) {
+         console.error("KRYTYCZNY BŁĄD INICJALIZACJI FIREBASE:", e);
+         showMessage("KRYTYCZNY BŁĄD: Nie można zainicjować Firebase.", 'error', false);
+         return false;
+    }
+    return true;
+}
 
 // Logowanie tokenem (główna metoda autoryzacji w Canvas)
 async function authenticateWithToken() {
@@ -86,6 +95,9 @@ async function authenticateWithToken() {
 
 // Logowanie e-mail/hasło
 document.getElementById('login-btn').addEventListener('click', async () => {
+    // 1. Inicjalizacja klientów przed logowaniem
+    if (!initializeFirebaseClients()) return;
+    
     if (!auth) {
         showMessage("Błąd: System Firebase nie został poprawnie zainicjowany.", 'error', false);
         return;
@@ -103,12 +115,21 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     }
 });
 
+
 // Główny strażnik dostępu - sprawdza uprawnienia przy każdym odświeżeniu
-// Ta funkcja musi być wywołana po initAdminPanel()
 function setupAuthStateListener() {
+    // Upewnij się, że auth jest dostępne przed ustawieniem listenera
     if (!auth) return;
 
     onAuthStateChanged(auth, async user => {
+        // Zabezpieczenie: jeśli db jest puste, spróbujmy je zainicjalizować
+        if (!db && user) {
+            if (!initializeFirebaseClients()) {
+                signOut(auth);
+                return;
+            }
+        }
+        
         if (user) {
             try {
                 // Sprawdzamy w bazie czy ten user to admin
@@ -147,27 +168,12 @@ function setupAuthStateListener() {
 // 3. FUNKCJE PANELU
 // ==========================================
 
-// 🔥 KLUCZOWA ZMIANA: Inicjalizacja przeniesiona do funkcji startowej
 function initAdminPanel() {
-    try {
-        if (!app) {
-            // Inicjalizuj Firebase tylko raz
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        }
-    } catch (e) {
-         console.error("KRYTYCZNY BŁĄD INICJALIZACJI FIREBASE:", e);
-         showMessage("KRYTYCZNY BŁĄD: Nie można zainicjować Firebase.", 'error', false);
-         return; // Zatrzymaj, jeśli inicjalizacja się nie powiodła
-    }
-
-    // Jeśli inicjalizacja się powiodła, uruchom ładowanie danych
+    // Ta funkcja jest wywoływana tylko PO udanym logowaniu/autoryzacji
     loadTeamsSelect();
     loadMatches();
     loadGlobalScorers();
 }
-
 
 // --- A. ŁADOWANIE DRUŻYN DO LIST WYBORU ---
 async function loadTeamsSelect() {
@@ -580,5 +586,8 @@ document.getElementById('match-status-filter').addEventListener('change', loadMa
 
 // Uruchomienie listenera po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', () => {
-    setupAuthStateListener();
+    // 🔥 Uruchamiamy inicjalizację klientów i nasłuchiwanie stanu autoryzacji
+    if (initializeFirebaseClients()) {
+        setupAuthStateListener();
+    }
 });
