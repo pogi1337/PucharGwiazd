@@ -7,18 +7,14 @@ import {
 
 // Funkcja zastępująca alert() i confirm()
 function showMessage(message, type = 'info', isConfirm = false, callback = null) {
-    // UWAGA: Ta funkcja wymaga, aby w pliku admin.html istniał dedykowany modal/div
-    const msgEl = document.getElementById('custom-message-box');
-    const loginMsgEl = document.getElementById('login-msg'); // Używamy też dla komunikatów logowania
+    const loginMsgEl = document.getElementById('login-msg');
     
     if (loginMsgEl) {
         loginMsgEl.textContent = message;
         loginMsgEl.className = `message ${type}`;
-        // Jeśli to nie jest błąd, ukrywamy po czasie
         if (!isConfirm && type !== 'error') {
              setTimeout(() => loginMsgEl.textContent = '', 3000);
         }
-        // W pełnej implementacji powinna być obsługa modala custom-message-box
         return; 
     }
     console.warn(`[Wiadomość]: ${message}`);
@@ -26,7 +22,7 @@ function showMessage(message, type = 'info', isConfirm = false, callback = null)
 
 
 // ==========================================
-// 1. KONFIGURACJA FIREBASE (MODULARNA I DYNAMICZNA)
+// 1. KONFIGURACJA FIREBASE (MODULARNA I ZABEZPIECZONA)
 // ==========================================
 
 // Zapasowa, hardkodowana konfiguracja (Twoja)
@@ -44,10 +40,10 @@ let firebaseConfig;
 
 try {
     if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        // Jeśli zmienna Canvas istnieje, użyj jej
+        // Próba użycia zmiennej Canvas
         firebaseConfig = JSON.parse(__firebase_config);
     } else {
-        // Jeśli zmienna Canvas jest pusta, użyj hardkodowanej konfiguracji
+        // Użycie konfiguracji awaryjnej
         firebaseConfig = HARDCODED_CONFIG;
         console.warn("Użyto hardkodowanej konfiguracji Firebase w admin.js.");
     }
@@ -60,10 +56,17 @@ const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial
 
 
 // 🔥 KRYTYCZNE INICJALIZOWANIE APLIKACJI
-// Ten kod zostanie wykonany na starcie pliku admin.js:
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Użycie globalnych obiektów app, auth, db musi nastąpić natychmiast,
+// po poprawnej inicjalizacji.
+let app, auth, db;
+try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+} catch (e) {
+    console.error("KRYTYCZNY BŁĄD INICJALIZACJI FIREBASE:", e);
+    showMessage("KRYTYCZNY BŁĄD: Sprawdź klucz API i konfigurację.", 'error', false);
+}
 
 // Ścieżki do kolekcji (wymagane w Canvas)
 const PATH_USERS = `artifacts/${appId}/users`;
@@ -77,18 +80,15 @@ const PATH_SCORERS = `artifacts/${appId}/public/data/scorers`;
 // ==========================================
 const loginBox = document.getElementById('login-box');
 const adminPanel = document.getElementById('admin-wrapper');
-// const loginMsg = document.getElementById('login-msg'); // Używamy showMessage, które używa tego elementu
 
 // Logowanie tokenem (główna metoda autoryzacji w Canvas)
 async function authenticateWithToken() {
-    if (initialAuthToken) {
+    if (initialAuthToken && auth) { // Dodano sprawdzenie, czy auth jest zdefiniowane
         try {
             await signInWithCustomToken(auth, initialAuthToken);
             console.log("Autentykacja tokenem Canvas udana.");
-            // onAuthStateChanged obsłuży przekierowanie do panelu
         } catch (error) {
             console.error("Błąd autentykacji tokenem:", error);
-            // Nadal czekamy na logowanie e-mail/hasło
         }
     } else {
         console.log("Brak tokena Canvas, użyj formularza logowania.");
@@ -97,6 +97,7 @@ async function authenticateWithToken() {
 
 // Logowanie e-mail/hasło
 document.getElementById('login-btn').addEventListener('click', async () => {
+    if (!auth) return; // Zablokuj, jeśli Firebase nie działa
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
 
@@ -112,44 +113,49 @@ document.getElementById('login-btn').addEventListener('click', async () => {
 
 
 // Główny strażnik dostępu - sprawdza uprawnienia przy każdym odświeżeniu
-onAuthStateChanged(auth, async user => {
-    if (user) {
-        try {
-            // Sprawdzamy w bazie czy ten user to admin
-            const docRef = doc(db, PATH_USERS, user.uid);
-            const docSnap = await getDoc(docRef);
-            
-            // Warunek: dokument musi istnieć ORAZ (mieć admin:true LUB role:'admin')
-            if (docSnap.exists() && (docSnap.data().admin === true || docSnap.data().role === 'admin')) {
-                // JEST ADMINEM -> POKAŻ PANEL
-                loginBox.style.display = 'none';
-                adminPanel.style.display = 'block';
-                initAdminPanel(); // Załaduj dane
-            } else {
-                // NIE JEST ADMINEM -> Wyrzuć
-                throw new Error("To konto nie ma uprawnień administratora.");
+if (auth) {
+    onAuthStateChanged(auth, async user => {
+        if (user) {
+            try {
+                // Sprawdzamy w bazie czy ten user to admin
+                const docRef = doc(db, PATH_USERS, user.uid);
+                const docSnap = await getDoc(docRef);
+                
+                // Warunek: dokument musi istnieć ORAZ (mieć admin:true LUB role:'admin')
+                if (docSnap.exists() && (docSnap.data().admin === true || docSnap.data().role === 'admin')) {
+                    // JEST ADMINEM -> POKAŻ PANEL
+                    loginBox.style.display = 'none';
+                    adminPanel.style.display = 'block';
+                    initAdminPanel(); // Załaduj dane
+                } else {
+                    // NIE JEST ADMINEM -> Wyrzuć
+                    throw new Error("To konto nie ma uprawnień administratora.");
+                }
+            } catch (e) {
+                showMessage(e.message, 'error', false);
+                signOut(auth); // Wyloguj natychmiast
+                loginBox.style.display = 'block';
+                adminPanel.style.display = 'none';
             }
-        } catch (e) {
-            showMessage(e.message, 'error', false);
-            signOut(auth); // Wyloguj natychmiast
+        } else {
+            // Nikt nie jest zalogowany
             loginBox.style.display = 'block';
             adminPanel.style.display = 'none';
         }
-    } else {
-        // Nikt nie jest zalogowany
-        loginBox.style.display = 'block';
-        adminPanel.style.display = 'none';
-    }
-});
+    });
 
-// Uruchomienie autentykacji tokenem przy starcie
-authenticateWithToken();
+    // Uruchomienie autentykacji tokenem przy starcie
+    authenticateWithToken();
+}
 
 
 // ==========================================
 // 3. FUNKCJE PANELU
 // ==========================================
 function initAdminPanel() {
+    // Dodano zabezpieczenie na wypadek braku inicjalizacji db
+    if (!db) return;
+    
     loadTeamsSelect();
     loadMatches();
     loadGlobalScorers();
@@ -161,7 +167,7 @@ async function loadTeamsSelect() {
     const selectB = document.getElementById('teamB');
     const selectScorerTeam = document.getElementById('scorer-team');
     
-    if(!selectA) return;
+    if(!selectA || !db) return;
 
     const defaultOpt = '<option value="">-- Wybierz --</option>';
     selectA.innerHTML = defaultOpt;
@@ -190,6 +196,8 @@ async function loadTeamsSelect() {
 
 // --- B. DODAWANIE MECZU ---
 document.getElementById('add-match-btn').addEventListener('click', async () => {
+    if (!db) return; // Zabezpieczenie
+    
     const teamA = document.getElementById('teamA').value;
     const teamB = document.getElementById('teamB').value;
     const group = document.getElementById('group').value;
@@ -223,11 +231,12 @@ document.getElementById('add-match-btn').addEventListener('click', async () => {
 
 // --- C. LISTA MECZÓW I ZARZĄDZANIE ---
 function loadMatches() {
+    if (!db) return; // Zabezpieczenie
+    
     const container = document.getElementById('matches-list');
     const statusFilter = document.getElementById('match-status-filter').value;
 
     const matchesCol = collection(db, PATH_MATCHES);
-    // UWAGA: Nie używamy orderBy w onSnapshot, aby uniknąć błędów z indeksami, sortowanie wykonujemy w pamięci
     onSnapshot(matchesCol, (snapshot) => {
         container.innerHTML = '';
         
@@ -308,6 +317,8 @@ function loadMatches() {
 
 // Globalne funkcje dołączone do window dla onchange/onclick
 window.updateStatus = async (id, newStatus) => {
+    if (!db) return; // Zabezpieczenie
+    
     const matchRef = doc(db, PATH_MATCHES, id);
     try {
         await updateDoc(matchRef, { status: newStatus });
@@ -318,6 +329,8 @@ window.updateStatus = async (id, newStatus) => {
 };
 
 window.updateScore = async (id) => {
+    if (!db) return; // Zabezpieczenie
+    
     const gA = parseInt(document.getElementById(`gA-${id}`).value) || 0;
     const gB = parseInt(document.getElementById(`gB-${id}`).value) || 0;
     const matchRef = doc(db, PATH_MATCHES, id);
@@ -338,6 +351,8 @@ window.deleteMatchPrompt = (id) => {
 };
 
 async function deleteMatch(id) {
+    if (!db) return; // Zabezpieczenie
+    
     const matchRef = doc(db, PATH_MATCHES, id);
     try {
         await deleteDoc(matchRef);
@@ -350,6 +365,8 @@ async function deleteMatch(id) {
 
 // --- D. LOGIKA "DUAL WRITE" (Aktualizacja Mecz + Scorers) ---
 window.addGoalAndGlobalScorer = async (matchId, teamAName, teamBName) => {
+    if (!db) return; // Zabezpieczenie
+    
     const nameInput = document.getElementById(`sc-name-${matchId}`);
     const teamSelect = document.getElementById(`sc-team-${matchId}`);
     
@@ -402,6 +419,8 @@ window.addGoalAndGlobalScorer = async (matchId, teamAName, teamBName) => {
 
 // --- E. TABELA STRZELCÓW (Wyświetlanie kolekcji 'scorers') ---
 function loadGlobalScorers() {
+    if (!db) return; // Zabezpieczenie
+    
     const tbody = document.querySelector('#scorers-table tbody');
     if(!tbody) return;
 
@@ -438,6 +457,8 @@ function loadGlobalScorers() {
 }
 
 window.editGlobalScorer = async (id, val) => {
+    if (!db) return; // Zabezpieczenie
+    
     const scorerRef = doc(db, PATH_SCORERS, id);
     try {
         await updateDoc(scorerRef, { goals: FieldValue.increment(val) });
@@ -455,6 +476,8 @@ window.deleteGlobalScorerPrompt = (id) => {
 };
 
 async function deleteGlobalScorer(id) {
+    if (!db) return; // Zabezpieczenie
+    
     const scorerRef = doc(db, PATH_SCORERS, id);
     try {
         await deleteDoc(scorerRef);
@@ -465,6 +488,8 @@ async function deleteGlobalScorer(id) {
 }
 
 document.getElementById('add-scorer-btn').addEventListener('click', async () => {
+    if (!db) return; // Zabezpieczenie
+    
     const name = document.getElementById('scorer-name').value;
     const team = document.getElementById('scorer-team').value;
     const goals = parseInt(document.getElementById('scorer-goals').value) || 0;
@@ -484,6 +509,8 @@ document.getElementById('add-scorer-btn').addEventListener('click', async () => 
 
 // --- F. TWORZENIE DRUŻYNY ---
 document.getElementById('create-team-btn').addEventListener('click', async () => {
+    if (!db) return; // Zabezpieczenie
+    
     const name = document.getElementById('team-id').value;
     const email = document.getElementById('team-email').value;
 
@@ -514,6 +541,8 @@ document.getElementById('create-team-btn').addEventListener('click', async () =>
 
 // --- G. NADAWANIE ADMINA ---
 document.getElementById('grant-admin-btn').addEventListener('click', async () => {
+    if (!db) return; // Zabezpieczenie
+    
     const email = document.getElementById('new-admin-email').value;
     if (!email) return showMessage("Wpisz email!", 'warning', false);
 
