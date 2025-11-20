@@ -22,7 +22,7 @@ function showMessage(message, type = 'info', isConfirm = false, callback = null)
 
 
 // ==========================================
-// 1. KONFIGURACJA FIREBASE (MODULARNA I ZABEZPIECZONA)
+// 1. KONFIGURACJA ZMIENNYCH GLOBALNYCH
 // ==========================================
 
 // Zapasowa, hardkodowana konfiguracja (Twoja)
@@ -54,19 +54,8 @@ try {
 
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-
-// 🔥 KRYTYCZNE INICJALIZOWANIE APLIKACJI
-// Użycie globalnych obiektów app, auth, db musi nastąpić natychmiast,
-// po poprawnej inicjalizacji.
+// Globalne obiekty Firebase, które zostaną zainicjalizowane w initAdminPanel()
 let app, auth, db;
-try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-} catch (e) {
-    console.error("KRYTYCZNY BŁĄD INICJALIZACJI FIREBASE:", e);
-    showMessage("KRYTYCZNY BŁĄD: Sprawdź klucz API i konfigurację.", 'error', false);
-}
 
 // Ścieżki do kolekcji (wymagane w Canvas)
 const PATH_USERS = `artifacts/${appId}/users`;
@@ -83,7 +72,7 @@ const adminPanel = document.getElementById('admin-wrapper');
 
 // Logowanie tokenem (główna metoda autoryzacji w Canvas)
 async function authenticateWithToken() {
-    if (initialAuthToken && auth) { // Dodano sprawdzenie, czy auth jest zdefiniowane
+    if (initialAuthToken && auth) {
         try {
             await signInWithCustomToken(auth, initialAuthToken);
             console.log("Autentykacja tokenem Canvas udana.");
@@ -97,7 +86,10 @@ async function authenticateWithToken() {
 
 // Logowanie e-mail/hasło
 document.getElementById('login-btn').addEventListener('click', async () => {
-    if (!auth) return; // Zablokuj, jeśli Firebase nie działa
+    if (!auth) {
+        showMessage("Błąd: System Firebase nie został poprawnie zainicjowany.", 'error', false);
+        return;
+    }
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
 
@@ -111,9 +103,11 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     }
 });
 
-
 // Główny strażnik dostępu - sprawdza uprawnienia przy każdym odświeżeniu
-if (auth) {
+// Ta funkcja musi być wywołana po initAdminPanel()
+function setupAuthStateListener() {
+    if (!auth) return;
+
     onAuthStateChanged(auth, async user => {
         if (user) {
             try {
@@ -152,14 +146,28 @@ if (auth) {
 // ==========================================
 // 3. FUNKCJE PANELU
 // ==========================================
+
+// 🔥 KLUCZOWA ZMIANA: Inicjalizacja przeniesiona do funkcji startowej
 function initAdminPanel() {
-    // Dodano zabezpieczenie na wypadek braku inicjalizacji db
-    if (!db) return;
-    
+    try {
+        if (!app) {
+            // Inicjalizuj Firebase tylko raz
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        }
+    } catch (e) {
+         console.error("KRYTYCZNY BŁĄD INICJALIZACJI FIREBASE:", e);
+         showMessage("KRYTYCZNY BŁĄD: Nie można zainicjować Firebase.", 'error', false);
+         return; // Zatrzymaj, jeśli inicjalizacja się nie powiodła
+    }
+
+    // Jeśli inicjalizacja się powiodła, uruchom ładowanie danych
     loadTeamsSelect();
     loadMatches();
     loadGlobalScorers();
 }
+
 
 // --- A. ŁADOWANIE DRUŻYN DO LIST WYBORU ---
 async function loadTeamsSelect() {
@@ -569,3 +577,8 @@ document.getElementById('grant-admin-btn').addEventListener('click', async () =>
 
 // Obsługa filtra statusu
 document.getElementById('match-status-filter').addEventListener('change', loadMatches);
+
+// Uruchomienie listenera po załadowaniu DOM
+document.addEventListener('DOMContentLoaded', () => {
+    setupAuthStateListener();
+});
