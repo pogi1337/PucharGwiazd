@@ -10,6 +10,7 @@ function showMessage(message, type = 'info', isConfirm = false, callback = null)
     const loginMsgEl = document.getElementById('login-msg');
     
     if (loginMsgEl) {
+        // 🔥 POPRAWKA: Upewnienie się, że komunikat nie próbuje użyć niezdefiniowanej zmiennej.
         loginMsgEl.textContent = message;
         loginMsgEl.className = `message ${type}`;
         if (!isConfirm && type !== 'error') {
@@ -55,7 +56,7 @@ const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial
 // Globalne obiekty Firebase
 let app, auth, db;
 
-// 🔥🔥🔥 NAPRAWIONE: DEFINICJE ŚCIEŻEK PRZED FUNKCJAMI, KTÓRE ICH UŻYWAJĄ 🔥🔥🔥
+// DEFINICJE ŚCIEŻEK
 const PATH_USERS = `artifacts/${appId}/users`;
 const PATH_TEAMS = `artifacts/${appId}/public/data/teams`;
 const PATH_MATCHES = `artifacts/${appId}/public/data/matches`;
