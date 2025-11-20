@@ -31,36 +31,6 @@
         try {
             const app = initializeApp(firebaseConfig);
             
-                // ZMIENIONE: Dodanie autentykacji, która jest niezbędna do odczytu publicznych danych
-                if (initialAuthToken) {
-                    // Próba logowania tokenem
-                    signInWithCustomToken(auth, initialAuthToken)
-                        .then(() => {
-                            console.log("Autentykacja udana z tokenem.");
-                            listenForMatches();
-                        })
-                        .catch((error) => {
-                            console.error("Błąd autentykacji tokenem, próba anonimowego:", error);
-                            signInAnonymously(auth)
-                                .then(() => listenForMatches())
-                                .catch(err => console.error("Błąd anonimowej autentykacji:", err));
-                        });
-                } else {
-                    // Brak tokena, logowanie anonimowe
-                    signInAnonymously(auth)
-                        .then(() => {
-                            console.log("Autentykacja anonimowa udana.");
-                            listenForMatches();
-                        })
-                        .catch(err => console.error("Błąd anonimowej autentykacji:", err));
-                }
-
-                startCountdown();
-            } catch (error) {
-                console.error("Błąd inicjalizacji Firebase:", error);
-                document.getElementById('recent-results').innerHTML = '<p style="color: red;">Błąd ładowania wyników: Skontaktuj się z administratorem.</p>';
-                document.getElementById('upcoming-matches').innerHTML = '<p style="color: red;">Błąd ładowania wyników: Skontaktuj się z administratorem.</p>';
-            }
         }
 
         // --------------------------------------
@@ -469,4 +439,5 @@
     </button>
 </body>
 </html>
+
 
