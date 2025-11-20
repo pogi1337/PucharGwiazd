@@ -7,42 +7,21 @@ import {
 
 // Funkcja zastępująca alert() i confirm()
 function showMessage(message, type = 'info', isConfirm = false, callback = null) {
+    // UWAGA: Ta funkcja wymaga, aby w pliku admin.html istniał dedykowany modal/div
     const msgEl = document.getElementById('custom-message-box');
-    const msgText = document.getElementById('custom-message-text');
-    const msgConfirm = document.getElementById('custom-message-confirm');
-    const msgCancel = document.getElementById('custom-message-cancel');
+    const loginMsgEl = document.getElementById('login-msg'); // Używamy też dla komunikatów logowania
     
-    if (!msgEl) return console.error('Brak elementu custom-message-box.');
-
-    msgText.textContent = message;
-    msgEl.className = 'message-box show ' + type;
-    
-    if (isConfirm) {
-        msgConfirm.style.display = 'inline-block';
-        msgCancel.style.display = 'inline-block';
-        
-        const confirmHandler = () => {
-            msgEl.classList.remove('show');
-            msgConfirm.removeEventListener('click', confirmHandler);
-            msgCancel.removeEventListener('click', cancelHandler);
-            if (callback) callback(true);
-        };
-        const cancelHandler = () => {
-            msgEl.classList.remove('show');
-            msgConfirm.removeEventListener('click', confirmHandler);
-            msgCancel.removeEventListener('click', cancelHandler);
-            if (callback) callback(false);
-        };
-
-        msgConfirm.onclick = confirmHandler;
-        msgCancel.onclick = cancelHandler;
-        
-    } else {
-        msgConfirm.style.display = 'none';
-        msgCancel.style.display = 'none';
-        // Automatyczne ukrywanie po 3 sekundach
-        setTimeout(() => msgEl.classList.remove('show'), 3000);
+    if (loginMsgEl) {
+        loginMsgEl.textContent = message;
+        loginMsgEl.className = `message ${type}`;
+        // Jeśli to nie jest błąd, ukrywamy po czasie
+        if (!isConfirm && type !== 'error') {
+             setTimeout(() => loginMsgEl.textContent = '', 3000);
+        }
+        // W pełnej implementacji powinna być obsługa modala custom-message-box
+        return; 
     }
+    console.warn(`[Wiadomość]: ${message}`);
 }
 
 
@@ -50,15 +29,38 @@ function showMessage(message, type = 'info', isConfirm = false, callback = null)
 // 1. KONFIGURACJA FIREBASE (MODULARNA I DYNAMICZNA)
 // ==========================================
 
-// Globalne zmienne Canvas (dostępne w środowisku)
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+// Zapasowa, hardkodowana konfiguracja (Twoja)
+const HARDCODED_CONFIG = {
+    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+    projectId: "puchargwiazd-bdaa4",
+    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+    messagingSenderId: "890734185883",
+    appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
+};
 
-if (Object.keys(firebaseConfig).length === 0) {
-    console.error("Błąd: Konfiguracja Firebase jest pusta.");
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+let firebaseConfig;
+
+try {
+    if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        // Jeśli zmienna Canvas istnieje, użyj jej
+        firebaseConfig = JSON.parse(__firebase_config);
+    } else {
+        // Jeśli zmienna Canvas jest pusta, użyj hardkodowanej konfiguracji
+        firebaseConfig = HARDCODED_CONFIG;
+        console.warn("Użyto hardkodowanej konfiguracji Firebase w admin.js.");
+    }
+} catch (e) {
+    console.error("Błąd parsowania __firebase_config, użyto hardkodowanej konfiguracji.");
+    firebaseConfig = HARDCODED_CONFIG;
 }
 
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+
+// 🔥 KRYTYCZNE INICJALIZOWANIE APLIKACJI
+// Ten kod zostanie wykonany na starcie pliku admin.js:
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -75,7 +77,7 @@ const PATH_SCORERS = `artifacts/${appId}/public/data/scorers`;
 // ==========================================
 const loginBox = document.getElementById('login-box');
 const adminPanel = document.getElementById('admin-wrapper');
-const loginMsg = document.getElementById('login-msg');
+// const loginMsg = document.getElementById('login-msg'); // Używamy showMessage, które używa tego elementu
 
 // Logowanie tokenem (główna metoda autoryzacji w Canvas)
 async function authenticateWithToken() {
@@ -89,7 +91,6 @@ async function authenticateWithToken() {
             // Nadal czekamy na logowanie e-mail/hasło
         }
     } else {
-        // Jeśli nie ma tokena, czekamy na logowanie przez formularz.
         console.log("Brak tokena Canvas, użyj formularza logowania.");
     }
 }
@@ -104,15 +105,9 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     
     try {
         await signInWithEmailAndPassword(auth, email, pass);
-        // onAuthStateChanged zajmie się resztą
     } catch (err) {
         showMessage(`Błąd: ${err.message}`, 'error', false);
     }
-});
-
-// Wylogowanie
-document.getElementById('logout-btn').addEventListener('click', () => {
-    signOut(auth);
 });
 
 
@@ -126,7 +121,7 @@ onAuthStateChanged(auth, async user => {
             
             // Warunek: dokument musi istnieć ORAZ (mieć admin:true LUB role:'admin')
             if (docSnap.exists() && (docSnap.data().admin === true || docSnap.data().role === 'admin')) {
-                // JEST ADMINEM -> Pokaż panel
+                // JEST ADMINEM -> POKAŻ PANEL
                 loginBox.style.display = 'none';
                 adminPanel.style.display = 'block';
                 initAdminPanel(); // Załaduj dane
@@ -262,8 +257,8 @@ function loadMatches() {
 
             const div = document.createElement('div');
             // Styl karty meczu
-            div.style.cssText = "background: #fff; border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);";
-            if(m.status === 'live') div.style.border = "2px solid #e53935";
+            div.style.cssText = "background: #0a0a1f; border: 1px solid #1e3a5f; padding: 20px; margin-bottom: 15px; border-radius: 12px; color: white;";
+            if(m.status === 'live') div.style.border = "2px solid #ff4d4d"; // Użycie koloru z CSS
 
             // Opcje statusu
             const statusOptions = `
@@ -275,27 +270,27 @@ function loadMatches() {
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold; font-size: 1.1em;">
                     <span>${m.teamA} vs ${m.teamB}</span>
-                    <span style="color:#888;">Gr. ${m.group} (${m.date} ${m.time})</span>
+                    <span style="color:#00bfff;">Gr. ${m.group} (${m.date} ${m.time})</span>
                 </div>
                 
-                <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px; background:#f1f1f1; padding:10px; border-radius:5px;">
-                    <input type="number" id="gA-${m.id}" value="${m.goalsA}" style="width:50px; text-align:center; font-weight:bold;">
-                    <span>:</span>
-                    <input type="number" id="gB-${m.id}" value="${m.goalsB}" style="width:50px; text-align:center; font-weight:bold;">
+                <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px; background:#101a2e; padding:10px; border-radius:5px;">
+                    <input type="number" id="gA-${m.id}" value="${m.goalsA}" style="width:50px; text-align:center; font-weight:bold; color:white; background:#0a0a1f; border:1px solid #1e3a5f;">
+                    <span style="font-weight:bold;">:</span>
+                    <input type="number" id="gB-${m.id}" value="${m.goalsB}" style="width:50px; text-align:center; font-weight:bold; color:white; background:#0a0a1f; border:1px solid #1e3a5f;">
                     
-                    <select onchange="updateStatus('${m.id}', this.value)">
+                    <select onchange="updateStatus('${m.id}', this.value)" style="width:auto; padding:8px; background:#1e3a5f; color:white;">
                         ${statusOptions}
                     </select>
                     
                     <button onclick="updateScore('${m.id}')" style="background:#007bff;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;">Zapisz Wynik</button>
-                    <button onclick="deleteMatchPrompt('${m.id}')" style="background:#dc3545;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;margin-left:auto;">Usuń Mecz</button>
+                    <button onclick="deleteMatchPrompt('${m.id}')" style="background:#dc3545;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;margin-left:auto;">🗑 Usuń</button>
                 </div>
 
-                <div style="border-top:1px solid #eee; padding-top:10px;">
-                    <small style="color:#666; display:block; margin-bottom:5px;">Dodaj strzelca (Aktualizuje wynik i tabelę króla strzelców):</small>
+                <div style="border-top:1px solid #1e3a5f; padding-top:10px;">
+                    <small style="color:#00bfff; display:block; margin-bottom:5px;">Dodaj strzelca (Aktualizuje wynik i tabelę króla strzelców):</small>
                     <div style="display:flex; gap:5px;">
-                        <input type="text" id="sc-name-${m.id}" placeholder="Nazwisko" style="width:120px;">
-                        <select id="sc-team-${m.id}">
+                        <input type="text" id="sc-name-${m.id}" placeholder="Nazwisko" style="width:120px; background:#0a0a1f;">
+                        <select id="sc-team-${m.id}" style="width:auto; background:#0a0a1f;">
                             <option value="${m.teamA}">${m.teamA}</option>
                             <option value="${m.teamB}">${m.teamB}</option>
                         </select>
