@@ -2,9 +2,9 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Kapitana</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Kapitana - Puchar Gwiazd</title>
 
-    <!-- Firebase SDK v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -16,6 +16,8 @@
             --card: #111;
             --text: #e0e0e0;
             --border: #1e1e1e;
+            --error: #ff4444;
+            --success: #00C851;
         }
 
         body {
@@ -31,15 +33,48 @@
             text-align: center;
         }
 
+        /* --- WIDOKI (Kontenery) --- */
+        #login-view, #panel-view {
+            max-width: 700px;
+            margin: 0 auto;
+            display: none; /* Domyślnie ukryte, JS steruje widocznością */
+        }
+
+        /* --- STYL LOGOWANIA --- */
+        .login-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 50px;
+            box-shadow: 0 0 20px rgba(33,150,243,0.15);
+        }
+
+        .login-box input {
+            width: 100%;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            color: white;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .message-area {
+            text-align: center;
+            margin-top: 15px;
+            min-height: 20px;
+            font-size: 14px;
+        }
+        .error-msg { color: var(--error); }
+        .success-msg { color: var(--success); }
+
+        /* --- STYL PANELU --- */
         #team-name {
             text-align: center;
             font-size: 1.2rem;
             margin-bottom: 20px;
-        }
-
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
         }
 
         .player-card {
@@ -56,14 +91,22 @@
             box-shadow: 0 0 20px rgba(33,150,243,0.3);
         }
 
+        .player-card label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 5px;
+            display: block;
+        }
+
         .player-card input {
             width: 100%;
             background: #0d0d0d;
             border: 1px solid #222;
             color: var(--text);
             padding: 8px;
-            margin: 6px 0;
+            margin: 4px 0 10px 0;
             border-radius: 6px;
+            box-sizing: border-box;
         }
 
         .btn {
@@ -77,36 +120,17 @@
             transition: 0.3s;
         }
 
-        .btn:hover {
-            background: #1976d2;
-        }
-
-        .btn-delete {
-            background: #e53935;
-        }
-
-        .btn-delete:hover {
-            background: #c62828;
-        }
-
-        .add-btn {
-            display: block;
-            width: 100%;
-            background: var(--blue);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 20px 0;
-        }
-
+        .btn:hover { background: #1976d2; }
+        .btn-full { width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; }
+        .btn-delete { background: #e53935; }
+        .btn-delete:hover { background: #c62828; }
+        
         .logout {
             margin-top: 30px;
             text-align: center;
             color: #888;
             cursor: pointer;
+            text-decoration: underline;
         }
 
         /* Modal */
@@ -116,209 +140,299 @@
             z-index: 10;
             left: 0; top: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
         }
 
         .modal-content {
             background: var(--card);
-            padding: 20px;
+            padding: 25px;
             border-radius: 10px;
             width: 90%;
             max-width: 400px;
+            border: 1px solid var(--border);
         }
-
+        
         .modal-content input {
             width: 100%;
-            padding: 8px;
-            margin: 6px 0;
-            border-radius: 6px;
-            border: 1px solid #333;
+            padding: 10px;
+            margin: 8px 0;
             background: #0d0d0d;
-            color: var(--text);
-        }
-
-        .modal-buttons {
-            text-align: right;
-            margin-top: 10px;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
         }
 
         .close {
             color: #aaa;
             float: right;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
+            margin-top: -10px;
         }
+        .close:hover { color: white; }
 
-        .close:hover {
-            color: white;
-        }
-
-        @media (max-width: 600px) {
-            .player-card {
-                padding: 12px;
-            }
-            input { font-size: 14px; }
+        /* Loader */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>⚽ Panel Kapitana</h2>
-    <p id="team-name">Ładowanie drużyny...</p>
 
-    <h3>Zawodnicy</h3>
-    <button class="add-btn" onclick="openModal()">➕ Dodaj zawodnika</button>
-    <div id="players-list"></div>
+    <div id="loading-screen">
+        <h3>🔄 Wczytywanie...</h3>
+    </div>
 
-    <p class="logout" onclick="logout()">🚪 Wyloguj</p>
-</div>
-
-<!-- Modal dodawania zawodnika -->
-<div id="addModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h3>Dodaj zawodnika</h3>
-
-        <input id="new-name" placeholder="Imię">
-        <input id="new-surname" placeholder="Nazwisko">
-        <input id="new-number" placeholder="Numer" type="number">
-        <input id="new-position" placeholder="Pozycja">
-
-        <div class="modal-buttons">
-            <button class="btn" onclick="addPlayer()">Zapisz</button>
+    <div id="login-view">
+        <div class="login-box">
+            <h2>🔐 Logowanie Kapitana</h2>
+            <form id="login-form">
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Hasło" required>
+                <button type="submit" class="btn btn-full">Zaloguj</button>
+            </form>
+            <div id="login-msg" class="message-area"></div>
         </div>
     </div>
-</div>
+
+    <div id="panel-view">
+        <h2>⚽ Panel Zarządzania</h2>
+        <p id="team-name">Wczytywanie danych drużyny...</p>
+
+        <h3>Twoi Zawodnicy</h3>
+        <button class="btn btn-full" onclick="openModal()">➕ Dodaj zawodnika</button>
+        
+        <div id="players-list" style="margin-top: 20px;"></div>
+
+        <p class="logout" onclick="logout()">🚪 Wyloguj się</p>
+    </div>
+
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Dodaj nowego gracza</h3>
+            <input id="new-name" placeholder="Imię">
+            <input id="new-surname" placeholder="Nazwisko">
+            <input id="new-number" placeholder="Numer" type="number">
+            <input id="new-position" placeholder="Pozycja (np. Napastnik)">
+            <button class="btn btn-full" onclick="addPlayer()">Zapisz zawodnika</button>
+        </div>
+    </div>
 
 <script>
-    // FIREBASE CONFIG
+    // --- KONFIGURACJA FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
         authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
         projectId: "puchargwiazd-bdaa4",
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let teamId = "";
+    let currentTeamId = "";
 
-    // 🔐 WERYFIKACJA LOGOWANIA
+    // --- 1. ZARZĄDZANIE STANEM (LOGOWANIE / PANEL) ---
+    
+    // Główny listener - sprawdza czy ktoś jest zalogowany przy starcie
     auth.onAuthStateChanged(async (user) => {
-        if (!user) {
-            window.location.href = "login_kapitana.html";
-            return;
-        }
+        const loading = document.getElementById("loading-screen");
+        const loginView = document.getElementById("login-view");
+        const panelView = document.getElementById("panel-view");
 
-        const doc = await db.collection("users").doc(user.uid).get();
-        if (!doc.exists || doc.data().role !== "teamManager") {
-            auth.signOut();
-            window.location.href = "login_kapitana.html";
-            return;
+        if (user) {
+            // Użytkownik jest zalogowany - sprawdzamy rolę w bazie
+            try {
+                const doc = await db.collection("users").doc(user.uid).get();
+                
+                if (doc.exists && doc.data().role === "teamManager") {
+                    // JEST KAPITANEM -> POKAŻ PANEL
+                    currentTeamId = doc.data().teamId;
+                    await loadTeam(currentTeamId);
+                    await loadPlayers(currentTeamId);
+                    
+                    loading.style.display = "none";
+                    loginView.style.display = "none";
+                    panelView.style.display = "block";
+                } else {
+                    // ZALOGOWANY, ALE NIE KAPITAN -> WYLOGUJ
+                    alert("To konto nie ma uprawnień kapitana.");
+                    await auth.signOut();
+                }
+            } catch (error) {
+                console.error("Błąd weryfikacji:", error);
+                auth.signOut();
+            }
+        } else {
+            // Użytkownik wylogowany -> POKAŻ LOGOWANIE
+            loading.style.display = "none";
+            panelView.style.display = "none";
+            loginView.style.display = "block";
         }
-
-        teamId = doc.data().teamId;
-        loadTeam(teamId);
-        loadPlayers(teamId);
     });
 
-    // 🏆 Pobranie drużyny
-    async function loadTeam(teamId) {
-        const teamDoc = await db.collection("teams").doc(teamId).get();
+    // Obsługa formularza logowania
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const msgArea = document.getElementById("login-msg");
+
+        msgArea.textContent = "Logowanie...";
+        msgArea.className = "message-area";
+
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            // auth.onAuthStateChanged zajmie się resztą (przełączy widok)
+            msgArea.textContent = "";
+        } catch (error) {
+            msgArea.textContent = "Błąd: " + error.message;
+            msgArea.className = "message-area error-msg";
+        }
+    });
+
+    // Funkcja wylogowania
+    async function logout() {
+        await auth.signOut();
+        // Widok automatycznie zmieni się na logowanie dzięki onAuthStateChanged
+    }
+
+
+    // --- 2. FUNKCJE PANELU (Baza danych) ---
+
+    // Pobranie nazwy drużyny
+    async function loadTeam(tid) {
+        const teamDoc = await db.collection("teams").doc(tid).get();
         if (teamDoc.exists) {
-            document.getElementById("team-name").textContent = "Drużyna: " + teamDoc.data().name;
+            document.getElementById("team-name").textContent = "Zarządzasz drużyną: " + teamDoc.data().name;
         }
     }
 
-    // 👥 Pobranie zawodników
-    async function loadPlayers(teamId) {
+    // Pobranie listy zawodników
+    async function loadPlayers(tid) {
         const list = document.getElementById("players-list");
-        list.innerHTML = "";
+        list.innerHTML = "<p style='text-align:center'>Pobieranie...</p>";
 
-        const snapshot = await db.collection("teams").doc(teamId).collection("players").get();
-        snapshot.forEach(player => {
-            const p = player.data();
+        const snapshot = await db.collection("teams").doc(tid).collection("players").orderBy("number").get();
+        
+        list.innerHTML = ""; // Wyczyść loader
+        
+        if (snapshot.empty) {
+            list.innerHTML = "<p style='text-align:center;color:#666;'>Brak zawodników. Dodaj pierwszego!</p>";
+            return;
+        }
 
-            const card = document.createElement("div");
-            card.className = "player-card";
-            card.innerHTML = `
-                <label>Imię:</label>
-                <input id="name-${player.id}" value="${p.name}">
-                <label>Nazwisko:</label>
-                <input id="surname-${player.id}" value="${p.surname}">
-                <label>Numer:</label>
-                <input id="number-${player.id}" type="number" value="${p.number}">
-                <label>Pozycja:</label>
-                <input id="position-${player.id}" value="${p.position}">
-                <button class="btn" onclick="savePlayer('${player.id}')">💾 Zapisz</button>
-                <button class="btn btn-delete" onclick="deletePlayer('${player.id}')">🗑 Usuń</button>
+        snapshot.forEach(doc => {
+            const p = doc.data();
+            const div = document.createElement("div");
+            div.className = "player-card";
+            div.innerHTML = `
+                <label>Imię</label>
+                <input id="name-${doc.id}" value="${p.name || ''}">
+                
+                <label>Nazwisko</label>
+                <input id="surname-${doc.id}" value="${p.surname || ''}">
+                
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                    <div>
+                        <label>Nr</label>
+                        <input type="number" id="number-${doc.id}" value="${p.number || ''}">
+                    </div>
+                    <div>
+                        <label>Pozycja</label>
+                        <input id="position-${doc.id}" value="${p.position || ''}">
+                    </div>
+                </div>
+
+                <div style="text-align:right; margin-top:10px;">
+                    <button class="btn" onclick="savePlayer('${doc.id}')">💾 Zapisz</button>
+                    <button class="btn btn-delete" onclick="deletePlayer('${doc.id}')">🗑 Usuń</button>
+                </div>
             `;
-            list.appendChild(card);
+            list.appendChild(div);
         });
-
-        if (snapshot.empty) list.innerHTML = "<p style='text-align:center;color:#888;'>Brak zawodników.</p>";
     }
 
-    // 💾 Zapisanie zmian zawodnika
-    async function savePlayer(playerId) {
-        const name = document.getElementById(`name-${playerId}`).value;
-        const surname = document.getElementById(`surname-${playerId}`).value;
-        const number = document.getElementById(`number-${playerId}`).value;
-        const position = document.getElementById(`position-${playerId}`).value;
+    // Dodawanie zawodnika
+    async function addPlayer() {
+        const name = document.getElementById("new-name").value;
+        const surname = document.getElementById("new-surname").value;
+        const number = document.getElementById("new-number").value;
+        const position = document.getElementById("new-position").value;
 
-        await db.collection("teams").doc(teamId).collection("players").doc(playerId).update({
-            name, surname, number, position
-        });
+        if (!name || !surname) return alert("Imię i nazwisko są wymagane!");
 
-        alert("✅ Zapisano zmiany!");
-    }
-
-    // ❌ Usunięcie zawodnika
-    async function deletePlayer(playerId) {
-        if (confirm("Czy na pewno chcesz usunąć tego zawodnika?")) {
-            await db.collection("teams").doc(teamId).collection("players").doc(playerId).delete();
-            loadPlayers(teamId);
+        try {
+            await db.collection("teams").doc(currentTeamId).collection("players").add({
+                name, surname, number, position
+            });
+            closeModal();
+            loadPlayers(currentTeamId); // Odśwież listę
+        } catch (e) {
+            console.error(e);
+            alert("Błąd zapisu.");
         }
     }
 
-    // ➕ Dodawanie zawodnika
-    async function addPlayer() {
-        const name = document.getElementById("new-name").value.trim();
-        const surname = document.getElementById("new-surname").value.trim();
-        const number = document.getElementById("new-number").value.trim();
-        const position = document.getElementById("new-position").value.trim();
+    // Edycja zawodnika
+    async function savePlayer(pid) {
+        const name = document.getElementById(`name-${pid}`).value;
+        const surname = document.getElementById(`surname-${pid}`).value;
+        const number = document.getElementById(`number-${pid}`).value;
+        const position = document.getElementById(`position-${pid}`).value;
 
-        if (!name || !surname) return alert("Wpisz imię i nazwisko!");
-
-        await db.collection("teams").doc(teamId).collection("players").add({
-            name, surname, number, position
-        });
-
-        closeModal();
-        loadPlayers(teamId);
+        try {
+            await db.collection("teams").doc(currentTeamId).collection("players").doc(pid).update({
+                name, surname, number, position
+            });
+            alert("Dane zaktualizowane!");
+        } catch (e) {
+            alert("Błąd aktualizacji.");
+        }
     }
 
-    // 🔓 Modal
+    // Usuwanie zawodnika
+    async function deletePlayer(pid) {
+        if(confirm("Czy na pewno chcesz usunąć tego zawodnika?")) {
+            await db.collection("teams").doc(currentTeamId).collection("players").doc(pid).delete();
+            loadPlayers(currentTeamId);
+        }
+    }
+
+    // --- 3. MODAL UI ---
     function openModal() {
         document.getElementById("addModal").style.display = "flex";
     }
 
     function closeModal() {
         document.getElementById("addModal").style.display = "none";
+        // Wyczyść pola
         document.getElementById("new-name").value = "";
         document.getElementById("new-surname").value = "";
         document.getElementById("new-number").value = "";
         document.getElementById("new-position").value = "";
     }
 
-    // 🚪 Wylogowanie
-    function logout() {
-        auth.signOut();
-        window.location.href = "login_kapitana.html";
+    // Zamknij modal jak klikniesz w tło
+    window.onclick = function(event) {
+        const modal = document.getElementById("addModal");
+        if (event.target == modal) {
+            closeModal();
+        }
     }
 </script>
+
 </body>
 </html>
