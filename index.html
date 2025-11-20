@@ -15,7 +15,6 @@
         // ======================================
         // KONFIGURACJA ZMIENNYCH GLOBALNYCH (Canvas safe)
         // ======================================
-        // Używamy twardej konfiguracji jako domyślnej, aby uniknąć problemu z pustą zmienną
         const HARDCODED_CONFIG = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -54,43 +53,27 @@
                 db = getFirestore(app);
                 const auth = getAuth(app);
 
-                // 🔥 KLUCZOWA POPRAWKA: Próbujemy logować tylko tokenem, jeśli jest dostępny.
-                // Jeśli tokena nie ma, NIE próbujemy signInAnonymously, aby uniknąć auth/admin-restricted-operation.
+                // 🔥 KLUCZOWA POPRAWKA: Próbujemy logować tokenem. Jeśli to się nie uda, 
+                // rezygnujemy z autentykacji i PRÓBUJEMY ODCZYTU PUBLICZNEGO.
                 
                 let authPromise;
                 if (initialAuthToken) {
-                     // Logowanie tokenem dostarczonym przez środowisko (najwyższy priorytet)
                     authPromise = signInWithCustomToken(auth, initialAuthToken);
                 } else {
-                    // Jeśli tokena nie ma, próbujemy logować anonimowo jako "publiczny" użytkownik
-                    // To jest jedyna linia, która generowała błąd, ale jest potrzebna do odczytu!
-                    // Jeśli to się nie uda, to po prostu łapiemy błąd.
-                    authPromise = signInAnonymously(auth);
+                    // W tej wersji nie robimy signInAnonymously, aby uniknąć auth/admin-restricted-operation.
+                    // Po prostu kontynuujemy, co wymusi publiczny dostęp do Firestore.
+                    authPromise = Promise.resolve(); 
                 }
                 
                 authPromise.then(() => {
-                    console.log("Uwierzytelnienie udane. Rozpoczynam nasłuchiwanie.");
+                    console.log("Autentykacja tokenem pomyślna lub pominięta.");
                     listenForMatches();
                     startCountdown();
                 }).catch((error) => {
-                     console.error("Błąd autentykacji, brak dostępu do danych (Finalna próba odczytu bez uwierzytelnienia):", error);
-                     
-                     // Zamiast uwierzytelnienia, spróbujemy odczytać dane bez niego (jeśli reguły na to pozwalają)
-                     // Ponieważ mamy błąd auth/admin-restricted-operation, to jest jedyny sposób by ruszyło,
-                     // chyba że reguły w Firebase są ustawione na `allow read: if request.auth != null`.
-                     
-                     // Jeśli błąd to 'auth/admin-restricted-operation', to go ignorujemy i próbujemy dalej
-                     if (error.code !== 'auth/admin-restricted-operation') {
-                        const errorMessage = '<p style="color: red; text-align: center;">BŁĄD DOSTĘPU: Baza danych jest zablokowana lub brak uprawnień.</p>';
-                        document.getElementById('recent-results').innerHTML = `<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>${errorMessage}`;
-                        document.getElementById('upcoming-matches').innerHTML = `<h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3>${errorMessage}`;
-                     } else {
-                        // Jeśli to jest błąd z blokadą admina, to po prostu kontynuujemy bez logowania
-                        // i ufamy, że Firestore pozwoli na publiczny odczyt.
-                         listenForMatches();
-                         startCountdown();
-                         console.warn("Autentykacja zablokowana, kontynuowanie w trybie publicznego odczytu.");
-                     }
+                     // Ten catch łapie błędy tokena. Następnie kontynuujemy odczyt publiczny.
+                     console.warn("Błąd autentykacji tokenem, kontynuowanie w trybie publicznego odczytu.", error);
+                     listenForMatches();
+                     startCountdown();
                 });
                 
             } catch (error) {
@@ -198,8 +181,8 @@
                 }
 
             }, (error) => {
-                console.error("Błąd nasłuchiwania meczów:", error);
-                const errorMessage = '<p style="color: red; text-align: center;">Błąd ładowania danych: Problem z połączeniem.</p>';
+                console.error("Błąd nasłuchiwania meczów: FirebaseError:", error);
+                const errorMessage = '<p style="color: red; text-align: center;">BŁĄD DOSTĘPU: Sprawdź Reguły Firestore!</p>';
                 document.getElementById('recent-results').innerHTML = errorMessage;
                 document.getElementById('upcoming-matches').innerHTML = errorMessage;
             });
