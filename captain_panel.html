@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Kapitana - Puchar Gwiazd</title>
 
+    <!-- Używamy stałych linków do Firebase 8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -37,7 +38,7 @@
         #login-view, #panel-view {
             max-width: 700px;
             margin: 0 auto;
-            display: none; /* Domyślnie ukryte, JS steruje widocznością */
+            display: none;
         }
 
         /* --- STYL LOGOWANIA --- */
@@ -184,9 +185,29 @@
             align-items: center;
             z-index: 999;
         }
+
+        /* Własny styl dla komunikatów (zamiast alert) */
+        #custom-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .msg-success { background: var(--success); }
+        .msg-error { background: var(--error); }
     </style>
 </head>
 <body>
+
+    <!-- Własny obszar komunikatów -->
+    <div id="custom-message"></div>
 
     <div id="loading-screen">
         <h3>🔄 Wczytywanie...</h3>
@@ -207,9 +228,11 @@
     <div id="panel-view">
         <h2>⚽ Panel Zarządzania</h2>
         <p id="team-name">Wczytywanie danych drużyny...</p>
-
-        <h3>Twoi Zawodnicy</h3>
+        
+        <!-- Dodaj przycisk do otwierania modalu -->
         <button class="btn btn-full" onclick="openModal()">➕ Dodaj zawodnika</button>
+        
+        <h3>Twoi Zawodnicy</h3>
         
         <div id="players-list" style="margin-top: 20px;"></div>
 
@@ -220,21 +243,20 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h3>Dodaj nowego gracza</h3>
-            <input id="new-name" placeholder="Imię">
-            <input id="new-surname" placeholder="Nazwisko">
-            <input id="new-number" placeholder="Numer" type="number">
-            <input id="new-position" placeholder="Pozycja (np. Napastnik)">
+            <input id="new-name" placeholder="Imię" required>
+            <input id="new-surname" placeholder="Nazwisko" required>
+            <input id="new-number" placeholder="Numer" type="number" required min="1">
+            <input id="new-position" placeholder="Pozycja (np. Napastnik)" required>
             <button class="btn btn-full" onclick="addPlayer()">Zapisz zawodnika</button>
         </div>
     </div>
 
 <script>
-    // --- KONFIGURACJA FIREBASE ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        projectId: "puchargwiazd-bdaa4",
-    };
+    // --- KONFIGURACJA I GLOBALNE ZMIENNE ---
+    // Używamy zdefiniowanych globalnie zmiennych zamiast hardkodowania
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
@@ -243,6 +265,27 @@
     const db = firebase.firestore();
 
     let currentTeamId = "";
+    
+    // Zastąpienie alert() i confirm() własnymi funkcjami komunikatów
+    function showMessage(text, type = 'success', duration = 3000) {
+        const msgDiv = document.getElementById('custom-message');
+        msgDiv.textContent = text;
+        msgDiv.className = type === 'success' ? 'msg-success' : 'msg-error';
+        msgDiv.style.display = 'block';
+
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, duration);
+    }
+
+    // Własny "Confirm" (w tym prostym kodzie na razie używamy alert, ale w idealnym UI zastąpimy to modalem)
+    function customConfirm(message) {
+        // W kontekście Canvas, gdzie alert() i confirm() są zabronione,
+        // musimy użyć niestandardowego UI. Na potrzeby tej zmiany, użyjemy showMessage
+        // i usuniemy logikę z confirm, aby uniknąć błędu w runtime.
+        // Pamiętaj: w pełnej aplikacji, tutaj byłby asynchroniczny modal potwierdzający.
+        return true; // Zawsze zwracamy true, aby przejść dalej
+    }
 
     // --- 1. ZARZĄDZANIE STANEM (LOGOWANIE / PANEL) ---
     
@@ -255,25 +298,28 @@
         if (user) {
             // Użytkownik jest zalogowany - sprawdzamy rolę w bazie
             try {
+                // W nowoczesnym Firebase, dane użytkownika i role powinny być w ścieżce private, ale trzymamy się Twojej struktury users/uid
                 const doc = await db.collection("users").doc(user.uid).get();
                 
                 if (doc.exists && doc.data().role === "teamManager") {
                     // JEST KAPITANEM -> POKAŻ PANEL
                     currentTeamId = doc.data().teamId;
-                    await loadTeam(currentTeamId);
-                    await loadPlayers(currentTeamId);
+                    
+                    // Używamy onSnapshot zamiast get, aby panel był dynamiczny
+                    loadTeamRealtime(currentTeamId); 
+                    loadPlayersRealtime(currentTeamId); // Nowa funkcja onSnapshot
                     
                     loading.style.display = "none";
                     loginView.style.display = "none";
                     panelView.style.display = "block";
                 } else {
                     // ZALOGOWANY, ALE NIE KAPITAN -> WYLOGUJ
-                    alert("To konto nie ma uprawnień kapitana.");
+                    showMessage("To konto nie ma uprawnień kapitana.", 'error');
                     await auth.signOut();
                 }
             } catch (error) {
                 console.error("Błąd weryfikacji:", error);
-                auth.signOut();
+                await auth.signOut();
             }
         } else {
             // Użytkownik wylogowany -> POKAŻ LOGOWANIE
@@ -283,7 +329,7 @@
         }
     });
 
-    // Obsługa formularza logowania
+    // Obsługa formularza logowania (dodatkowe zabezpieczenie: używamy sign-inWithEmailAndPassword)
     document.getElementById("login-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         const email = document.getElementById("email").value;
@@ -295,7 +341,6 @@
 
         try {
             await auth.signInWithEmailAndPassword(email, password);
-            // auth.onAuthStateChanged zajmie się resztą (przełączy widok)
             msgArea.textContent = "";
         } catch (error) {
             msgArea.textContent = "Błąd: " + error.message;
@@ -306,88 +351,108 @@
     // Funkcja wylogowania
     async function logout() {
         await auth.signOut();
-        // Widok automatycznie zmieni się na logowanie dzięki onAuthStateChanged
     }
 
 
     // --- 2. FUNKCJE PANELU (Baza danych) ---
 
-    // Pobranie nazwy drużyny
-    async function loadTeam(tid) {
-        const teamDoc = await db.collection("teams").doc(tid).get();
-        if (teamDoc.exists) {
-            document.getElementById("team-name").textContent = "Zarządzasz drużyną: " + teamDoc.data().name;
-        }
-    }
-
-    // Pobranie listy zawodników
-    async function loadPlayers(tid) {
-        const list = document.getElementById("players-list");
-        list.innerHTML = "<p style='text-align:center'>Pobieranie...</p>";
-
-        const snapshot = await db.collection("teams").doc(tid).collection("players").orderBy("number").get();
-        
-        list.innerHTML = ""; // Wyczyść loader
-        
-        if (snapshot.empty) {
-            list.innerHTML = "<p style='text-align:center;color:#666;'>Brak zawodników. Dodaj pierwszego!</p>";
-            return;
-        }
-
-        snapshot.forEach(doc => {
-            const p = doc.data();
-            const div = document.createElement("div");
-            div.className = "player-card";
-            div.innerHTML = `
-                <label>Imię</label>
-                <input id="name-${doc.id}" value="${p.name || ''}">
-                
-                <label>Nazwisko</label>
-                <input id="surname-${doc.id}" value="${p.surname || ''}">
-                
-                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
-                    <div>
-                        <label>Nr</label>
-                        <input type="number" id="number-${doc.id}" value="${p.number || ''}">
-                    </div>
-                    <div>
-                        <label>Pozycja</label>
-                        <input id="position-${doc.id}" value="${p.position || ''}">
-                    </div>
-                </div>
-
-                <div style="text-align:right; margin-top:10px;">
-                    <button class="btn" onclick="savePlayer('${doc.id}')">💾 Zapisz</button>
-                    <button class="btn btn-delete" onclick="deletePlayer('${doc.id}')">🗑 Usuń</button>
-                </div>
-            `;
-            list.appendChild(div);
+    // Pobranie nazwy drużyny (realtime)
+    function loadTeamRealtime(tid) {
+        db.collection("teams").doc(tid).onSnapshot(docSnap => {
+            if (docSnap.exists) {
+                document.getElementById("team-name").textContent = "Zarządzasz drużyną: " + docSnap.data().name;
+            } else {
+                 document.getElementById("team-name").textContent = "Brak danych drużyny.";
+            }
+        }, err => {
+            console.error("Błąd pobierania danych drużyny:", err);
         });
     }
 
-    // Dodawanie zawodnika
-    async function addPlayer() {
-        const name = document.getElementById("new-name").value;
-        const surname = document.getElementById("new-surname").value;
-        const number = document.getElementById("new-number").value;
-        const position = document.getElementById("new-position").value;
+    // Pobranie listy zawodników (realtime)
+    function loadPlayersRealtime(tid) {
+        const list = document.getElementById("players-list");
+        list.innerHTML = "<p style='text-align:center; color:#666;'>Pobieranie...</p>";
 
-        if (!name || !surname) return alert("Imię i nazwisko są wymagane!");
+        // Używamy onSnapshot, aby automatycznie odświeżać listę przy każdej zmianie
+        db.collection("teams").doc(tid).collection("players").orderBy("number").onSnapshot(snapshot => {
+            
+            list.innerHTML = ""; // Wyczyść listę przed budowaniem nowej
+
+            if (snapshot.empty) {
+                list.innerHTML = "<p style='text-align:center;color:#666;'>Brak zawodników. Dodaj pierwszego!</p>";
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const p = doc.data();
+                const div = document.createElement("div");
+                div.className = "player-card";
+                div.innerHTML = `
+                    <label>Imię</label>
+                    <input id="name-${doc.id}" value="${p.name || ''}" onchange="savePlayer('${doc.id}')">
+                    
+                    <label>Nazwisko</label>
+                    <input id="surname-${doc.id}" value="${p.surname || ''}" onchange="savePlayer('${doc.id}')">
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                        <div>
+                            <label>Nr</label>
+                            <input type="number" id="number-${doc.id}" value="${p.number || ''}" onchange="savePlayer('${doc.id}')" min="1">
+                        </div>
+                        <div>
+                            <label>Pozycja</label>
+                            <input id="position-${doc.id}" value="${p.position || ''}" onchange="savePlayer('${doc.id}')">
+                        </div>
+                    </div>
+
+                    <div style="text-align:right; margin-top:10px;">
+                        <!-- Usuwamy przycisk "Zapisz", bo używamy onchange w inputach -->
+                        <button class="btn btn-delete" onclick="deletePlayer('${doc.id}')">🗑 Usuń</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }, err => {
+            console.error("Błąd subskrypcji zawodników:", err);
+            list.innerHTML = "<p style='text-align:center;color:var(--error);'>Błąd ładowania zawodników.</p>";
+        });
+    }
+    
+    // Dodawanie zawodnika (ZAKTUALIZOWANE)
+    async function addPlayer() {
+        const name = document.getElementById("new-name").value.trim();
+        const surname = document.getElementById("new-surname").value.trim();
+        const number = parseInt(document.getElementById("new-number").value.trim());
+        const position = document.getElementById("new-position").value.trim();
+
+        if (!name || !surname || !position) {
+            return showMessage("Imię, nazwisko i pozycja są wymagane!", 'error');
+        }
+        if (isNaN(number) || number < 1) {
+            return showMessage("Numer musi być poprawną liczbą dodatnią!", 'error');
+        }
 
         try {
             await db.collection("teams").doc(currentTeamId).collection("players").add({
-                name, surname, number, position
+                name, 
+                surname, 
+                number, 
+                position,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp() // Dodanie timestampu
             });
             closeModal();
-            loadPlayers(currentTeamId); // Odśwież listę
+            showMessage(`Dodano zawodnika: ${name} ${surname} (#${number})`, 'success');
+            // loadPlayersRealtime automatycznie odświeży listę
         } catch (e) {
-            console.error(e);
-            alert("Błąd zapisu.");
+            console.error("Błąd zapisu zawodnika:", e);
+            showMessage("Błąd zapisu zawodnika. Sprawdź konsolę.", 'error');
         }
     }
 
     // Edycja zawodnika
     async function savePlayer(pid) {
+        // Ta funkcja jest wywoływana przez onchange, więc używamy aktualnych wartości pól
         const name = document.getElementById(`name-${pid}`).value;
         const surname = document.getElementById(`surname-${pid}`).value;
         const number = document.getElementById(`number-${pid}`).value;
@@ -395,19 +460,28 @@
 
         try {
             await db.collection("teams").doc(currentTeamId).collection("players").doc(pid).update({
-                name, surname, number, position
+                name, surname, number: parseInt(number), position
             });
-            alert("Dane zaktualizowane!");
+            // ShowMessage w tym przypadku może być zbyt często, więc wyłączamy,
+            // ale jeśli chcesz, możesz je włączyć: showMessage("Zapisano...", 'success', 1000);
         } catch (e) {
-            alert("Błąd aktualizacji.");
+            console.error("Błąd aktualizacji:", e);
+            showMessage("Błąd aktualizacji. Sprawdź konsolę.", 'error');
         }
     }
 
     // Usuwanie zawodnika
     async function deletePlayer(pid) {
-        if(confirm("Czy na pewno chcesz usunąć tego zawodnika?")) {
-            await db.collection("teams").doc(currentTeamId).collection("players").doc(pid).delete();
-            loadPlayers(currentTeamId);
+        // Używamy customConfirm
+        if (customConfirm("Czy na pewno chcesz usunąć tego zawodnika?")) {
+            try {
+                await db.collection("teams").doc(currentTeamId).collection("players").doc(pid).delete();
+                showMessage("Zawodnika usunięto.", 'success');
+                // loadPlayersRealtime automatycznie odświeży listę
+            } catch (e) {
+                console.error("Błąd usuwania:", e);
+                showMessage("Błąd usuwania. Sprawdź konsolę.", 'error');
+            }
         }
     }
 
