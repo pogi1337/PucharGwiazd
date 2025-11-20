@@ -6,8 +6,8 @@
     <title>Puchar Gwiazd - Strona Główna</title>
     <meta name="description" content="Oficjalna strona Pucharu Gwiazd. Sprawdź najnowsze wyniki, nadchodzące mecze i tabele grup.">
     
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -34,7 +34,7 @@
             color: #e0e0e0;
         }
 
-        /* NAGŁÓWEK (.header) - style z obu źródeł */
+        /* NAGŁÓWEK (.header) */
         .header {
             width: 100%;
             max-width: 900px;
@@ -50,7 +50,6 @@
             position: relative;
             transition: background-color 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
             
-            /* Domyślny układ dla PC */
             display: flex; 
             justify-content: space-between;
             align-items: center;
@@ -70,7 +69,7 @@
             font-family: 'Montserrat', sans-serif;
             color: #1565c0;
             font-size: 3.2em;
-            margin-bottom: 0; /* Zmienione na 0, bo logowanie jest obok */
+            margin-bottom: 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
             letter-spacing: 1px;
             transition: color 0.5s ease, text-shadow 0.5s ease;
@@ -86,8 +85,8 @@
             gap: 15px;
         }
         .login-links a {
-            color: white; /* Domyślny kolor linków z HTMLa, ale powinien być ustalony w CSS */
-            background-color: #1976d2; /* Dodany kolor tła dla lepszej widoczności linków */
+            color: white;
+            background-color: #1976d2;
             text-decoration: none;
             font-weight: bold;
             padding: 8px 12px;
@@ -137,6 +136,11 @@
         }
 
         /* SEKCJA MECZOWA */
+        .content-section {
+            width: 100%;
+            max-width: 900px;
+        }
+        
         .stats-summary {
             display: flex;
             flex-wrap: wrap;
@@ -173,7 +177,6 @@
             border-bottom-color: #90caf9;
         }
         
-        /* OSTATECZNE POPRAWKI DLA WYŚWIETLANIA MECZU (z pierwszego bloku) */
         .match-item { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px dashed #eee; font-size: 0.85em; }
         body.dark-mode .match-item { border-bottom: 1px dashed #444; }
 
@@ -218,68 +221,79 @@
         body.dark-mode .countdown div { background-color: #5d4037; }
         body.dark-mode .countdown span { color: #ffab91; }
 
+        /* STOPKA */
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            color: #555;
+        }
+        body.dark-mode .footer { color: #aaa; }
+        .social-media-links a {
+            color: #555; margin: 0 10px; font-size: 1.5em; transition: color 0.3s;
+        }
+        .social-media-links a:hover { color: #1976d2; }
+        body.dark-mode .social-media-links a { color: #aaa; }
+        body.dark-mode .social-media-links a:hover { color: #90caf9; }
 
-        /* SEKCJA RESPONSIVE DLA TELEFONÓW */
+
+        /* --- 🔥 NOWE STYLE PRZYCISKU (THEME TOGGLE) 🔥 --- */
+        #theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #theme-toggle:hover {
+            transform: scale(1.1);
+            background-color: #2196f3;
+        }
+
+        body.dark-mode #theme-toggle {
+            background-color: #fdd835; /* Żółty w trybie ciemnym (słońce) */
+            color: #333;
+        }
+
+        /* RESPONSYWNOŚĆ */
         @media (max-width: 768px) {
             body { padding: 10px; }
-
-            .header, .content-section, .footer, #main-nav {
-                padding: 15px;
-                margin-left: 0;
-                margin-right: 0;
-            }
+            .header, .content-section, .footer, #main-nav { padding: 15px; margin: 0; }
             
-            /* 🔥 KLUCZOWE POPRAWKI DLA LOGOWANIA NA TELEFONIE 🔥 */
             .header {
-                /* Ustawia tytuł i linki jeden pod drugim na telefonie */
                 flex-direction: column; 
                 align-items: center;
                 display: flex; 
             }
-
-            .login-links {
-                margin-top: 15px; /* Dodatkowy odstęp od H1 */
-                gap: 15px;
-            }
-
-            /* Ukrycie tekstu ("Kapitan", "Admin") i pozostawienie samych ikon */
+            .login-links { margin-top: 15px; gap: 15px; }
             .login-links a {
                 font-size: 0; 
-                padding: 10px; /* Zwiększony obszar do kliknięcia */
+                padding: 10px;
                 min-width: 30px; 
                 display: flex;
                 justify-content: center;
                 align-items: center;
             }
-
-            /* Upewnienie się, że ikony są widoczne i mają odpowiedni rozmiar */
-            .login-links a i {
-                font-size: 1.4rem; /* Większy rozmiar ikony na telefonie */
-                margin: 0;
-            }
-            /* Koniec kluczowych poprawek */
-
-            /* Zmniejszenie rozmiaru nagłówków na telefonie */
-            .header h1 {
-                font-size: 2.5em;
-            }
-            .content-section h2 {
-                font-size: 2em;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-            }
-            #main-nav a {
-                font-size: 1em;
-                padding: 6px 10px;
-            }
-
-            .team-card {
-                min-width: 100%; /* Pełna szerokość na telefonie */
-            }
-
-            .stats-column {
-                min-width: 100%; /* Pełna szerokość na telefonie */
-            }
+            .login-links a i { font-size: 1.4rem; margin: 0; }
+            
+            .header h1 { font-size: 2.5em; }
+            .content-section h2 { font-size: 2em; }
+            #main-nav a { font-size: 1em; padding: 6px 10px; }
+            .stats-column { min-width: 100%; }
         }
     </style>
 </head>
@@ -287,7 +301,7 @@
     <div class="header">
         <h1>Puchar Gwiazd</h1>
         <div class="login-links">
-            <a href="login_kapitana.html"><i class="fas fa-user-shield"></i> Kapitan</a>
+            <a href="captain_panel.html"><i class="fas fa-user-shield"></i> Kapitan</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> Admin</a>
         </div>
         <div id="current-time" style="display: none;"></div>
@@ -341,13 +355,12 @@
         </div>
     </div>
 
-    <button id="theme-toggle">
+    <button id="theme-toggle" title="Przełącz tryb ciemny">
         <i class="fas fa-moon"></i>
     </button>
 
-    <script src="script.js"></script>
-
     <script>
+        // KONFIGURACJA FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -358,13 +371,43 @@
             appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        // Sprawdź czy Firebase nie jest już zainicjalizowany
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.database();
         
         const TEAMS_BASE_PATH = "teams/teams"; 
         const MATCHES_PATH = "matches"; 
         
         let teamsMap = {};
+
+        // --- 🔥 SKRYPT PRZYCISKU MOTYWU (DARK MODE) 🔥 ---
+        const toggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+        const icon = toggleBtn.querySelector('i');
+
+        // Sprawdzenie zapisanej preferencji
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark-mode');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                localStorage.setItem('theme', 'light');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+        // ----------------------------------------------------
 
         function loadTeamNames() {
             return db.ref(TEAMS_BASE_PATH).once('value').then(snapshot => {
@@ -501,4 +544,3 @@
     </script>
 </body>
 </html>
-
