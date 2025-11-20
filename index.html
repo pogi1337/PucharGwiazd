@@ -49,7 +49,6 @@
             animation: fadeInTop 1s ease-out forwards;
             position: relative;
             transition: background-color 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
-            
             display: flex; 
             justify-content: space-between;
             align-items: center;
@@ -79,103 +78,46 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* LINKI LOGOWANIA (.login-links) */
-        .login-links {
-            display: flex;
-            gap: 15px;
-        }
+        /* LINKI LOGOWANIA */
+        .login-links { display: flex; gap: 15px; }
         .login-links a {
-            color: white;
-            background-color: #1976d2;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 8px 12px;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            color: white; background-color: #1976d2; text-decoration: none; font-weight: bold;
+            padding: 8px 12px; border-radius: 5px; transition: background-color 0.3s;
         }
-        .login-links a:hover {
-            background-color: #2196f3;
-        }
-        body.dark-mode .login-links a {
-            background-color: #0d47a1;
-        }
-        body.dark-mode .login-links a:hover {
-            background-color: #1565c0;
-        }
+        .login-links a:hover { background-color: #2196f3; }
+        body.dark-mode .login-links a { background-color: #0d47a1; }
+        body.dark-mode .login-links a:hover { background-color: #1565c0; }
 
-        /* NAWIGACJA (NAV) */
+        /* NAWIGACJA */
         #main-nav {
-            width: 100%;
-            max-width: 900px;
-            background-color: #1976d2;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
-            padding: 10px 0;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            width: 100%; max-width: 900px; background-color: #1976d2; border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); margin-bottom: 30px; padding: 10px 0;
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 20px;
             transition: background-color 0.5s ease, box-shadow 0.5s ease;
         }
-        #main-nav ul {
-            list-style: none; margin: 0; padding: 0; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
-        }
+        #main-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
         #main-nav a {
             color: #ffffff; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.1em;
             padding: 8px 15px; border-radius: 8px; transition: background-color 0.3s ease, transform 0.2s ease, color 0.3s ease;
         }
-        #main-nav a:hover {
-            background-color: #2196f3; transform: translateY(-2px);
-        }
-        body.dark-mode #main-nav {
-            background-color: #0d47a1;
-        }
-        body.dark-mode #main-nav a:hover {
-            background-color: #1565c0;
-        }
+        #main-nav a:hover { background-color: #2196f3; transform: translateY(-2px); }
+        body.dark-mode #main-nav { background-color: #0d47a1; }
+        body.dark-mode #main-nav a:hover { background-color: #1565c0; }
 
-        /* SEKCJA MECZOWA */
-        .content-section {
-            width: 100%;
-            max-width: 900px;
-        }
+        /* TREŚĆ */
+        .content-section { width: 100%; max-width: 900px; }
         
-        .stats-summary {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            gap: 15px;
-            margin-top: 20px;
-            width: 100%;
-        }
+        .stats-summary { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 15px; margin-top: 20px; width: 100%; }
         .stats-column {
-            background-color: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-            flex: 1;
-            min-width: 300px;
+            background-color: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%; max-width: 100%; box-sizing: border-box; flex: 1; min-width: 300px;
         }
-        body.dark-mode .stats-column {
-            background-color: #37474f;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
+        body.dark-mode .stats-column { background-color: #37474f; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
 
         .stats-column h3 {
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-            text-align: center;
-            font-size: 1.2em;
+            color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; text-align: center; font-size: 1.2em;
         }
-        body.dark-mode .stats-column h3 {
-            color: #90caf9;
-            border-bottom-color: #90caf9;
-        }
+        body.dark-mode .stats-column h3 { color: #90caf9; border-bottom-color: #90caf9; }
         
         .match-item { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px dashed #eee; font-size: 0.85em; }
         body.dark-mode .match-item { border-bottom: 1px dashed #444; }
@@ -201,7 +143,7 @@
             100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
         }
 
-        /* HERO BANNER i ODLICZANIE */
+        /* HERO & COUNTDOWN */
         .hero-banner {
             text-align: center; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
             color: white; padding: 50px 20px; border-radius: 10px; margin-bottom: 30px;
@@ -214,82 +156,37 @@
             margin: 0 10px; background-color: #ffccbc; padding: 10px 15px;
             border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); min-width: 80px; text-align: center;
         }
-        .countdown span {
-            display: block; font-size: 0.5em; color: #d84315; margin-top: 5px;
-        }
+        .countdown span { display: block; font-size: 0.5em; color: #d84315; margin-top: 5px; }
         body.dark-mode .countdown { color: #ff7043; }
         body.dark-mode .countdown div { background-color: #5d4037; }
         body.dark-mode .countdown span { color: #ffab91; }
 
         /* STOPKA */
-        .footer {
-            margin-top: auto;
-            text-align: center;
-            padding: 20px;
-            width: 100%;
-            color: #555;
-        }
+        .footer { margin-top: auto; text-align: center; padding: 20px; width: 100%; color: #555; }
         body.dark-mode .footer { color: #aaa; }
-        .social-media-links a {
-            color: #555; margin: 0 10px; font-size: 1.5em; transition: color 0.3s;
-        }
+        .social-media-links a { color: #555; margin: 0 10px; font-size: 1.5em; transition: color 0.3s; }
         .social-media-links a:hover { color: #1976d2; }
         body.dark-mode .social-media-links a { color: #aaa; }
         body.dark-mode .social-media-links a:hover { color: #90caf9; }
 
-
-        /* --- 🔥 NOWE STYLE PRZYCISKU (THEME TOGGLE) 🔥 --- */
+        /* PRZYCISK THEME */
         #theme-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #1976d2;
-            color: white;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px;
+            border-radius: 50%; background-color: #1976d2; color: white; border: none;
+            font-size: 24px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease; z-index: 1000; display: flex; justify-content: center; align-items: center;
         }
+        #theme-toggle:hover { transform: scale(1.1); background-color: #2196f3; }
+        body.dark-mode #theme-toggle { background-color: #fdd835; color: #333; }
 
-        #theme-toggle:hover {
-            transform: scale(1.1);
-            background-color: #2196f3;
-        }
-
-        body.dark-mode #theme-toggle {
-            background-color: #fdd835; /* Żółty w trybie ciemnym (słońce) */
-            color: #333;
-        }
-
-        /* RESPONSYWNOŚĆ */
+        /* RWD */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .header, .content-section, .footer, #main-nav { padding: 15px; margin: 0; }
-            
-            .header {
-                flex-direction: column; 
-                align-items: center;
-                display: flex; 
-            }
+            .header { flex-direction: column; align-items: center; display: flex; }
             .login-links { margin-top: 15px; gap: 15px; }
-            .login-links a {
-                font-size: 0; 
-                padding: 10px;
-                min-width: 30px; 
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
+            .login-links a { font-size: 0; padding: 10px; min-width: 30px; display: flex; justify-content: center; align-items: center; }
             .login-links a i { font-size: 1.4rem; margin: 0; }
-            
             .header h1 { font-size: 2.5em; }
             .content-section h2 { font-size: 2em; }
             #main-nav a { font-size: 1em; padding: 6px 10px; }
@@ -359,188 +256,5 @@
         <i class="fas fa-moon"></i>
     </button>
 
-    <script>
-        // KONFIGURACJA FIREBASE
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-        };
-
-        // Sprawdź czy Firebase nie jest już zainicjalizowany
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
-        
-        const TEAMS_BASE_PATH = "teams/teams"; 
-        const MATCHES_PATH = "matches"; 
-        
-        let teamsMap = {};
-
-        // --- 🔥 SKRYPT PRZYCISKU MOTYWU (DARK MODE) 🔥 ---
-        const toggleBtn = document.getElementById('theme-toggle');
-        const body = document.body;
-        const icon = toggleBtn.querySelector('i');
-
-        // Sprawdzenie zapisanej preferencji
-        if (localStorage.getItem('theme') === 'dark') {
-            body.classList.add('dark-mode');
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        }
-
-        toggleBtn.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            
-            if (body.classList.contains('dark-mode')) {
-                localStorage.setItem('theme', 'dark');
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
-            } else {
-                localStorage.setItem('theme', 'light');
-                icon.classList.remove('fa-sun');
-                icon.classList.add('fa-moon');
-            }
-        });
-        // ----------------------------------------------------
-
-        function loadTeamNames() {
-            return db.ref(TEAMS_BASE_PATH).once('value').then(snapshot => {
-                const data = snapshot.val();
-                if (data) {
-                    Object.entries(data).forEach(([id, team]) => {
-                        teamsMap[id] = team.name || id; 
-                    });
-                }
-            });
-        }
-
-        function renderMatches(matches) {
-            const upcomingContainer = document.getElementById('upcoming-matches');
-            const recentContainer = document.getElementById('recent-results');
-            
-            upcomingContainer.innerHTML = '<h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3>';
-            recentContainer.innerHTML = '<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3>';
-
-            const upcoming = [];
-            const recent = [];
-            const live = [];
-
-            Object.values(matches).forEach(match => {
-                match.teamAName = teamsMap[match.teamA] || match.teamA;
-                match.teamBName = teamsMap[match.teamB] || match.teamB;
-
-                if (match.status === 'scheduled') {
-                    upcoming.push(match);
-                } else if (match.status === 'finished') {
-                    recent.push(match);
-                } else if (match.status === 'live') {
-                    live.push(match);
-                }
-            });
-            
-            const displayRecent = [...live, ...recent.slice(-5)].reverse();
-            const displayUpcoming = [...live, ...upcoming.slice(0, 5)];
-
-            if (displayUpcoming.length > 0) {
-                displayUpcoming.forEach(match => {
-                    upcomingContainer.innerHTML += createMatchHtml(match);
-                });
-            } else {
-                upcomingContainer.innerHTML += '<p style="text-align: center; color: #888;">Brak zaplanowanych meczów.</p>';
-            }
-
-            if (displayRecent.length > 0) {
-                displayRecent.forEach(match => {
-                    recentContainer.innerHTML += createMatchHtml(match);
-                });
-            } else {
-                recentContainer.innerHTML += '<p style="text-align: center; color: #888;">Brak ostatnich wyników.</p>';
-            }
-        }
-
-        function createMatchHtml(match) {
-            const statusClass = match.status;
-            let scoreContent;
-            
-            if (match.status === 'finished' || match.status === 'live') {
-                scoreContent = `${match.scoreA} - ${match.scoreB}`;
-            } else {
-                scoreContent = `vs`;
-            }
-
-            const statusText = {
-                'scheduled': 'Zaplanowany',
-                'live': 'NA ŻYWO',
-                'finished': 'ZAKOŃCZONY'
-            }[match.status] || match.status;
-
-            return `
-                <div class="match-item">
-                    <span class="team-name" style="text-align: right;">${match.teamAName}</span>
-                    
-                    <div class="score-box-container">
-                        ${scoreContent}
-                    </div>
-
-                    <span class="team-name" style="text-align: left;">${match.teamBName}</span>
-                    
-                    <span class="status-tag ${statusClass}">${statusText} (Gr. ${match.group})</span>
-                </div>
-            `;
-        }
-
-        function startCountdown() {
-            // Data i czas docelowy: 14 grudnia 2025, 10:00:00 CET
-            const countDownDate = new Date("Dec 14, 2025 10:00:00").getTime();
-            const countdownElement = document.getElementById("countdown");
-
-            const x = setInterval(function() {
-                const now = new Date().getTime();
-                const distance = countDownDate - now;
-
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                if (distance < 0) {
-                    clearInterval(x);
-                    countdownElement.innerHTML = "<div>Turniej trwa!</div>";
-                } else {
-                    countdownElement.innerHTML = `
-                        <div>${days}<span>Dni</span></div>
-                        <div>${hours}<span>Godzin</span></div>
-                        <div>${minutes}<span>Minut</span></div>
-                        <div>${seconds}<span>Sekund</span></div>
-                    `;
-                }
-            }, 1000);
-        }
-
-        // Inicjalizacja: załaduj nazwy, rozpocznij słuchanie meczów i odliczanie
-        loadTeamNames().then(() => {
-            db.ref(MATCHES_PATH).on('value', snapshot => {
-                const matchesData = snapshot.val();
-                if (matchesData) {
-                    renderMatches(matchesData);
-                } else {
-                    document.getElementById('upcoming-matches').innerHTML = '<h3><i class="fas fa-calendar-alt"></i> Nadchodzące Mecze</h3><p style="text-align: center;">Brak danych meczowych.</p>';
-                    document.getElementById('recent-results').innerHTML = '<h3><i class="fas fa-trophy"></i> Ostatnie Wyniki</h3><p style="text-align: center;">Brak danych meczowych.</p>';
-                }
-            });
-            startCountdown(); 
-        }).catch(error => {
-            console.error("Błąd ładowania danych początkowych: ", error);
-            document.getElementById('upcoming-matches').innerHTML = '<p style="color: red; text-align: center;">Błąd ładowania danych.</p>';
-            document.getElementById('recent-results').innerHTML = '<p style="color: red; text-align: center;">Błąd ładowania danych.</p>';
-        });
-
-    </script>
-</body>
+    <script src="script.js"></script>           <script src="firebase_matches.js"></script> </body>
 </html>
