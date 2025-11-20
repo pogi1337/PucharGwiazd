@@ -1,45 +1,64 @@
+/* =========================================
+   IMPOORT CZCIONKI POPPINS
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
 /* === GLOBALNE === */
 body {
   font-family: 'Poppins', Arial, sans-serif;
   background: linear-gradient(180deg, #05050a, #0b1020);
   margin: 0;
-  padding: 0;
+  padding: 20px;
   color: #e6f1ff;
+  min-height: 100vh;
 }
 
 h2, h3 {
   color: #00bfff;
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
+/* Kontenery */
 .container, .panel section {
   background: #0e1628;
-  padding: 20px;
+  padding: 25px;
   margin: 20px auto;
   max-width: 700px;
   border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 191, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.1);
+  border: 1px solid #1e3a5f;
 }
 
-/* === INPUTY === */
+/* Ukrywanie panelu (logika JS) */
+#admin-wrapper {
+    display: none; 
+}
+
+/* === INPUTY I SELECTY === */
 input, select {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin: 8px 0;
   border-radius: 8px;
   border: 1px solid #1e3a5f;
   background: #101a2e;
   color: #fff;
   font-size: 14px;
+  box-sizing: border-box;
+  transition: border 0.3s ease;
 }
+
 input:focus, select:focus {
   border-color: #00bfff;
   outline: none;
+  box-shadow: 0 0 8px rgba(0, 191, 255, 0.3);
 }
 
 /* === BUTTONY === */
 button {
-  padding: 10px 15px;
+  padding: 12px 20px;
   background: #007bff;
   color: white;
   border: none;
@@ -47,83 +66,162 @@ button {
   cursor: pointer;
   font-weight: bold;
   transition: 0.2s;
+  font-family: 'Poppins', sans-serif;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
 }
+
 button:hover {
-  background: #0056b3;
+  background: #00bfff; /* Jaśniejszy niebieski przy najechaniu */
+  box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
+}
+
+/* Specjalny styl dla przycisku wylogowania */
+button[onclick*="signOut"] {
+    background: #1e3a5f;
+    margin-bottom: 20px;
+}
+button[onclick*="signOut"]:hover {
+    background: #ff4d4d;
 }
 
 /* === KOMUNIKATY === */
 .message {
-  margin-top: 10px;
+  margin-top: 15px;
   font-weight: bold;
   text-align: center;
+  padding: 10px;
+  border-radius: 6px;
 }
-.error { color: #ff4d4d; }
-.success { color: #00ff9d; }
+.error { 
+    color: #ff4d4d; 
+    background: rgba(255, 77, 77, 0.1);
+    border: 1px solid rgba(255, 77, 77, 0.3);
+}
+.success { 
+    color: #00ff9d; 
+    background: rgba(0, 255, 157, 0.1);
+    border: 1px solid rgba(0, 255, 157, 0.3);
+}
 
 .info-box {
   background: rgba(0, 191, 255, 0.1);
   border-left: 4px solid #00bfff;
-  padding: 10px;
+  padding: 15px;
   border-radius: 6px;
   color: #8cc8ff;
+  margin-bottom: 20px;
 }
 
 /* === KARTY MECZÓW === */
+#matches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
 .match-card {
   background: #0a0a1f;
-  border: 1px solid #00bfff;
+  border: 1px solid #1e3a5f;
   border-radius: 12px;
-  padding: 15px;
-  margin: 12px 0;
+  padding: 20px;
   color: white;
+  position: relative;
+  transition: transform 0.2s;
 }
+
+.match-card:hover {
+    border-color: #00bfff;
+}
+
+/* Styl dla meczu LIVE */
+.match-card[style*="e53935"] {
+    border: 2px solid #ff4d4d !important;
+    box-shadow: 0 0 15px rgba(255, 77, 77, 0.2);
+}
+
 .match-card h3 {
   color: #00bfff;
   text-align: center;
 }
-.match-card input, .match-card select {
-  width: calc(50% - 10px);
-  display: inline-block;
-  margin: 6px 4px;
+
+/* Elementy wewnątrz karty meczu */
+.match-card input[type="number"] {
+    width: 50px;
+    text-align: center;
+    display: inline-block;
+    margin: 0 5px;
 }
+
+.match-card select {
+    width: auto;
+    display: inline-block;
+    margin: 0 5px;
+}
+
 .match-card button {
   display: inline-block;
-  margin: 6px 4px;
-  background: #00bfff;
-  border: none;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 8px;
+  margin: 5px 2px;
+  background: #1e3a5f;
+  border: 1px solid #00bfff;
+  color: #00bfff;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
   transition: 0.2s;
 }
+
 .match-card button:hover {
-  background: #007acc;
+  background: #00bfff;
+  color: #000;
+}
+
+/* Przycisk usuwania (czerwony) */
+.match-card button[onclick*="deleteMatch"] {
+    border-color: #ff4d4d;
+    color: #ff4d4d;
+}
+.match-card button[onclick*="deleteMatch"]:hover {
+    background: #ff4d4d;
+    color: white;
 }
 
 /* === TABELA MECZÓW I STRZELCÓW === */
 .table-wrapper {
   overflow-x: auto;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
   color: #e6f1ff;
+  background: #0a0a1f;
+  border-radius: 8px;
+  overflow: hidden;
 }
+
 th, td {
-  border: 1px solid #1e3a5f;
-  padding: 8px;
-  text-align: center;
+  border-bottom: 1px solid #1e3a5f;
+  padding: 12px;
+  text-align: left;
 }
+
 th {
   background: #10223f;
   color: #00bfff;
   text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
 }
+
 tr:nth-child(even) {
   background: #0f1a33;
+}
+
+tr:hover {
+    background: #152036;
 }
 
 /* === RESPONSYWNOŚĆ === */
@@ -136,19 +234,38 @@ tr:nth-child(even) {
   input, select, button {
     width: 100%;
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
-  .match-card input, .match-card select {
-    width: 100%;
-    display: block;
+  /* W meczu na telefonie */
+  .match-card > div {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+  }
+  
+  .match-card input[type="number"] {
+      width: 60px;
+      margin: 5px;
   }
 
   h2 {
-    font-size: 1.2em;
+    font-size: 1.4em;
   }
 
   table {
     font-size: 12px;
   }
+  
+  th, td {
+      padding: 8px;
+  }
 }
+```
+
+### Jak to zainstalować?
+1.  Utwórz plik o nazwie **`admin.css`**.
+2.  Wklej do niego powyższy kod.
+3.  Upewnij się, że plik `admin.html` (ten, który stworzyliśmy krok wcześniej) ma w sekcji `<head>` linijkę:
+    ```html
+    <link rel="stylesheet" href="admin.css" />
