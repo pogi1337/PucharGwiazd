@@ -1,132 +1,282 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Puchar Gwiazd – Panel Administratora</title>
+// ==========================================
+// 1. KONFIGURACJA FIREBASE
+// ==========================================
+const firebaseConfig = {
+    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+    projectId: "puchargwiazd-bdaa4",
+    // Dodajemy databaseURL, jeśli używasz Realtime Database, ale tu działamy na Firestore
+    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+    messagingSenderId: "890734185883",
+    appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
+};
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
-    <!-- STYLE (Twój admin.css podmieniony na link) -->
-    <link rel="stylesheet" href="admin.css" />
-</head>
+const auth = firebase.auth();
+const db = firebase.firestore(); // Używamy Firestore zgodnie ze screenem
 
-<body>
+// ==========================================
+// 2. LOGOWANIE I WERYFIKACJA ADMINA
+// ==========================================
+const loginBox = document.getElementById('login-box');
+const adminPanel = document.getElementById('admin-wrapper');
+const loginMsg = document.getElementById('login-msg');
 
-<!-- ============================= -->
-<!--           LOGOWANIE           -->
-<!-- ============================= -->
-<div class="container" id="login-box">
-    <h2>Logowanie admina</h2>
+// Obsługa przycisku logowania
+document.getElementById('login-btn').addEventListener('click', () => {
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-pass').value;
 
-    <input id="login-email" type="email" placeholder="Email" />
-    <input id="login-pass" type="password" placeholder="Hasło" />
+    auth.signInWithEmailAndPassword(email, pass)
+        .catch(err => {
+            loginMsg.innerText = "Błąd: " + err.message;
+            loginMsg.style.color = "red";
+        });
+});
 
-    <button id="login-btn">Zaloguj</button>
-    <div id="login-msg" class="message"></div>
-</div>
+// Nasłuchiwanie stanu zalogowania
+auth.onAuthStateChanged(async user => {
+    if (user) {
+        // Sprawdź czy użytkownik ma rolę 'admin' w kolekcji users
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists && doc.data().role === 'admin') {
+            loginBox.style.display = 'none';
+            adminPanel.style.display = 'block';
+            initAdminPanel(); // Uruchom funkcje panelu
+        } else {
+            loginMsg.innerText = "Brak uprawnień administratora.";
+            auth.signOut();
+        }
+    } else {
+        loginBox.style.display = 'block';
+        adminPanel.style.display = 'none';
+    }
+});
 
-<!-- ============================= -->
-<!--          PANEL ADMINA         -->
-<!-- ============================= -->
-<div class="panel" id="admin-wrapper" style="display:none;">
+// ==========================================
+// 3. FUNKCJE PANELU (Po zalogowaniu)
+// ==========================================
 
-    <!-- ======================= -->
-    <!--   TWORZENIE DRUŻYNY    -->
-    <!-- ======================= -->
-    <section>
-        <h2>Tworzenie drużyny</h2>
+function initAdminPanel() {
+    loadTeamsForSelect();
+    loadMatches();
+    loadScorers(); // Jeśli masz kolekcję strzelców
+}
 
-        <input id="team-id" placeholder="Nazwa drużyny" />
-        <input id="team-email" type="email" placeholder="Email drużyny" />
-        <input id="team-pass" type="password" placeholder="Hasło (min. 6 znaków)" />
+// --- A. ŁADOWANIE DRUŻYN DO SELECTÓW ---
+async function loadTeamsForSelect() {
+    const selectA = document.getElementById('teamA');
+    const selectB = document.getElementById('teamB');
+    const selectScorerTeam = document.getElementById('scorer-team');
 
-        <button id="create-team-btn">Utwórz drużynę</button>
-        <div id="team-msg" class="message"></div>
-    </section>
+    // Czyścimy
+    selectA.innerHTML = ''; selectB.innerHTML = ''; selectScorerTeam.innerHTML = '';
 
-    <!-- ======================= -->
-    <!--    NADAWANIE ADMINA     -->
-    <!-- ======================= -->
-    <section>
-        <h2>Nadawanie uprawnień admina</h2>
+    // Pobieramy drużyny z kolekcji 'teams'
+    // ZAKŁADAM, że masz kolekcję "teams", gdzie dokumenty to drużyny
+    const snapshot = await db.collection('teams').get();
 
-        <input id="new-admin-email" type="email" placeholder="Email użytkownika" />
-        <button id="grant-admin-btn">Nadaj admina</button>
+    snapshot.forEach(doc => {
+        const teamName = doc.data().name || doc.id; // Używamy nazwy lub ID
+        
+        const option = `<option value="${teamName}">${teamName}</option>`;
+        selectA.innerHTML += option;
+        selectB.innerHTML += option;
+        selectScorerTeam.innerHTML += option;
+    });
+}
 
-        <div id="admin-msg" class="message"></div>
-    </section>
+// --- B. DODAWANIE MECZU ---
+document.getElementById('add-match-btn').addEventListener('click', async () => {
+    const teamA = document.getElementById('teamA').value;
+    const teamB = document.getElementById('teamB').value;
+    const group = document.getElementById('group').value;
+    const date = document.getElementById('match-date').value;
+    const time = document.getElementById('match-time').value;
 
-    <!-- ======================= -->
-    <!--      ZARZĄDZANIE MECZAMI -->
-    <!-- ======================= -->
-    <section>
-        <h2>Zarządzanie meczami</h2>
+    if (!teamA || !teamB || !group) {
+        alert("Wybierz drużyny i grupę!");
+        return;
+    }
 
-        <!-- Drużyny z bazy -->
-        <select id="teamA"></select>
-        <select id="teamB"></select>
+    // Zapisujemy w formacie zgodnym z Twoim screenem + pola dla index.html
+    await db.collection('matches').add({
+        teamA: teamA,
+        teamB: teamB,
+        goalsA: 0,
+        goalsB: 0,
+        group: group,
+        status: 'scheduled', // Domyślnie: planowany
+        date: date,
+        time: time,
+        scorers: "" // Puste na start
+    });
 
-        <input id="group" placeholder="Grupa (np. A)" />
-        <input id="match-date" type="date" />
-        <input id="match-time" type="time" />
+    alert("Mecz dodany!");
+    loadMatches(); // Odśwież listę
+});
 
-        <button id="add-match-btn">Dodaj mecz</button>
+// --- C. LISTA I EDYCJA MECZÓW ---
+async function loadMatches() {
+    const container = document.getElementById('matches-list');
+    container.innerHTML = 'Ładowanie...';
 
-        <h3 style="margin-top:15px;">Filtr statusu</h3>
-        <select id="match-status-filter">
-            <option value="wszyscy">Wszyscy</option>
-            <option value="planowany">Planowane</option>
-            <option value="trwa">Trwające</option>
-            <option value="zakończony">Zakończone</option>
-        </select>
+    // Pobierz mecze, sortując np. po grupie (opcjonalnie)
+    const snapshot = await db.collection('matches').orderBy('group').get();
+    
+    container.innerHTML = '';
 
-        <div id="matches-list"></div>
-    </section>
+    if (snapshot.empty) {
+        container.innerHTML = '<p>Brak meczów.</p>';
+        return;
+    }
 
-    <!-- ======================= -->
-    <!--     TABELA GRUPOWA     -->
-    <!-- ======================= -->
-    <section>
-        <h2>Tabele grup</h2>
+    snapshot.forEach(doc => {
+        const m = doc.data();
+        const id = doc.id;
 
-        <!-- Tu JS wygeneruje tabele -->
-        <div id="group-tables" class="group-section">
-            <p>Ładowanie...</p>
-        </div>
-    </section>
+        // Tłumaczenie statusu na polski dla Admina
+        let statusPL = 'Planowany';
+        if(m.status === 'live') statusPL = 'Trwa';
+        if(m.status === 'finished') statusPL = 'Zakończony';
 
-    <!-- ======================= -->
-    <!--    KLASYFIKACJA STRZELCÓW -->
-    <!-- ======================= -->
-    <section>
-        <h2>Klasyfikacja strzelców</h2>
+        const div = document.createElement('div');
+        div.className = 'match-item-admin';
+        div.style.border = "1px solid #333";
+        div.style.margin = "10px 0";
+        div.style.padding = "10px";
+        div.style.background = "#222"; // Ciemne tło pod admin.css
 
-        <!-- Dodawanie / edycja strzelca -->
-        <input id="scorer-name" placeholder="Zawodnik" />
-        <select id="scorer-team"></select>
-        <input id="scorer-goals" type="number" placeholder="Bramki" />
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; color: white;">
+                <strong>${m.teamA} vs ${m.teamB}</strong> 
+                <span>(Gr. ${m.group})</span>
+            </div>
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <input type="number" id="goalsA-${id}" value="${m.goalsA}" style="width:50px">
+                :
+                <input type="number" id="goalsB-${id}" value="${m.goalsB}" style="width:50px">
+                
+                <select id="status-${id}">
+                    <option value="scheduled" ${m.status === 'scheduled' ? 'selected' : ''}>Planowany</option>
+                    <option value="live" ${m.status === 'live' ? 'selected' : ''}>Trwa (Live)</option>
+                    <option value="finished" ${m.status === 'finished' ? 'selected' : ''}>Zakończony</option>
+                </select>
 
-        <button id="add-scorer-btn">Dodaj / Zapisz strzelca</button>
+                <button onclick="updateMatch('${id}')">Zapisz wynik</button>
+                <button onclick="deleteMatch('${id}')" style="background:red">X</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
 
-        <table id="scorers-table">
-            <thead>
-                <tr>
-                    <th>Zawodnik</th>
-                    <th>Drużyna</th>
-                    <th>Bramki</th>
-                    <th>Akcje</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </section>
+// Funkcja aktualizacji (musi być globalna, bo wywoływana z HTML stringa)
+window.updateMatch = async (id) => {
+    const gA = parseInt(document.getElementById(`goalsA-${id}`).value);
+    const gB = parseInt(document.getElementById(`goalsB-${id}`).value);
+    const st = document.getElementById(`status-${id}`).value;
 
-</div>
+    await db.collection('matches').doc(id).update({
+        goalsA: gA,
+        goalsB: gB,
+        status: st
+    });
+    alert("Zaktualizowano mecz!");
+};
 
-<script src="admin.js"></script>
-</body>
-</html>
+// Funkcja usuwania
+window.deleteMatch = async (id) => {
+    if(confirm("Usunąć ten mecz?")) {
+        await db.collection('matches').doc(id).delete();
+        loadMatches();
+    }
+};
+
+
+// ==========================================
+// 4. TWORZENIE DRUŻYNY (REJESTRACJA)
+// ==========================================
+// UWAGA: Rejestracja usera (createUserWithEmailAndPassword) wyloguje admina.
+// Dlatego tutaj tylko tworzymy wpis w bazie, a rejestrację najlepiej robić w oddzielnym oknie incognito 
+// lub użyć Cloud Functions. Dla uproszczenia – tworzymy tylko wpis w bazie 'teams', 
+// a zakładamy, że konto kapitana utworzysz ręcznie w panelu Firebase Console Auth.
+
+document.getElementById('create-team-btn').addEventListener('click', async () => {
+    const name = document.getElementById('team-id').value; // Nazwa drużyny
+    const email = document.getElementById('team-email').value;
+    
+    if(!name) return alert("Podaj nazwę drużyny");
+
+    // 1. Dodaj do kolekcji 'teams' (żeby była widoczna w selectach i panelu kapitana)
+    // Używamy .add() aby wygenerować ID, lub .doc(name) jeśli nazwy są unikalne
+    await db.collection('teams').add({
+        name: name,
+        email: email,
+        points: 0, // pod tabelę
+        goalsScored: 0,
+        goalsLost: 0
+    });
+
+    alert("Drużyna dodana do bazy! (Pamiętaj, aby utworzyć konto w Auth ręcznie w konsoli Firebase, jeśli nie masz skryptu node.js)");
+    loadTeamsForSelect();
+});
+
+
+// ==========================================
+// 5. KLASYFIKACJA STRZELCÓW (Opcjonalne)
+// ==========================================
+// To zapisuje do oddzielnej kolekcji 'scorers' dla łatwego wyświetlania tabeli
+document.getElementById('add-scorer-btn').addEventListener('click', async () => {
+    const name = document.getElementById('scorer-name').value;
+    const team = document.getElementById('scorer-team').value;
+    const goals = parseInt(document.getElementById('scorer-goals').value);
+
+    if(!name || !team) return alert("Uzupełnij dane");
+
+    await db.collection('scorers').add({
+        name: name,
+        team: team,
+        goals: goals
+    });
+    
+    loadScorers();
+});
+
+async function loadScorers() {
+    const tbody = document.querySelector('#scorers-table tbody');
+    tbody.innerHTML = '';
+
+    const snapshot = await db.collection('scorers').orderBy('goals', 'desc').get();
+    
+    snapshot.forEach(doc => {
+        const s = doc.data();
+        const row = `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.team}</td>
+                <td>${s.goals}</td>
+                <td><button onclick="deleteScorer('${doc.id}')">X</button></td>
+            </tr>
+        `;
+        tbody.innerHTML += row;
+    });
+}
+
+window.deleteScorer = async (id) => {
+    if(confirm("Usunąć?")) {
+        await db.collection('scorers').doc(id).delete();
+        loadScorers();
+    }
+};
+
+// ==========================================
+// 6. NADAWANIE UPRAWNIEŃ ADMINA
+// ==========================================
+document.getElementById('grant-admin-btn').addEventListener('click', async () => {
+    const email = document.getElementById('new-admin-email').value;
+    alert("W wersji client-side musisz znać UID użytkownika, aby edytować jego rolę w 'users'. Najlepiej zrób to ręcznie w Firestore: znajdź usera po UID i zmień pole role: 'admin'.");
+});
