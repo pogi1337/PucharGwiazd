@@ -72,8 +72,7 @@ const adminPanel = document.getElementById('admin-wrapper');
 function initializeFirebaseClients() {
     try {
         if (!app) {
-            // KLUCZOWY FIX: Inicjalizuj app ZAWSZE przed getAuth/getFirestore
-            app = initializeApp(firebaseConfig); 
+            app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
             console.log("Firebase Clients initialized successfully.");
