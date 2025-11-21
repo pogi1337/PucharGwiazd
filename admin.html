@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Kapitana - Puchar Gwiazd</title>
 
-    <!-- ZAKTUALIZOWANE: Importy Firebase V11 (Modularne) -->
+    <!-- Importy Firebase V11 (Modularne) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -15,9 +15,9 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ==========================================
-        // 1. KONFIGURACJA FIREBASE
+        // 1. KONFIGURACJA FIREBASE (Twoja Własna)
         // ==========================================
-        const HARDCODED_CONFIG = {
+        const firebaseConfig = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
             projectId: "puchargwiazd-bdaa4",
@@ -26,28 +26,12 @@
             appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
         };
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        let firebaseConfig;
-
-        try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = JSON.parse(__firebase_config);
-            } else {
-                firebaseConfig = HARDCODED_CONFIG;
-            }
-        } catch (e) {
-            console.error("Błąd konfiguracji:", e);
-            firebaseConfig = HARDCODED_CONFIG;
-        }
-        
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Inicjalizacja
+        // Inicjalizacja Aplikacji (Wymuszamy Twój projekt, ignorujemy Canvas DB)
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // 🔥🔥🔥 POPRAWIONE ŚCIEŻKI (ZGODNE Z FIRESTORE) 🔥🔥🔥
+        // Ścieżki do głównych kolekcji (zgodne z Twoim Firestore)
         const PATH_USERS = 'users';     
         const PATH_TEAMS = 'teams';
 
@@ -123,23 +107,35 @@
                     const userDocRef = doc(db, PATH_USERS, user.uid);
                     const docSnap = await getDoc(userDocRef);
                     
-                    if (docSnap.exists() && docSnap.data().role === "teamManager") {
-                        // JEST KAPITANEM
-                        currentTeamId = docSnap.data().teamId;
-                        
-                        if (!currentTeamId) {
-                            showMessage("Błąd: Twoje konto nie ma przypisanej drużyny (brak teamId).", 'error');
-                            return;
-                        }
+                    if (docSnap.exists()) {
+                         const userData = docSnap.data();
+                         
+                         // Sprawdzamy czy jest teamManagerem LUB Adminem (admini też mogą widzieć)
+                         if (userData.role === "teamManager" || userData.role === "admin" || userData.admin === true) {
+                            // JEST UPRAWNIONY
+                            currentTeamId = userData.teamId;
+                            
+                            if (!currentTeamId) {
+                                showMessage("Błąd: Twoje konto nie ma przypisanej drużyny (brak pola teamId).", 'error');
+                                // Nie wylogowujemy, żeby użytkownik mógł zobaczyć błąd
+                                loading.style.display = "none";
+                                return; 
+                            }
 
-                        setupTeamListeners(currentTeamId);
-                        
-                        loading.style.display = "none";
-                        loginView.style.display = "none";
-                        panelView.style.display = "block";
+                            setupTeamListeners(currentTeamId);
+                            
+                            loading.style.display = "none";
+                            loginView.style.display = "none";
+                            panelView.style.display = "block";
+                         } else {
+                            // BRAK ROLI
+                            showMessage("To konto nie ma uprawnień kapitana (rola: teamManager).", 'error');
+                            await signOut(auth);
+                         }
                     } else {
-                        // NIE JEST KAPITANEM
-                        showMessage("To konto nie ma uprawnień kapitana (rola: teamManager).", 'error');
+                        // DOKUMENT NIE ISTNIEJE
+                        console.error("Dokument użytkownika nie istnieje:", user.uid);
+                        showMessage("Błąd: Brak profilu użytkownika w bazie.", 'error');
                         await signOut(auth);
                     }
                 } catch (error) {
@@ -276,11 +272,6 @@
             const modal = document.getElementById("addModal");
             if (event.target == modal) window.closeModal();
         };
-
-        // Logowanie tokenem na starcie (dla Canvas)
-        if (initialAuthToken) {
-            signInWithCustomToken(auth, initialAuthToken).catch(e => console.log("Auth token error", e));
-        }
 
     </script>
 
