@@ -30,7 +30,7 @@ const HARDCODED_CONFIG = {
     apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
     authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
     projectId: "puchargwiazd-bdaa4",
-    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+    storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
     messagingSenderId: "890734185883",
     appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
 };
@@ -72,7 +72,8 @@ const adminPanel = document.getElementById('admin-wrapper');
 function initializeFirebaseClients() {
     try {
         if (!app) {
-            app = initializeApp(firebaseConfig);
+            // KLUCZOWY FIX: Inicjalizuj app ZAWSZE przed getAuth/getFirestore
+            app = initializeApp(firebaseConfig); 
             auth = getAuth(app);
             db = getFirestore(app);
             console.log("Firebase Clients initialized successfully.");
@@ -149,11 +150,13 @@ function setupAuthStateListener() {
                     initAdminPanel(); // Załaduj dane
                 } else {
                     // NIE JEST ADMINEM -> WYLOGUJ Z BŁĘDEM
-                    showMessage("To konto nie ma uprawnień administratora.", 'error', false);
+                    console.error("Brak uprawnień admina. Wylogowuję. Twoje UID to:", user.uid);
+                    showMessage(`To konto nie ma uprawnień administratora. Twoje UID to: ${user.uid.substring(0, 8)}...`, 'error', false);
                     signOut(auth); // Wyloguj, aby kolejny login mógł się odbyć
                 }
             } catch (e) {
                 // Ten błąd złapie, jeśli np. nie można odczytać Firestore
+                console.error("Błąd odczytu uprawnień z Firestore:", e);
                 showMessage(`Błąd odczytu uprawnień: ${e.message}`, 'error', false);
                 signOut(auth); // Wyloguj natychmiast
                 loginBox.style.display = 'block';
