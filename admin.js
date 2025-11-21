@@ -43,10 +43,9 @@ try {
         firebaseConfig = JSON.parse(__firebase_config);
     } else {
         firebaseConfig = HARDCODED_CONFIG;
-        console.warn("Użyto hardkodowanej konfiguracji Firebase w admin.js.");
     }
 } catch (e) {
-    console.error("Błąd parsowania __firebase_config, użyto hardkodowanej konfiguracji.");
+    console.error("Błąd konfiguracji", e);
     firebaseConfig = HARDCODED_CONFIG;
 }
 
@@ -55,11 +54,12 @@ const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial
 // Globalne obiekty Firebase
 let app, auth, db;
 
-// DEFINICJE ŚCIEŻEK
-const PATH_USERS = `artifacts/${appId}/users`;
-const PATH_TEAMS = `artifacts/${appId}/public/data/teams`;
-const PATH_MATCHES = `artifacts/${appId}/public/data/matches`;
-const PATH_SCORERS = `artifacts/${appId}/public/data/scorers`;
+// 🔥🔥🔥 POPRAWIONE ŚCIEŻKI - TERAZ SZUKA W GŁÓWNYCH KOLEKCJACH 🔥🔥🔥
+// To pasuje do tego, co widzę na Twoich screenach z Firestore
+const PATH_USERS = 'users';     
+const PATH_TEAMS = 'teams';     
+const PATH_MATCHES = 'matches'; 
+const PATH_SCORERS = 'scorers'; 
 
 
 // ==========================================
@@ -90,24 +90,16 @@ async function authenticateWithToken() {
     if (initialAuthToken && auth) {
         try {
             await signInWithCustomToken(auth, initialAuthToken);
-            console.log("Autentykacja tokenem Canvas udana.");
         } catch (error) {
             console.error("Błąd autentykacji tokenem:", error);
         }
-    } else {
-        console.log("Brak tokena Canvas, użyj formularza logowania.");
     }
 }
 
 // Logowanie e-mail/hasło
 document.getElementById('login-btn').addEventListener('click', async () => {
-    // 1. Inicjalizacja klientów przed logowaniem
     if (!initializeFirebaseClients()) return;
     
-    if (!auth) {
-        showMessage("Błąd: System Firebase nie został poprawnie zainicjowany.", 'error', false);
-        return;
-    }
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
 
@@ -121,13 +113,11 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     }
 });
 
-// Główny strażnik dostępu - sprawdza uprawnienia przy każdym odświeżeniu
+// Główny strażnik dostępu
 function setupAuthStateListener() {
-    // Upewnij się, że auth jest dostępne przed ustawieniem listenera
     if (!auth) return;
 
     onAuthStateChanged(auth, async user => {
-        // Zabezpieczenie: jeśli db jest puste, spróbujmy je zainicjalizować
         if (!db && user) {
             if (!initializeFirebaseClients()) {
                 signOut(auth);
@@ -137,38 +127,33 @@ function setupAuthStateListener() {
         
         if (user) {
             try {
-                // Sprawdzamy w bazie czy ten user to admin
+                // Teraz szukamy w głównej kolekcji 'users'
                 const docRef = doc(db, PATH_USERS, user.uid);
                 const docSnap = await getDoc(docRef);
                 
-                // Warunek: dokument musi istnieć ORAZ (mieć admin:true LUB role:'admin')
+                // Sprawdzenie uprawnień (admin: true LUB role: 'admin')
                 if (docSnap.exists() && (docSnap.data().admin === true || docSnap.data().role === 'admin')) {
-                    // JEST ADMINEM -> POKAŻ PANEL
+                    // ZALOGOWANO JAKO ADMIN
                     loginBox.style.display = 'none';
                     adminPanel.style.display = 'block';
-                    initAdminPanel(); // Załaduj dane
+                    initAdminPanel(); 
                 } else {
-                    // NIE JEST ADMINEM -> WYLOGUJ Z BŁĘDEM
-                    console.error("Brak uprawnień admina. Wylogowuję. Twoje UID to:", user.uid);
-                    showMessage(`To konto nie ma uprawnień administratora. Twoje UID to: ${user.uid.substring(0, 8)}...`, 'error', false);
-                    signOut(auth); // Wyloguj, aby kolejny login mógł się odbyć
+                    // BRAK UPRAWNIEŃ
+                    console.error(`Brak uprawnień. Twoje UID to: ${user.uid}`);
+                    showMessage(`To konto (UID: ${user.uid}) nie ma w bazie uprawnień administratora (admin: true).`, 'error', false);
+                    signOut(auth); 
                 }
             } catch (e) {
-                // Ten błąd złapie, jeśli np. nie można odczytać Firestore
-                console.error("Błąd odczytu uprawnień z Firestore:", e);
-                showMessage(`Błąd odczytu uprawnień: ${e.message}`, 'error', false);
-                signOut(auth); // Wyloguj natychmiast
-                loginBox.style.display = 'block';
-                adminPanel.style.display = 'none';
+                showMessage(`Błąd odczytu bazy: ${e.message}`, 'error', false);
+                signOut(auth); 
             }
         } else {
-            // Nikt nie jest zalogowany
+            // Niezalogowany
             loginBox.style.display = 'block';
             adminPanel.style.display = 'none';
         }
     });
 
-    // Uruchomienie autentykacji tokenem przy starcie
     authenticateWithToken();
 }
 
@@ -178,15 +163,13 @@ function setupAuthStateListener() {
 // ==========================================
 
 function initAdminPanel() {
-    // Ta funkcja jest wywoływana tylko PO udanym logowaniu/autoryzacji
     if (!initializeFirebaseClients()) return;
-    
     loadTeamsSelect();
     loadMatches();
     loadGlobalScorers();
 }
 
-// --- A. ŁADOWANIE DRUŻYN DO LIST WYBORU ---
+// --- A. ŁADOWANIE DRUŻYN ---
 async function loadTeamsSelect() {
     const selectA = document.getElementById('teamA');
     const selectB = document.getElementById('teamB');
@@ -208,20 +191,18 @@ async function loadTeamsSelect() {
             const t = doc.data();
             const teamName = t.name || doc.id;
             const option = `<option value="${teamName}">${teamName}</option>`;
-            
             selectA.innerHTML += option;
             selectB.innerHTML += option;
             if(selectScorerTeam) selectScorerTeam.innerHTML += option;
         });
     } catch (e) {
         console.error("Błąd ładowania drużyn:", e);
-        showMessage("Błąd ładowania drużyn.", 'error', false);
     }
 }
 
 // --- B. DODAWANIE MECZU ---
 document.getElementById('add-match-btn').addEventListener('click', async () => {
-    if (!db) return; // Zabezpieczenie
+    if (!db) return;
     
     const teamA = document.getElementById('teamA').value;
     const teamB = document.getElementById('teamB').value;
@@ -235,34 +216,24 @@ document.getElementById('add-match-btn').addEventListener('click', async () => {
     }
 
     try {
-        const matchesCol = collection(db, PATH_MATCHES);
-        await addDoc(matchesCol, {
-            teamA: teamA,
-            teamB: teamB,
-            goalsA: 0,
-            goalsB: 0,
-            group: group,
-            date: date,
-            time: time,
-            status: 'scheduled', // statusy: 'scheduled', 'live', 'finished'
-            scorers: []
+        await addDoc(collection(db, PATH_MATCHES), {
+            teamA, teamB, goalsA: 0, goalsB: 0, group, date, time,
+            status: 'scheduled', scorers: []
         });
         showMessage("Mecz dodany!", 'success', false);
     } catch (e) {
         showMessage("Błąd dodawania meczu.", 'error', false);
-        console.error(e);
     }
 });
 
-// --- C. LISTA MECZÓW I ZARZĄDZANIE ---
+// --- C. LISTA MECZÓW ---
 function loadMatches() {
-    if (!db) return; // Zabezpieczenie
+    if (!db) return;
     
     const container = document.getElementById('matches-list');
     const statusFilter = document.getElementById('match-status-filter').value;
 
-    const matchesCol = collection(db, PATH_MATCHES);
-    onSnapshot(matchesCol, (snapshot) => {
+    onSnapshot(collection(db, PATH_MATCHES), (snapshot) => {
         container.innerHTML = '';
         
         if (snapshot.empty) {
@@ -271,11 +242,8 @@ function loadMatches() {
         }
         
         let matches = [];
-        snapshot.forEach(doc => {
-            matches.push({ id: doc.id, ...doc.data() });
-        });
+        snapshot.forEach(doc => matches.push({ id: doc.id, ...doc.data() }));
 
-        // Sortowanie w pamięci (od najnowszej daty i czasu)
         matches.sort((a, b) => {
             const dateA = a.date + a.time;
             const dateB = b.date + b.time;
@@ -283,18 +251,15 @@ function loadMatches() {
         });
 
         matches.forEach(m => {
-            // Filtr statusu (mapowanie nazw polskich na angielskie w bazie)
             if (statusFilter !== 'wszyscy') {
                 const mapStatus = { 'planowany': 'scheduled', 'trwa': 'live', 'zakończony': 'finished' };
                 if (m.status !== mapStatus[statusFilter]) return;    
             }
 
             const div = document.createElement('div');
-            // Styl karty meczu
             div.style.cssText = "background: #0a0a1f; border: 1px solid #1e3a5f; padding: 20px; margin-bottom: 15px; border-radius: 12px; color: white;";
-            if(m.status === 'live') div.style.border = "2px solid #ff4d4d"; // Użycie koloru z CSS
+            if(m.status === 'live') div.style.border = "2px solid #ff4d4d";
 
-            // Opcje statusu
             const statusOptions = `
                 <option value="scheduled" ${m.status === 'scheduled' ? 'selected' : ''}>📅 Planowany</option>
                 <option value="live" ${m.status === 'live' ? 'selected' : ''}>🔴 NA ŻYWO</option>
@@ -306,299 +271,109 @@ function loadMatches() {
                     <span>${m.teamA} vs ${m.teamB}</span>
                     <span style="color:#00bfff;">Gr. ${m.group} (${m.date} ${m.time})</span>
                 </div>
-                
                 <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px; background:#101a2e; padding:10px; border-radius:5px;">
                     <input type="number" id="gA-${m.id}" value="${m.goalsA}" style="width:50px; text-align:center; font-weight:bold; color:white; background:#0a0a1f; border:1px solid #1e3a5f;">
                     <span style="font-weight:bold;">:</span>
                     <input type="number" id="gB-${m.id}" value="${m.goalsB}" style="width:50px; text-align:center; font-weight:bold; color:white; background:#0a0a1f; border:1px solid #1e3a5f;">
-                    
-                    <select onchange="updateStatus('${m.id}', this.value)" style="width:auto; padding:8px; background:#1e3a5f; color:white;">
-                        ${statusOptions}
-                    </select>
-                    
-                    <button onclick="updateScore('${m.id}')" style="background:#007bff;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;">Zapisz Wynik</button>
-                    <button onclick="deleteMatchPrompt('${m.id}')" style="background:#dc3545;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;margin-left:auto;">🗑 Usuń</button>
+                    <select onchange="updateStatus('${m.id}', this.value)" style="width:auto; padding:8px; background:#1e3a5f; color:white;">${statusOptions}</select>
+                    <button onclick="updateScore('${m.id}')" style="background:#007bff;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;">Zapisz</button>
+                    <button onclick="deleteMatchPrompt('${m.id}')" style="background:#dc3545;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;margin-left:auto;">🗑</button>
                 </div>
-
                 <div style="border-top:1px solid #1e3a5f; padding-top:10px;">
-                    <small style="color:#00bfff; display:block; margin-bottom:5px;">Dodaj strzelca (Aktualizuje wynik i tabelę króla strzelców):</small>
+                    <small style="color:#00bfff; display:block; margin-bottom:5px;">Dodaj strzelca:</small>
                     <div style="display:flex; gap:5px;">
                         <input type="text" id="sc-name-${m.id}" placeholder="Nazwisko" style="width:120px; background:#0a0a1f;">
                         <select id="sc-team-${m.id}" style="width:auto; background:#0a0a1f;">
                             <option value="${m.teamA}">${m.teamA}</option>
                             <option value="${m.teamB}">${m.teamB}</option>
                         </select>
-                        <button onclick="addGoalAndGlobalScorer('${m.id}', '${m.teamA}', '${m.teamB}')" style="background:#28a745;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;">⚽ GOL +1</button>
+                        <button onclick="addGoalAndGlobalScorer('${m.id}', '${m.teamA}', '${m.teamB}')" style="background:#28a745;color:white;border:none;padding:5px 10px;cursor:pointer;border-radius:3px;">+1 Gol</button>
                     </div>
                 </div>
             `;
             container.appendChild(div);
         });
-    }, (error) => {
-        console.error("Błąd nasłuchiwania meczów:", error);
-        showMessage("Błąd ładowania listy meczów.", 'error', false);
     });
 }
 
-// Globalne funkcje dołączone do window dla onchange/onclick
+// --- FUNKCJE POMOCNICZE (UPDATE/DELETE) ---
 window.updateStatus = async (id, newStatus) => {
-    if (!db) return; // Zabezpieczenie
-    
-    const matchRef = doc(db, PATH_MATCHES, id);
-    try {
-        await updateDoc(matchRef, { status: newStatus });
-        showMessage("Status zaktualizowany!", 'success', false);
-    } catch(e) {
-        showMessage("Błąd aktualizacji statusu.", 'error', false);
-    }
+    try { await updateDoc(doc(db, PATH_MATCHES, id), { status: newStatus }); showMessage("Status OK!", 'success'); } catch(e) {}
 };
-
 window.updateScore = async (id) => {
-    if (!db) return; // Zabezpieczenie
-    
     const gA = parseInt(document.getElementById(`gA-${id}`).value) || 0;
     const gB = parseInt(document.getElementById(`gB-${id}`).value) || 0;
-    const matchRef = doc(db, PATH_MATCHES, id);
-    try {
-        await updateDoc(matchRef, { goalsA: gA, goalsB: gB });
-        showMessage("Wynik zapisany!", 'success', false);
-    } catch(e) {
-        showMessage("Błąd zapisu wyniku.", 'error', false);
-    }
+    try { await updateDoc(doc(db, PATH_MATCHES, id), { goalsA: gA, goalsB: gB }); showMessage("Wynik OK!", 'success'); } catch(e) {}
 };
-
 window.deleteMatchPrompt = (id) => {
-    showMessage("Czy na pewno usunąć ten mecz?", 'warning', true, async (confirmed) => {
-        if (confirmed) {
-            await deleteMatch(id);
-        }
-    });
+    showMessage("Usunąć mecz?", 'warning', true, async (ok) => { if(ok) await deleteDoc(doc(db, PATH_MATCHES, id)); });
 };
 
-async function deleteMatch(id) {
-    if (!db) return; // Zabezpieczenie
-    
-    const matchRef = doc(db, PATH_MATCHES, id);
-    try {
-        await deleteDoc(matchRef);
-        showMessage("Mecz usunięty!", 'success', false);
-    } catch(e) {
-        showMessage("Błąd usuwania meczu.", 'error', false);
-    }
-}
-
-
-// --- D. LOGIKA "DUAL WRITE" (Aktualizacja Mecz + Scorers) ---
+// --- D. DUAL WRITE (MECZ + STRZELCY) ---
 window.addGoalAndGlobalScorer = async (matchId, teamAName, teamBName) => {
-    if (!db) return; // Zabezpieczenie
-    
-    const nameInput = document.getElementById(`sc-name-${matchId}`);
-    const teamSelect = document.getElementById(`sc-team-${matchId}`);
-    
-    const playerName = nameInput.value.trim();
-    const teamName = teamSelect.value;
-
-    if (!playerName) return showMessage("Wpisz nazwisko strzelca!", 'warning', false);
+    const name = document.getElementById(`sc-name-${matchId}`).value.trim();
+    const team = document.getElementById(`sc-team-${matchId}`).value;
+    if (!name) return;
 
     try {
-        // 1. Aktualizacja wyniku w meczu
-        const matchRef = doc(db, PATH_MATCHES, matchId);
-        
+        // 1. Aktualizuj wynik meczu
         const updateData = {};
-        
-        if (teamName === teamAName) {
-            updateData.goalsA = FieldValue.increment(1);
+        if (team === teamAName) updateData.goalsA = FieldValue.increment(1);
+        else updateData.goalsB = FieldValue.increment(1);
+        updateData.scorers = FieldValue.arrayUnion({ name, team });
+        await updateDoc(doc(db, PATH_MATCHES, matchId), updateData);
+
+        // 2. Aktualizuj tabelę króla strzelców
+        const q = query(collection(db, PATH_SCORERS), where('name', '==', name), where('team', '==', team));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            await addDoc(collection(db, PATH_SCORERS), { name, team, goals: 1 });
         } else {
-            updateData.goalsB = FieldValue.increment(1);
+            await updateDoc(doc(db, PATH_SCORERS, snap.docs[0].id), { goals: FieldValue.increment(1) });
         }
-        
-        // Dodatkowo zapisujemy strzelca w tablicy meczu (opcjonalnie)
-        updateData.scorers = FieldValue.arrayUnion({
-            name: playerName,
-            team: teamName
-        });
-
-        await updateDoc(matchRef, updateData);
-
-        // 2. Aktualizacja globalnej tabeli strzelców
-        const scorersCol = collection(db, PATH_SCORERS);
-        const q = query(scorersCol, where('name', '==', playerName), where('team', '==', teamName));
-        const snapshot = await getDocs(q);
-
-        if (snapshot.empty) {
-            await addDoc(scorersCol, { name: playerName, team: teamName, goals: 1 });
-        } else {
-            const docId = snapshot.docs[0].id;
-            const scorerRef = doc(db, PATH_SCORERS, docId);
-            await updateDoc(scorerRef, { goals: FieldValue.increment(1) });
-        }
-
-        showMessage(`Gol dodany dla: ${playerName}!`, 'success', false);
-        nameInput.value = '';  
-    } catch (e) {
-        showMessage("Błąd dodawania gola.", 'error', false);
-        console.error(e);
-    }
+        showMessage(`Gol dla: ${name}!`, 'success');
+        document.getElementById(`sc-name-${matchId}`).value = '';
+    } catch (e) { console.error(e); }
 };
 
-
-// --- E. TABELA STRZELCÓW (Wyświetlanie kolekcji 'scorers') ---
+// --- E. TABELA STRZELCÓW ---
 function loadGlobalScorers() {
-    if (!db) return; // Zabezpieczenie
-    
+    if (!db) return;
     const tbody = document.querySelector('#scorers-table tbody');
-    if(!tbody) return;
-
-    const scorersCol = collection(db, PATH_SCORERS);
-    const q = query(scorersCol, orderBy('goals', 'desc'));
-
-    onSnapshot(q, (snapshot) => {
+    onSnapshot(query(collection(db, PATH_SCORERS), orderBy('goals', 'desc')), (snap) => {
         tbody.innerHTML = '';
-        
-        if (snapshot.empty) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Brak danych.</td></tr>';
-            return;
-        }
-
-        snapshot.forEach((docSnap, index) => {
-            const s = docSnap.data();
-            const row = `
+        snap.forEach(doc => {
+            const s = doc.data();
+            tbody.innerHTML += `
                 <tr style="border-bottom:1px solid #eee;">
-                    <td>${s.name}</td>
-                    <td>${s.team}</td>
-                    <td style="font-weight:bold; font-size:1.2em;">${s.goals}</td>
-                    <td>
-                        <button onclick="editGlobalScorer('${docSnap.id}', 1)" style="background:#ccc;border:none;padding:2px 5px;cursor:pointer;">+1</button>
-                        <button onclick="editGlobalScorer('${docSnap.id}', -1)" style="background:#ccc;border:none;padding:2px 5px;cursor:pointer;">-1</button>
-                        <button onclick="deleteGlobalScorerPrompt('${docSnap.id}')" style="background:#dc3545;color:white;border:none;padding:2px 5px;cursor:pointer;margin-left:5px;">X</button>
-                    </td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
+                    <td>${s.name}</td><td>${s.team}</td><td><strong>${s.goals}</strong></td>
+                    <td><button onclick="deleteScorer('${doc.id}')" style="color:red;">X</button></td>
+                </tr>`;
         });
-    }, (error) => {
-        console.error("Błąd ładowania strzelców:", error);
     });
 }
+window.deleteScorer = async (id) => { if(confirm("Usunąć?")) await deleteDoc(doc(db, PATH_SCORERS, id)); };
 
-window.editGlobalScorer = async (id, val) => {
-    if (!db) return; // Zabezpieczenie
-    
-    const scorerRef = doc(db, PATH_SCORERS, id);
-    try {
-        await updateDoc(scorerRef, { goals: FieldValue.increment(val) });
-    } catch(e) {
-        showMessage("Błąd edycji strzelca.", 'error', false);
-    }
-}
-
-window.deleteGlobalScorerPrompt = (id) => {
-    showMessage("Czy na pewno usunąć tego zawodnika z listy strzelców?", 'warning', true, async (confirmed) => {
-        if (confirmed) {
-            await deleteGlobalScorer(id);
-        }
-    });
-};
-
-async function deleteGlobalScorer(id) {
-    if (!db) return; // Zabezpieczenie
-    
-    const scorerRef = doc(db, PATH_SCORERS, id);
-    try {
-        await deleteDoc(scorerRef);
-        showMessage("Strzelec usunięty.", 'success', false);
-    } catch(e) {
-        showMessage("Błąd usuwania strzelca.", 'error', false);
-    }
-}
-
-document.getElementById('add-scorer-btn').addEventListener('click', async () => {
-    if (!db) return; // Zabezpieczenie
-    
-    const name = document.getElementById('scorer-name').value;
-    const team = document.getElementById('scorer-team').value;
-    const goals = parseInt(document.getElementById('scorer-goals').value) || 0;
-
-    if(!name || !team) return showMessage("Uzupełnij dane strzelca", 'warning', false);
-    
-    const scorersCol = collection(db, PATH_SCORERS);
-    try {
-        await addDoc(scorersCol, { name, team, goals });
-        showMessage("Strzelec dodany ręcznie.", 'success', false);
-        document.getElementById('scorer-name').value = '';
-        document.getElementById('scorer-goals').value = '';
-    } catch(e) {
-        showMessage("Błąd dodawania strzelca.", 'error', false);
-    }
-});
-
-// --- F. TWORZENIE DRUŻYNY ---
+// --- F. INNE ---
 document.getElementById('create-team-btn').addEventListener('click', async () => {
-    if (!db) return; // Zabezpieczenie
-    
     const name = document.getElementById('team-id').value;
     const email = document.getElementById('team-email').value;
-
-    if(!name) return showMessage("Podaj nazwę drużyny!", 'warning', false);
-
-    const teamsCol = collection(db, PATH_TEAMS);
-    try {
-        await addDoc(teamsCol, { 
-            name, 
-            email, 
-            group: 'A', // Domyślna grupa
-            points: 0, 
-            wins: 0, 
-            draws: 0, 
-            losses: 0, 
-            goalsFor: 0, 
-            goalsAgainst: 0 
-        });
-        showMessage(`Dodano drużynę ${name}.`, 'success', false);
-        loadTeamsSelect(); // Odśwież listy wyboru
-        document.getElementById('team-id').value = '';
-        document.getElementById('team-email').value = '';
-    } catch(e) {
-        showMessage("Błąd tworzenia drużyny.", 'error', false);
-        console.error(e);
-    }
+    if(!name) return;
+    await addDoc(collection(db, PATH_TEAMS), { name, email, group:'A', points:0 });
+    showMessage(`Dodano drużynę ${name}`, 'success');
 });
 
-// --- G. NADAWANIE ADMINA ---
 document.getElementById('grant-admin-btn').addEventListener('click', async () => {
-    if (!db) return; // Zabezpieczenie
-    
     const email = document.getElementById('new-admin-email').value;
-    if (!email) return showMessage("Wpisz email!", 'warning', false);
-
-    try {
-        const usersCol = collection(db, PATH_USERS);
-        const q = query(usersCol, where('email', '==', email));
-        const snapshot = await getDocs(q);
-        
-        if (snapshot.empty) {
-            showMessage("Nie znaleziono użytkownika w bazie 'users'. Musi się najpierw zalogować.", 'warning', false);
-            return;
-        }
-        
-        snapshot.forEach(async docSnap => {
-            const userRef = doc(db, PATH_USERS, docSnap.id);
-            await updateDoc(userRef, { role: 'admin', admin: true });
-        });
-        showMessage("Nadano uprawnienia administratora!", 'success', false);
-    } catch(e) {
-        showMessage("Błąd nadawania uprawnień.", 'error', false);
-        console.error(e);
-    }
+    const q = query(collection(db, PATH_USERS), where('email', '==', email));
+    const snap = await getDocs(q);
+    if(snap.empty) return showMessage("Brak usera w bazie", 'warning');
+    snap.forEach(async d => await updateDoc(doc(db, PATH_USERS, d.id), { role: 'admin', admin: true }));
+    showMessage("Nadano admina", 'success');
 });
 
-// Obsługa filtra statusu
+// START
 document.getElementById('match-status-filter').addEventListener('change', loadMatches);
-
-// Uruchomienie listenera po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', () => {
-    // 🔥 Uruchamiamy inicjalizację klientów i nasłuchiwanie stanu autoryzacji
-    if (initializeFirebaseClients()) {
-        setupAuthStateListener();
-    }
+    if (initializeFirebaseClients()) setupAuthStateListener();
 });
