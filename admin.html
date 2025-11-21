@@ -14,45 +14,27 @@
             addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // 1. KONFIGURACJA FIREBASE (Twoja Własna)
-        // ==========================================
-        const HARDCODED_CONFIG = {
+        // 1. KONFIGURACJA (Twoja własna, hardkodowana)
+        const firebaseConfig = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
             projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
             messagingSenderId: "890734185883",
             appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
         };
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        let firebaseConfig = HARDCODED_CONFIG;
-
-        // Bezpieczne wczytanie konfiguracji (jeśli dostępna)
-        try {
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                firebaseConfig = JSON.parse(__firebase_config);
-            }
-        } catch (e) {
-            console.warn("Użyto hardkodowanej konfiguracji.");
-        }
-        
-        // Inicjalizacja
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // Ścieżki do kolekcji (GŁÓWNE - tak jak w admin.js)
+        // Ścieżki
         const PATH_USERS = 'users';     
         const PATH_TEAMS = 'teams';
 
         let currentTeamId = "";
 
-        // ==========================================
         // 2. LOGIKA UI
-        // ==========================================
-        
         function showMessage(text, type = 'success') {
             const msgDiv = document.getElementById('custom-message');
             if (!msgDiv) return;
@@ -75,10 +57,8 @@
             await signOut(auth);
         };
 
-        // ==========================================
         // 3. LOGIKA APLIKACJI
-        // ==========================================
-
+        
         // A. Logowanie
         const loginForm = document.getElementById("login-form");
         if (loginForm) {
@@ -110,7 +90,7 @@
             if (user) {
                 console.log("Zalogowano:", user.uid);
                 try {
-                    // Pobieramy dokument użytkownika z kolekcji 'users'
+                    // Pobieramy dokument użytkownika, aby sprawdzić rolę
                     const userDocRef = doc(db, PATH_USERS, user.uid);
                     const docSnap = await getDoc(userDocRef);
                     
@@ -118,12 +98,12 @@
                          const userData = docSnap.data();
                          console.log("Dane użytkownika:", userData);
                          
-                         // Sprawdzamy uprawnienia (TeamManager lub Admin)
-                         if (userData.role === "teamManager" || userData.role === "admin" || userData.admin === true) {
+                         if (userData.role === "teamManager" || userData.role === "admin") {
+                            // JEST OK
                             currentTeamId = userData.teamId;
                             
                             if (!currentTeamId) {
-                                showMessage("Błąd: Twoje konto nie ma przypisanej drużyny (brak pola teamId).", 'error');
+                                showMessage("Błąd: Twoje konto nie ma przypisanej drużyny.", 'error');
                                 loading.style.display = "none";
                                 return; 
                             }
@@ -134,20 +114,19 @@
                             loginView.style.display = "none";
                             panelView.style.display = "block";
                          } else {
-                            showMessage("Brak uprawnień kapitana.", 'error');
+                            showMessage("To konto nie ma uprawnień kapitana.", 'error');
                             await signOut(auth);
                          }
                     } else {
-                        // Jeśli dokument nie istnieje
                         console.error("Brak dokumentu w users/" + user.uid);
                         showMessage("Błąd: Brak profilu w bazie. Skontaktuj się z administratorem.", 'error');
                         await signOut(auth);
                     }
                 } catch (error) {
                     console.error("Błąd weryfikacji:", error);
-                    
+                    // Ten błąd (permission-denied) wystąpi, jeśli reguły są źle ustawione
                     if (error.code === 'permission-denied') {
-                        showMessage("BŁĄD DOSTĘPU: Sprawdź Reguły Firestore (Rules).", 'error');
+                        showMessage("Błąd uprawnień: Nie masz dostępu do odczytu swojego profilu. Sprawdź Reguły Firestore.", 'error');
                     } else {
                         showMessage(`Błąd weryfikacji: ${error.message}`, 'error');
                     }
@@ -160,14 +139,13 @@
             }
         });
 
-        // C. Nasłuchiwanie danych
         function setupTeamListeners(tid) {
-            // Drużyna
-            onSnapshot(doc(db, PATH_TEAMS, tid), (docSnap) => {
+            const teamRef = doc(db, PATH_TEAMS, tid);
+            onSnapshot(teamRef, (docSnap) => {
                 if (docSnap.exists()) {
                     document.getElementById("team-name").textContent = "Zarządzasz drużyną: " + docSnap.data().name;
                 } else {
-                    document.getElementById("team-name").textContent = "Nie znaleziono drużyny (ID: " + tid + ")";
+                    document.getElementById("team-name").textContent = "Nie znaleziono drużyny o ID: " + tid;
                 }
             }, (error) => {
                  console.error("Błąd odczytu drużyny:", error);
@@ -176,8 +154,9 @@
                  }
             });
 
-            // Zawodnicy (Podkolekcja)
-            const q = query(collection(db, PATH_TEAMS, tid, "players"), orderBy("number"));
+            const playersRef = collection(db, PATH_TEAMS, tid, "players");
+            const q = query(playersRef, orderBy("number"));
+            
             onSnapshot(q, (snapshot) => {
                 const list = document.getElementById("players-list");
                 list.innerHTML = "";
@@ -194,8 +173,10 @@
                     div.innerHTML = `
                         <label>Imię</label>
                         <input id="name-${docSnap.id}" value="${p.name || ''}" onchange="window.savePlayer('${docSnap.id}')">
+                        
                         <label>Nazwisko</label>
                         <input id="surname-${docSnap.id}" value="${p.surname || ''}" onchange="window.savePlayer('${docSnap.id}')">
+                        
                         <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
                             <div><label>Nr</label><input type="number" id="number-${docSnap.id}" value="${p.number || ''}" onchange="window.savePlayer('${docSnap.id}')"></div>
                             <div><label>Pozycja</label><input id="position-${docSnap.id}" value="${p.position || ''}" onchange="window.savePlayer('${docSnap.id}')"></div>
@@ -209,7 +190,6 @@
             }, (error) => console.error("Błąd zawodników:", error));
         }
         
-        // D. Operacje (CRUD)
         window.addPlayer = async () => {
             const name = document.getElementById("new-name").value.trim();
             const surname = document.getElementById("new-surname").value.trim();
@@ -334,4 +314,3 @@
     </div>
 </body>
 </html>
-
