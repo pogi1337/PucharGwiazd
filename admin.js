@@ -22,10 +22,9 @@ function showMessage(message, type = 'info', isConfirm = false, callback = null)
 
 
 // ==========================================
-// 1. KONFIGURACJA ZMIENNYCH GLOBALNYCH
+// 1. KONFIGURACJA FIREBASE
 // ==========================================
 
-// Zapasowa, hardkodowana konfiguracja (Twoja)
 const HARDCODED_CONFIG = {
     apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
     authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -35,27 +34,24 @@ const HARDCODED_CONFIG = {
     appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
 };
 
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-let firebaseConfig;
-
+// Pobieranie konfiguracji z Canvas lub użycie zapasowej
+let firebaseConfig = HARDCODED_CONFIG;
 try {
     if (typeof __firebase_config !== 'undefined' && __firebase_config) {
         firebaseConfig = JSON.parse(__firebase_config);
-    } else {
-        firebaseConfig = HARDCODED_CONFIG;
     }
 } catch (e) {
-    console.error("Błąd konfiguracji", e);
-    firebaseConfig = HARDCODED_CONFIG;
+    console.warn("Użyto hardkodowanej konfiguracji.");
 }
 
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
 // Globalne obiekty Firebase
 let app, auth, db;
 
-// 🔥🔥🔥 POPRAWIONE ŚCIEŻKI - TERAZ SZUKA W GŁÓWNYCH KOLEKCJACH 🔥🔥🔥
-// To pasuje do tego, co widzę na Twoich screenach z Firestore
+// 🔥🔥🔥 KLUCZOWA POPRAWKA ŚCIEŻEK 🔥🔥🔥
+// Teraz kod będzie szukał tam, gdzie stworzyłeś dokumenty (w głównym katalogu)
 const PATH_USERS = 'users';     
 const PATH_TEAMS = 'teams';     
 const PATH_MATCHES = 'matches'; 
@@ -68,30 +64,31 @@ const PATH_SCORERS = 'scorers';
 const loginBox = document.getElementById('login-box');
 const adminPanel = document.getElementById('admin-wrapper');
 
-// 🔥 FUNKCJA INICJALIZUJĄCA FIREBASE 🔥
+// Inicjalizacja Firebase
 function initializeFirebaseClients() {
     try {
         if (!app) {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
-            console.log("Firebase Clients initialized successfully.");
+            console.log("Firebase zainicjowane poprawnie.");
         }
     } catch (e) {
-         console.error("KRYTYCZNY BŁĄD INICJALIZACJI FIREBASE:", e);
-         showMessage("KRYTYCZNY BŁĄD: Nie można zainicjować Firebase.", 'error', false);
+         console.error("KRYTYCZNY BŁĄD FIREBASE:", e);
+         showMessage("Nie można zainicjować Firebase.", 'error', false);
          return false;
     }
     return true;
 }
 
-// Logowanie tokenem (główna metoda autoryzacji w Canvas)
+// Logowanie tokenem
 async function authenticateWithToken() {
     if (initialAuthToken && auth) {
         try {
             await signInWithCustomToken(auth, initialAuthToken);
+            console.log("Zalogowano tokenem.");
         } catch (error) {
-            console.error("Błąd autentykacji tokenem:", error);
+            console.error("Błąd tokena:", error);
         }
     }
 }
@@ -127,28 +124,40 @@ function setupAuthStateListener() {
         
         if (user) {
             try {
-                // Teraz szukamy w głównej kolekcji 'users'
+                console.log(`Szukam uprawnień dla UID: ${user.uid} w kolekcji: ${PATH_USERS}`);
+                
+                // Szukamy w kolekcji 'users' dokumentu o nazwie równej UID
                 const docRef = doc(db, PATH_USERS, user.uid);
                 const docSnap = await getDoc(docRef);
                 
-                // Sprawdzenie uprawnień (admin: true LUB role: 'admin')
-                if (docSnap.exists() && (docSnap.data().admin === true || docSnap.data().role === 'admin')) {
-                    // ZALOGOWANO JAKO ADMIN
-                    loginBox.style.display = 'none';
-                    adminPanel.style.display = 'block';
-                    initAdminPanel(); 
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    console.log("Znaleziono dokument użytkownika:", data);
+                    
+                    // Sprawdzenie uprawnień
+                    if (data.admin === true || data.role === 'admin') {
+                        // SUKCES!
+                        loginBox.style.display = 'none';
+                        adminPanel.style.display = 'block';
+                        initAdminPanel(); 
+                    } else {
+                        // Dokument jest, ale brak flagi admina
+                        console.error("Brak flagi admin:true lub role:admin");
+                        showMessage(`Konto istnieje, ale nie ma uprawnień admina. UID: ${user.uid}`, 'error', false);
+                        signOut(auth); 
+                    }
                 } else {
-                    // BRAK UPRAWNIEŃ
-                    console.error(`Brak uprawnień. Twoje UID to: ${user.uid}`);
-                    showMessage(`To konto (UID: ${user.uid}) nie ma w bazie uprawnień administratora (admin: true).`, 'error', false);
+                    // Dokumentu w ogóle nie ma
+                    console.error("Dokument użytkownika nie istnieje w Firestore!");
+                    showMessage(`Brak dokumentu w bazie dla UID: ${user.uid}. Upewnij się, że stworzyłeś go w kolekcji 'users'.`, 'error', false);
                     signOut(auth); 
                 }
             } catch (e) {
-                showMessage(`Błąd odczytu bazy: ${e.message}`, 'error', false);
+                console.error("Błąd odczytu:", e);
+                showMessage(`Błąd systemu: ${e.message}`, 'error', false);
                 signOut(auth); 
             }
         } else {
-            // Niezalogowany
             loginBox.style.display = 'block';
             adminPanel.style.display = 'none';
         }
@@ -235,7 +244,6 @@ function loadMatches() {
 
     onSnapshot(collection(db, PATH_MATCHES), (snapshot) => {
         container.innerHTML = '';
-        
         if (snapshot.empty) {
             container.innerHTML = '<p style="padding:10px;">Brak meczów.</p>';
             return;
@@ -296,7 +304,7 @@ function loadMatches() {
     });
 }
 
-// --- FUNKCJE POMOCNICZE (UPDATE/DELETE) ---
+// --- FUNKCJE POMOCNICZE ---
 window.updateStatus = async (id, newStatus) => {
     try { await updateDoc(doc(db, PATH_MATCHES, id), { status: newStatus }); showMessage("Status OK!", 'success'); } catch(e) {}
 };
@@ -309,21 +317,19 @@ window.deleteMatchPrompt = (id) => {
     showMessage("Usunąć mecz?", 'warning', true, async (ok) => { if(ok) await deleteDoc(doc(db, PATH_MATCHES, id)); });
 };
 
-// --- D. DUAL WRITE (MECZ + STRZELCY) ---
+// --- D. DUAL WRITE ---
 window.addGoalAndGlobalScorer = async (matchId, teamAName, teamBName) => {
     const name = document.getElementById(`sc-name-${matchId}`).value.trim();
     const team = document.getElementById(`sc-team-${matchId}`).value;
     if (!name) return;
 
     try {
-        // 1. Aktualizuj wynik meczu
         const updateData = {};
         if (team === teamAName) updateData.goalsA = FieldValue.increment(1);
         else updateData.goalsB = FieldValue.increment(1);
         updateData.scorers = FieldValue.arrayUnion({ name, team });
         await updateDoc(doc(db, PATH_MATCHES, matchId), updateData);
 
-        // 2. Aktualizuj tabelę króla strzelców
         const q = query(collection(db, PATH_SCORERS), where('name', '==', name), where('team', '==', team));
         const snap = await getDocs(q);
         if (snap.empty) {
