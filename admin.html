@@ -8,7 +8,7 @@
     <!-- Importy Firebase V11 (Modularne) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, collection, query, onSnapshot, getDoc, doc, 
             addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp 
@@ -26,7 +26,8 @@
             appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
         };
 
-        // Inicjalizacja Aplikacji (Wymuszamy Twój projekt, ignorujemy Canvas DB)
+        // 🔥 WYMUSZENIE TWOJEGO PROJEKTU 🔥
+        // Ignorujemy konfigurację Canvas, aby połączyć się bezpośrednio z Twoją bazą.
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
