@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Kapitana - Puchar Gwiazd</title>
 
-    <!-- Importy Firebase V11 (Modularne) -->
+    <!-- Importy Firebase V11 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -14,9 +14,7 @@
             addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // 1. KONFIGURACJA FIREBASE (Twoja Własna)
-        // ==========================================
+        // 1. KONFIGURACJA (Twoja własna, hardkodowana)
         const firebaseConfig = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -26,33 +24,26 @@
             appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
         };
 
-        // 🔥 WYMUSZENIE TWOJEGO PROJEKTU 🔥
-        // Ignorujemy konfigurację Canvas, aby połączyć się bezpośrednio z Twoją bazą.
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // Ścieżki do głównych kolekcji (zgodne z Twoim Firestore)
+        // Ścieżki
         const PATH_USERS = 'users';     
         const PATH_TEAMS = 'teams';
 
-        // Zmienne stanu
         let currentTeamId = "";
 
-        // ==========================================
-        // 2. LOGIKA UI I KOMUNIKATÓW
-        // ==========================================
-        
+        // 2. LOGIKA UI
         function showMessage(text, type = 'success') {
             const msgDiv = document.getElementById('custom-message');
             if (!msgDiv) return;
             msgDiv.textContent = text;
             msgDiv.className = type === 'success' ? 'msg-success' : 'msg-error';
             msgDiv.style.display = 'block';
-            setTimeout(() => msgDiv.style.display = 'none', 3000);
+            setTimeout(() => msgDiv.style.display = 'none', 4000);
         }
 
-        // Eksport funkcji do globalnego scope (dla HTML onclick)
         window.openModal = () => document.getElementById("addModal").style.display = "flex";
         window.closeModal = () => {
             document.getElementById("addModal").style.display = "none";
@@ -63,17 +54,11 @@
         };
         
         window.logout = async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error(error);
-            }
+            await signOut(auth);
         };
 
-        // ==========================================
         // 3. LOGIKA APLIKACJI
-        // ==========================================
-
+        
         // A. Logowanie
         const loginForm = document.getElementById("login-form");
         if (loginForm) {
@@ -90,35 +75,35 @@
                     await signInWithEmailAndPassword(auth, email, password);
                     msgArea.textContent = "";
                 } catch (error) {
-                    msgArea.textContent = "Błąd: " + error.message;
+                    msgArea.textContent = "Błąd logowania: " + error.message;
                     msgArea.className = "message-area error-msg";
                 }
             });
         }
 
-        // B. Obsługa stanu uwierzytelnienia
+        // B. Obsługa stanu
         onAuthStateChanged(auth, async (user) => {
             const loading = document.getElementById("loading-screen");
             const loginView = document.getElementById("login-view");
             const panelView = document.getElementById("panel-view");
 
             if (user) {
+                console.log("Zalogowano użytkownika:", user.uid);
                 try {
-                    // 1. Sprawdź czy user jest w kolekcji users
+                    // Pobieramy dokument użytkownika, aby sprawdzić rolę
                     const userDocRef = doc(db, PATH_USERS, user.uid);
                     const docSnap = await getDoc(userDocRef);
                     
                     if (docSnap.exists()) {
                          const userData = docSnap.data();
+                         console.log("Dane użytkownika:", userData);
                          
-                         // Sprawdzamy czy jest teamManagerem LUB Adminem (admini też mogą widzieć)
-                         if (userData.role === "teamManager" || userData.role === "admin" || userData.admin === true) {
-                            // JEST UPRAWNIONY
+                         if (userData.role === "teamManager" || userData.role === "admin") {
+                            // JEST OK
                             currentTeamId = userData.teamId;
                             
                             if (!currentTeamId) {
-                                showMessage("Błąd: Twoje konto nie ma przypisanej drużyny (brak pola teamId).", 'error');
-                                // Nie wylogowujemy, żeby użytkownik mógł zobaczyć błąd
+                                showMessage("Błąd: Twoje konto nie ma przypisanej drużyny.", 'error');
                                 loading.style.display = "none";
                                 return; 
                             }
@@ -129,45 +114,46 @@
                             loginView.style.display = "none";
                             panelView.style.display = "block";
                          } else {
-                            // BRAK ROLI
-                            showMessage("To konto nie ma uprawnień kapitana (rola: teamManager).", 'error');
+                            showMessage("To konto nie ma uprawnień kapitana.", 'error');
                             await signOut(auth);
                          }
                     } else {
-                        // DOKUMENT NIE ISTNIEJE
-                        console.error("Dokument użytkownika nie istnieje:", user.uid);
-                        showMessage("Błąd: Brak profilu użytkownika w bazie.", 'error');
+                        console.error("Brak dokumentu w users/" + user.uid);
+                        showMessage("Błąd: Brak profilu w bazie. Skontaktuj się z administratorem.", 'error');
                         await signOut(auth);
                     }
                 } catch (error) {
                     console.error("Błąd weryfikacji:", error);
-                    showMessage(`Błąd weryfikacji konta: ${error.message}`, 'error');
+                    // Ten błąd (permission-denied) wystąpi, jeśli reguły są źle ustawione
+                    if (error.code === 'permission-denied') {
+                        showMessage("Błąd uprawnień: Nie masz dostępu do odczytu swojego profilu. Sprawdź Reguły Firestore.", 'error');
+                    } else {
+                        showMessage(`Błąd weryfikacji: ${error.message}`, 'error');
+                    }
                     await signOut(auth);
                 }
             } else {
-                // Wylogowany
                 loading.style.display = "none";
                 panelView.style.display = "none";
                 loginView.style.display = "block";
             }
         });
 
-        // C. Nasłuchiwanie danych (Realtime)
         function setupTeamListeners(tid) {
-            // 1. Dane drużyny
             const teamRef = doc(db, PATH_TEAMS, tid);
             onSnapshot(teamRef, (docSnap) => {
                 if (docSnap.exists()) {
                     document.getElementById("team-name").textContent = "Zarządzasz drużyną: " + docSnap.data().name;
                 } else {
-                    document.getElementById("team-name").textContent = "Błąd: Nie znaleziono drużyny o ID: " + tid;
+                    document.getElementById("team-name").textContent = "Nie znaleziono drużyny o ID: " + tid;
                 }
             }, (error) => {
-                console.error("Błąd odczytu drużyny:", error);
-                document.getElementById("team-name").textContent = "Błąd dostępu do danych drużyny.";
+                 console.error("Błąd odczytu drużyny:", error);
+                 if (error.code === 'permission-denied') {
+                     document.getElementById("team-name").textContent = "Brak uprawnień do odczytu tej drużyny.";
+                 }
             });
 
-            // 2. Lista zawodników (Podkolekcja players w dokumencie drużyny)
             const playersRef = collection(db, PATH_TEAMS, tid, "players");
             const q = query(playersRef, orderBy("number"));
             
@@ -176,7 +162,7 @@
                 list.innerHTML = "";
 
                 if (snapshot.empty) {
-                    list.innerHTML = "<p style='text-align:center;color:#666;'>Brak zawodników. Dodaj pierwszego!</p>";
+                    list.innerHTML = "<p style='text-align:center;color:#666;'>Brak zawodników.</p>";
                     return;
                 }
 
@@ -192,16 +178,9 @@
                         <input id="surname-${docSnap.id}" value="${p.surname || ''}" onchange="window.savePlayer('${docSnap.id}')">
                         
                         <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
-                            <div>
-                                <label>Nr</label>
-                                <input type="number" id="number-${docSnap.id}" value="${p.number || ''}" onchange="window.savePlayer('${docSnap.id}')" min="1">
-                            </div>
-                            <div>
-                                <label>Pozycja</label>
-                                <input id="position-${docSnap.id}" value="${p.position || ''}" onchange="window.savePlayer('${docSnap.id}')">
-                            </div>
+                            <div><label>Nr</label><input type="number" id="number-${docSnap.id}" value="${p.number || ''}" onchange="window.savePlayer('${docSnap.id}')"></div>
+                            <div><label>Pozycja</label><input id="position-${docSnap.id}" value="${p.position || ''}" onchange="window.savePlayer('${docSnap.id}')"></div>
                         </div>
-
                         <div style="text-align:right; margin-top:10px;">
                             <button class="btn btn-delete" onclick="window.deletePlayer('${docSnap.id}')">🗑 Usuń</button>
                         </div>
@@ -210,12 +189,8 @@
                 });
             }, (error) => {
                 console.error("Błąd odczytu graczy:", error);
-                const list = document.getElementById("players-list");
-                list.innerHTML = "<p style='text-align:center;color:red;'>Błąd ładowania zawodników (Brak uprawnień lub zła ścieżka).</p>";
             });
         }
-
-        // D. Operacje na danych (Eksportowane do window)
         
         window.addPlayer = async () => {
             const name = document.getElementById("new-name").value.trim();
@@ -223,14 +198,11 @@
             const number = parseInt(document.getElementById("new-number").value.trim());
             const position = document.getElementById("new-position").value.trim();
 
-            if (!name || !surname || !position) return showMessage("Uzupełnij dane!", 'error');
-            if (isNaN(number)) return showMessage("Numer musi być liczbą!", 'error');
+            if (!name || !surname) return showMessage("Uzupełnij dane!", 'error');
 
             try {
-                const playersRef = collection(db, PATH_TEAMS, currentTeamId, "players");
-                await addDoc(playersRef, {
-                    name, surname, number, position,
-                    createdAt: serverTimestamp()
+                await addDoc(collection(db, PATH_TEAMS, currentTeamId, "players"), {
+                    name, surname, number, position, createdAt: serverTimestamp()
                 });
                 window.closeModal();
                 showMessage("Dodano zawodnika!", 'success');
@@ -247,28 +219,18 @@
             const position = document.getElementById(`position-${pid}`).value;
 
             try {
-                const playerRef = doc(db, PATH_TEAMS, currentTeamId, "players", pid);
-                await updateDoc(playerRef, { name, surname, number, position });
-                // cicha aktualizacja
-            } catch (e) {
-                showMessage("Błąd zapisu zmian.", 'error');
-            }
+                await updateDoc(doc(db, PATH_TEAMS, currentTeamId, "players", pid), { name, surname, number, position });
+            } catch (e) { showMessage("Błąd zapisu.", 'error'); }
         };
 
         window.deletePlayer = async (pid) => {
-            // Uproszczone potwierdzenie
             if (!confirm("Usunąć zawodnika?")) return;
-
             try {
-                const playerRef = doc(db, PATH_TEAMS, currentTeamId, "players", pid);
-                await deleteDoc(playerRef);
+                await deleteDoc(doc(db, PATH_TEAMS, currentTeamId, "players", pid));
                 showMessage("Usunięto.", 'success');
-            } catch (e) {
-                showMessage("Błąd usuwania.", 'error');
-            }
+            } catch (e) { showMessage("Błąd usuwania.", 'error'); }
         };
         
-        // Obsługa zamknięcia modala tłem
         window.onclick = function(event) {
             const modal = document.getElementById("addModal");
             if (event.target == modal) window.closeModal();
@@ -277,202 +239,39 @@
     </script>
 
     <style>
-        :root {
-            --blue: #2196f3;
-            --dark: #0a0a0a;
-            --card: #111;
-            --text: #e0e0e0;
-            --border: #1e1e1e;
-            --error: #ff4444;
-            --success: #00C851;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--dark);
-            color: var(--text);
-            padding: 20px;
-            margin: 0;
-        }
-
-        h2, h3 {
-            color: var(--blue);
-            text-align: center;
-        }
-
-        /* --- WIDOKI (Kontenery) --- */
-        #login-view, #panel-view {
-            max-width: 700px;
-            margin: 0 auto;
-            display: none;
-        }
-
-        /* --- STYL LOGOWANIA --- */
-        .login-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            margin-top: 50px;
-            box-shadow: 0 0 20px rgba(33,150,243,0.15);
-        }
-
-        .login-box input {
-            width: 100%;
-            background: #0d0d0d;
-            border: 1px solid #333;
-            color: white;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-
-        .message-area {
-            text-align: center;
-            margin-top: 15px;
-            min-height: 20px;
-            font-size: 14px;
-        }
+        :root { --blue: #2196f3; --dark: #0a0a0a; --card: #111; --text: #e0e0e0; --border: #1e1e1e; --error: #ff4444; --success: #00C851; }
+        body { font-family: 'Poppins', sans-serif; background: var(--dark); color: var(--text); padding: 20px; margin: 0; }
+        h2, h3 { color: var(--blue); text-align: center; }
+        #login-view, #panel-view { max-width: 700px; margin: 0 auto; display: none; }
+        .login-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; margin-top: 50px; box-shadow: 0 0 20px rgba(33,150,243,0.15); }
+        .login-box input { width: 100%; background: #0d0d0d; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 6px; box-sizing: border-box; }
+        .message-area { text-align: center; margin-top: 15px; min-height: 20px; font-size: 14px; }
         .error-msg { color: var(--error); }
         .success-msg { color: var(--success); }
-
-        /* --- STYL PANELU --- */
-        #team-name {
-            text-align: center;
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-        }
-
-        .player-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 14px;
-            box-shadow: 0 0 10px rgba(33,150,243,0.1);
-            transition: all 0.3s ease;
-        }
-
-        .player-card:hover {
-            box-shadow: 0 0 20px rgba(33,150,243,0.3);
-        }
-
-        .player-card label {
-            font-size: 0.85rem;
-            color: #888;
-            margin-top: 5px;
-            display: block;
-        }
-
-        .player-card input {
-            width: 100%;
-            background: #0d0d0d;
-            border: 1px solid #222;
-            color: var(--text);
-            padding: 8px;
-            margin: 4px 0 10px 0;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-
-        .btn {
-            background: var(--blue);
-            border: none;
-            color: white;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-right: 8px;
-            transition: 0.3s;
-        }
-
+        #team-name { text-align: center; font-size: 1.2rem; margin-bottom: 20px; }
+        .player-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 0 10px rgba(33,150,243,0.1); transition: all 0.3s ease; }
+        .player-card:hover { box-shadow: 0 0 20px rgba(33,150,243,0.3); }
+        .player-card label { font-size: 0.85rem; color: #888; margin-top: 5px; display: block; }
+        .player-card input { width: 100%; background: #0d0d0d; border: 1px solid #222; color: var(--text); padding: 8px; margin: 4px 0 10px 0; border-radius: 6px; box-sizing: border-box; }
+        .btn { background: var(--blue); border: none; color: white; padding: 8px 14px; border-radius: 6px; cursor: pointer; margin-right: 8px; transition: 0.3s; }
         .btn:hover { background: #1976d2; }
         .btn-full { width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; }
         .btn-delete { background: #e53935; }
         .btn-delete:hover { background: #c62828; }
-        
-        .logout {
-            margin-top: 30px;
-            text-align: center;
-            color: #888;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: var(--card);
-            padding: 25px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 400px;
-            border: 1px solid var(--border);
-        }
-        
-        .modal-content input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            background: #0d0d0d;
-            border: 1px solid #333;
-            color: white;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            cursor: pointer;
-            margin-top: -10px;
-        }
+        .logout { margin-top: 30px; text-align: center; color: #888; cursor: pointer; text-decoration: underline; }
+        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; }
+        .modal-content { background: var(--card); padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid var(--border); }
+        .modal-content input { width: 100%; padding: 10px; margin: 8px 0; background: #0d0d0d; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box; }
+        .close { color: #aaa; float: right; font-size: 28px; cursor: pointer; margin-top: -10px; }
         .close:hover { color: white; }
-
-        /* Loader */
-        #loading-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--dark);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
-
-        /* Własny styl dla komunikatów (zamiast alert) */
-        #custom-message {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            display: none;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); display: flex; justify-content: center; align-items: center; z-index: 999; }
+        #custom-message { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 8px; color: white; font-weight: bold; display: none; z-index: 1000; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
         .msg-success { background: var(--success); }
         .msg-error { background: var(--error); }
     </style>
 </head>
 <body>
 
-    <!-- Własny obszar komunikatów -->
     <div id="custom-message"></div>
 
     <div id="loading-screen">
@@ -495,7 +294,6 @@
         <h2>⚽ Panel Zarządzania</h2>
         <p id="team-name">Wczytywanie danych drużyny...</p>
         
-        <!-- Dodaj przycisk do otwierania modalu -->
         <button class="btn btn-full" onclick="openModal()">➕ Dodaj zawodnika</button>
         
         <h3>Twoi Zawodnicy</h3>
