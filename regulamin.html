@@ -5,25 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Regulamin - Puchar Gwiazd</title>
     <meta name="description" content="Oficjalny regulamin Pucharu Gwiazd. Zapoznaj się z zasadami turnieju, punktacją i postępowaniem.">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Fonty i Ikony -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* =========================================
+           NOWOCZESNY STYL - NEONOWY GRANAT
+           ========================================= */
+        :root {
+            --bg-dark: #0a0e17;       /* Bardzo ciemny granat */
+            --bg-card: #131a2a;       /* Trochę jaśniejszy */
+            --accent: #00d4ff;        /* Neonowy błękit */
+            --accent-glow: rgba(0, 212, 255, 0.4);
+            --text-main: #ffffff;
+            --text-sec: #a0aec0;
+            --border: #1f2a40;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* HEADER */
+        .header {
+            width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(19, 26, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        .header h1 {
+            font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 0;
+            background: linear-gradient(90deg, #fff, var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--accent-glow);
+            text-transform: uppercase;
+        }
+
+        /* NAV */
+        #main-nav {
+            margin: 20px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+        }
+        #main-nav a {
+            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
+            padding: 10px 20px; border-radius: 30px; border: 1px solid transparent;
+            transition: 0.3s; background: var(--bg-card);
+        }
+        #main-nav a:hover {
+            border-color: var(--accent); color: #fff;
+            box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px);
+        }
+
+        /* CONTENT */
+        .content-section {
+            width: 100%; max-width: 800px; padding: 40px; box-sizing: border-box;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 50px;
+        }
+
+        .content-section h2 {
+            text-align: center; font-size: 2rem; margin-bottom: 40px; margin-top: 0;
+            color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.1);
+            border-bottom: 2px solid var(--accent); padding-bottom: 15px;
+        }
+
+        .content-section h3 {
+            color: var(--accent);
+            font-size: 1.3rem;
+            margin-top: 30px; margin-bottom: 15px;
+            border-left: 4px solid var(--accent);
+            padding-left: 10px;
+        }
+
+        .content-section p {
+            color: var(--text-sec);
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .content-section ul li {
+            color: var(--text-main);
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .content-section ul li::before {
+            content: "•";
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 1.5em;
+            position: absolute;
+            left: 0;
+            top: -5px;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
+            border-top: 1px solid var(--border); width: 100%; background: #070a11;
+        }
+        .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
+        .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
+        
+        /* THEME TOGGLE */
+        #theme-toggle {
+            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
+            border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
+            font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: 0.3s; display: flex; justify-content: center; align-items: center;
+        }
+        #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+
+        /* RESPONSYWNOŚĆ */
+        @media (max-width: 600px) {
+            .header { border-radius: 0 0 20px 20px; margin-top: 0; border: none; border-bottom: 1px solid var(--border); }
+            #main-nav { gap: 8px; }
+            #main-nav a { padding: 8px 15px; font-size: 0.8rem; }
+            .content-section { padding: 20px; }
+            .header h1 { font-size: 1.4rem; }
+        }
+    </style>
 </head>
 <body>
     <div class="header">
-        <h1>Regulamin - Puchar Gwiazd</h1>
-        <div id="current-time"></div>
+        <h1>REGULAMIN - PUCHAR GWIAZD</h1>
     </div>
 
     <nav id="main-nav">
-        <ul>
-            <li><a href="index.html">Strona Główna</a></li>
-            <li><a href="druzyny.html">Drużyny</a></li>
-            <li><a href="regulamin.html">Regulamin</a></li>
-            <li><a href="tabela.html">Tabele Grup</a></li>
-            <li><a href="onas.html">O Nas</a></li>
-            <li><a href="pusta-strona.html">Pusta Strona</a></li>
-        </ul>
+        <a href="index.html">Strona Główna</a>
+        <a href="druzyny.html">Drużyny</a>
+        <a href="regulamin.html" style="background: var(--accent); color: var(--bg-dark);">Regulamin</a>
+        <a href="tabela.html">Tabele</a>
+        <a href="onas.html">O Nas</a>
     </nav>
 
     <section class="content-section">
@@ -61,17 +196,25 @@
     </section>
 
     <div class="footer">
-        <p>© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
         <div class="social-media-links">
-            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-tiktok"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
         </div>
+        <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
     </div>
 
     <button id="theme-toggle">
         <i class="fas fa-moon"></i>
     </button>
 
-    <script src="script.js"></script>
+    <script>
+        // Prosta obsługa Theme Toggle (tylko wizualna, bo JS jest w index.html)
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+           // Tutaj można dodać logikę zmiany motywu, jeśli jest potrzebna
+           // W tym stylu dark mode jest domyślny, więc przycisk jest ozdobny lub do przyszłej rozbudowy
+           alert("Motyw nocny jest aktywny domyślnie!");
+        });
+    </script>
 </body>
+
 </html>
