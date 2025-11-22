@@ -1,172 +1,115 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Panel Administratora - Puchar Gwiazd</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Kapitana - Puchar Gwiazd</title>
 
-    <link rel="stylesheet" href="admin.css" />
-    
-    <!-- Ikony -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Importy Firebase V11 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, collection, query, onSnapshot, getDoc, doc, 
+            addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+        // ==========================================
+        // 1. KONFIGURACJA FIREBASE
+        // ==========================================
+        const HARDCODED_CONFIG = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
+        };
 
-    <style>
-        #admin-wrapper { display: none; }
-        /* Proste style zakładek */
-        .tabs-header { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
-        .tab-button { background: #1e1e1e; color: #888; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        .tab-button.active { background: #2196f3; color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
-</head>
-
-<body>
-
-    <!-- OKNO LOGOWANIA -->
-    <div class="container" id="login-box">
-        <h2>🔐 Logowanie Admina</h2>
-        <input id="login-email" type="email" placeholder="Email">
-        <input id="login-pass" type="password" placeholder="Hasło">
-        <button id="login-btn">Zaloguj</button>
-        <div id="login-msg" class="message"></div>
-    </div>
-
-    <!-- PANEL GŁÓWNY -->
-    <div class="panel" id="admin-wrapper">
+        const app = initializeApp(HARDCODED_CONFIG);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0;">Panel Zarządzania</h2>
-            <button id="logout-btn" onclick="firebase.auth().signOut()" style="background: #d32f2f;">🚪 Wyloguj</button>
-        </div>
+        // Ścieżki do głównych kolekcji
+        const PATH_USERS = 'users';     
+        const PATH_TEAMS = 'teams';
 
-        <!-- ZAKŁADKI -->
-        <div class="tabs-header">
-            <button class="tab-button active" onclick="openTab('tab-teams')">Drużyny</button>
-            <button class="tab-button" onclick="openTab('tab-players')">Zawodnicy</button>
-            <button class="tab-button" onclick="openTab('tab-matches')">Mecze</button>
-            <button class="tab-button" onclick="openTab('tab-settings')">Ustawienia</button>
-        </div>
+        let currentTeamId = "";
 
-        <!-- ZAKŁADKA 1: DRUŻYNY -->
-        <div id="tab-teams" class="tab-content active">
-            <section>
-                <h3>➕ Dodaj Drużynę</h3>
-                <div class="form-row">
-                    <input id="team-id" placeholder="Nazwa drużyny (np. FC Barcelona)">
-                    <input id="team-email" type="email" placeholder="Email kapitana">
-                    <button id="create-team-btn">Utwórz</button>
-                </div>
-            </section>
-
-            <section>
-                <h3>📋 Lista Drużyn</h3>
-                <!-- Lista do edycji nazw drużyn -->
-                <div class="form-row">
-                    <select id="edit-team-select"><option>Ładowanie...</option></select>
-                    <input id="edit-team-name" placeholder="Nowa nazwa">
-                    <button id="update-team-btn" style="background: #ff9800;">Zmień Nazwę</button>
-                </div>
-            </section>
-        </div>
-
-        <!-- ZAKŁADKA 2: ZAWODNICY -->
-        <div id="tab-players" class="tab-content">
-            <section>
-                <h3>👥 Zarządzanie Zawodnikami</h3>
-                <p style="color: #aaa; margin-bottom: 10px;">Wybierz drużynę, aby zarządzać jej składem:</p>
-                
-                <select id="players-team-select" onchange="loadPlayersForSelectedTeam()">
-                    <option value="">-- Wybierz Drużynę --</option>
-                </select>
-
-                <div id="players-manager-area" style="display: none; margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
-                    <h4>Dodaj Zawodnika</h4>
-                    <div class="form-row">
-                        <input id="new-p-name" placeholder="Imię" style="width: 30%;">
-                        <input id="new-p-surname" placeholder="Nazwisko" style="width: 30%;">
-                        <input id="new-p-number" type="number" placeholder="Nr" style="width: 15%;">
-                        <input id="new-p-position" placeholder="Poz." style="width: 15%;">
-                        <button onclick="addPlayerToTeam()" style="background: #4caf50;">+</button>
-                    </div>
-                    
-                    <h4 style="margin-top: 20px;">Lista Zawodników</h4>
-                    <div id="team-players-list"></div>
-                </div>
-            </section>
-        </div>
-
-        <!-- ZAKŁADKA 3: MECZE -->
-        <div id="tab-matches" class="tab-content">
-            <section>
-                <h3>⚽ Dodaj Mecz</h3>
-                <div class="form-row match-creation-row">
-                    <select id="teamA"></select>
-                    <span>VS</span>
-                    <select id="teamB"></select>
-                    <input id="group" placeholder="Grupa" style="width: 60px;">
-                    <input id="match-date" type="date">
-                    <input id="match-time" type="time">
-                    <button id="add-match-btn" style="background-color: #00bfff;">Dodaj</button>
-                </div>
-            </section>
-
-            <section>
-                <h3>Zarządzanie Meczami</h3>
-                <div style="margin-bottom: 15px;">
-                    <label>Filtr:</label>
-                    <select id="match-status-filter" style="width: auto;">
-                        <option value="wszyscy">Wszystkie</option>
-                        <option value="planowany">Planowane</option>
-                        <option value="trwa">Na Żywo</option>
-                        <option value="zakończony">Zakończone</option>
-                    </select>
-                </div>
-                <div id="matches-list"></div>
-            </section>
-        </div>
-
-        <!-- ZAKŁADKA 4: USTAWIENIA -->
-        <div id="tab-settings" class="tab-content">
-            <section>
-                <h3>🛡 Nadaj Admina</h3>
-                <div class="form-row">
-                    <input id="new-admin-email" type="email" placeholder="Email użytkownika">
-                    <button id="grant-admin-btn" style="background-color: #00bfff;">Nadaj</button>
-                </div>
-            </section>
-
-            <section>
-                <h3>🏆 Król Strzelców (Podgląd)</h3>
-                <div class="table-wrapper">
-                    <table id="scorers-table">
-                        <thead><tr><th>Kto</th><th>Klub</th><th>Gole</th><th>Akcja</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
-
-    </div>
-
-    <!-- Skrypt JS (Modułowy) -->
-    <script src="admin.js" type="module"></script> 
-
-    <script>
-        // Prosta obsługa zakładek w HTML
-        function openTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
+        // ==========================================
+        // 2. LOGIKA UI I KOMUNIKATÓW
+        // ==========================================
+        
+        function showMessage(text, type = 'success') {
+            const msgDiv = document.getElementById('custom-message');
+            if (!msgDiv) return;
+            msgDiv.textContent = text;
+            msgDiv.className = type === 'success' ? 'msg-success' : 'msg-error';
+            msgDiv.style.display = 'block';
+            setTimeout(() => msgDiv.style.display = 'none', 4000);
         }
-    </script>
-</body>
-</html>
+
+        window.openModal = () => document.getElementById("addModal").style.display = "flex";
+        window.closeModal = () => {
+            document.getElementById("addModal").style.display = "none";
+            document.getElementById("new-name").value = "";
+            document.getElementById("new-surname").value = "";
+            document.getElementById("new-number").value = "";
+            document.getElementById("new-position").value = "";
+        };
+        
+        window.logout = async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        // ==========================================
+        // 3. LOGIKA APLIKACJI
+        // ==========================================
+
+        // A. Logowanie
+        const loginForm = document.getElementById("login-form");
+        if (loginForm) {
+            loginForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
+                const msgArea = document.getElementById("login-msg");
+
+                msgArea.textContent = "Logowanie...";
+                msgArea.className = "message-area";
+
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    msgArea.textContent = "";
+                } catch (error) {
+                    msgArea.textContent = "Błąd logowania: " + error.message;
+                    msgArea.className = "message-area error-msg";
+                }
+            });
+        }
+
+        // B. Obsługa stanu uwierzytelnienia
+        onAuthStateChanged(auth, async (user) => {
+            const loading = document.getElementById("loading-screen");
+            const loginView = document.getElementById("login-view");
+            const panelView = document.getElementById("panel-view");
+
+            if (user) {
+                try {
+                    // 1. Sprawdź czy user jest w kolekcji users
+                    const userDocRef = doc(db, PATH_USERS, user.uid);
+                    const docSnap = await getDoc(userDocRef);
+                    
+                    if (docSnap.exists()) {
+                         const userData = docSnap.data();
+                         
+                         // Sprawdzamy czy jest teamManagerem
+                         if (userData.role === "teamManager" || userData.role === "admin") { // Admin też może się tu zalogować
+                            // JEST KAPITANEM
+                            currentTeamId = userData.teamId;
+                            
+                            if
