@@ -100,7 +100,15 @@
                 score = `${match.goalsA} : ${match.goalsB}`;
             }
 
-            const dateDisplay = match.date ? new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'}) : '';
+            // Formatowanie daty
+            let dateDisplay = '';
+            if (match.date && match.date.seconds) {
+                 // Jeśli data jest z Firestore (Timestamp)
+                 dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
+            } else if (match.date) {
+                 // Jeśli data jest stringiem (starszy format)
+                 dateDisplay = `${match.date} ${match.time || ''}`;
+            }
 
             return `
                 <div class="match-item ${isLive ? 'live-glow' : ''}">
@@ -117,14 +125,28 @@
             `;
         }
         
+        // 3. ODLICZANIE (Poprawiona data: 14 Grudnia, 12:00)
         function startCountdown() {
-            const target = new Date("2025-12-14T12:00:00").getTime();
+            // Rok bieżący (lub następny, jeśli data minęła)
+            const now = new Date();
+            let targetYear = now.getFullYear();
+            
+            // Ustawiamy datę na 14 Grudnia o 12:00:00
+            // Miesiące są liczone od 0 (Styczeń=0, Grudzień=11)
+            let targetDate = new Date(targetYear, 11, 14, 12, 0, 0); 
+
+            // Jeśli data już minęła w tym roku, ustaw na przyszły rok (opcjonalnie, zależnie od potrzeb)
+            if (now > targetDate) {
+                 // targetYear++;
+                 // targetDate = new Date(targetYear, 11, 14, 12, 0, 0);
+            }
+
             const el = document.getElementById('countdown');
             if (!el) return;
 
             const updateTimer = () => {
-                const now = new Date().getTime();
-                const diff = target - now;
+                const currentTime = new Date().getTime();
+                const diff = targetDate.getTime() - currentTime;
 
                 if (diff < 0) {
                     el.innerHTML = '<div class="started">TURNIEJ TRWA!</div>';
@@ -162,8 +184,8 @@
            NOWOCZESNY STYL - NEONOWY GRANAT
            ========================================= */
         :root {
-            --bg-dark: #0a0e17;
-            --bg-card: #131a2a;
+            --bg-dark: #0a0e17;       /* Bardzo ciemny granat */
+            --bg-card: #131a2a;       /* Trochę jaśniejszy */
             --accent: #00d4ff;        /* Neonowy błękit */
             --accent-glow: rgba(0, 212, 255, 0.4);
             --live-red: #ff2a2a;
@@ -199,12 +221,31 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-shadow: 0 0 20px var(--accent-glow);
         }
-
-        .login-links a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            margin-left: 15px; transition: 0.3s;
+        
+        /* POPRAWIONY STYL LINKÓW LOGOWANIA */
+        .login-links {
+            display: flex;
+            gap: 15px;
         }
-        .login-links a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
+        .login-links a {
+            color: var(--text-sec); 
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 0.9rem;
+            transition: 0.3s; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+        }
+        .login-links a:hover { 
+            color: #fff; 
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+            text-shadow: 0 0 8px var(--accent-glow); 
+        }
 
         /* NAV */
         #main-nav {
@@ -233,16 +274,16 @@
 
         /* ODLICZANIE */
         #countdown {
-            display: flex; justify-content: center; gap: 15px; margin-bottom: 50px;
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 50px; flex-wrap: wrap;
         }
         .timer-box {
             background: var(--bg-card); border: 1px solid var(--border);
-            padding: 15px; border-radius: 12px; min-width: 80px; text-align: center;
+            padding: 15px; border-radius: 12px; min-width: 70px; text-align: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        .timer-box .val { display: block; font-size: 2rem; font-weight: 800; color: var(--accent); }
+        .timer-box .val { display: block; font-size: 1.8rem; font-weight: 800; color: var(--accent); }
         .timer-box .label { font-size: 0.7rem; color: var(--text-sec); letter-spacing: 1px; font-weight: 600; }
-        .started { font-size: 2rem; font-weight: 800; color: var(--live-red); animation: pulse 1s infinite; }
+        .started { font-size: 2rem; font-weight: 800; color: var(--live-red); animation: pulse 1s infinite; text-align: center; width: 100%; }
 
         /* SEKCJJA MECZÓW */
         .stats-summary { 
@@ -297,8 +338,8 @@
 
         /* FOOTER */
         .footer {
-            margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec);
-            border-top: 1px solid var(--border); width: 100%; background: #070a11;
+            margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
+            border-top: 1px solid var(--border); width: 100%; background: #070a11; margin-top: 60px;
         }
         .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
         .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
@@ -325,6 +366,7 @@
     <div class="header">
         <h1>PUCHAR GWIAZD</h1>
         <div class="login-links">
+            <!-- NAPRAWIONE LINKI -->
             <a href="captain_panel.html"><i class="fas fa-user-shield"></i> KAPITAN</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> ADMIN</a>
         </div>
