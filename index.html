@@ -100,13 +100,11 @@
                 score = `${match.goalsA} : ${match.goalsB}`;
             }
 
-            // Formatowanie daty
+            // Konwersja daty
             let dateDisplay = '';
             if (match.date && match.date.seconds) {
-                 // Jeśli data jest z Firestore (Timestamp)
                  dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
             } else if (match.date) {
-                 // Jeśli data jest stringiem (starszy format)
                  dateDisplay = `${match.date} ${match.time || ''}`;
             }
 
@@ -125,28 +123,18 @@
             `;
         }
         
-        // 3. ODLICZANIE (Poprawiona data: 14 Grudnia, 12:00)
+        // 3. ODLICZANIE - Poprawiona data: 14 Grudnia 2025, 12:00
         function startCountdown() {
-            // Rok bieżący (lub następny, jeśli data minęła)
-            const now = new Date();
-            let targetYear = now.getFullYear();
-            
-            // Ustawiamy datę na 14 Grudnia o 12:00:00
-            // Miesiące są liczone od 0 (Styczeń=0, Grudzień=11)
-            let targetDate = new Date(targetYear, 11, 14, 12, 0, 0); 
-
-            // Jeśli data już minęła w tym roku, ustaw na przyszły rok (opcjonalnie, zależnie od potrzeb)
-            if (now > targetDate) {
-                 // targetYear++;
-                 // targetDate = new Date(targetYear, 11, 14, 12, 0, 0);
-            }
-
+            // Ustawiamy sztywną datę: 14 grudnia 2025, 12:00:00
+            // Miesiące są liczone od 0 (0=Styczeń, 11=Grudzień)
+            const targetDate = new Date(2025, 11, 14, 12, 0, 0); 
             const el = document.getElementById('countdown');
+            
             if (!el) return;
 
             const updateTimer = () => {
-                const currentTime = new Date().getTime();
-                const diff = targetDate.getTime() - currentTime;
+                const now = new Date().getTime();
+                const diff = targetDate.getTime() - now;
 
                 if (diff < 0) {
                     el.innerHTML = '<div class="started">TURNIEJ TRWA!</div>';
@@ -165,8 +153,10 @@
                     <div class="timer-box"><span class="val">${s}</span><span class="label">SEK</span></div>
                 `;
             };
-            setInterval(updateTimer, 1000);
+            
+            // Uruchom od razu i powtarzaj co sekundę
             updateTimer();
+            setInterval(updateTimer, 1000);
         }
 
         window.addEventListener('load', initApp);
@@ -222,30 +212,11 @@
             text-shadow: 0 0 20px var(--accent-glow);
         }
         
-        /* POPRAWIONY STYL LINKÓW LOGOWANIA */
-        .login-links {
-            display: flex;
-            gap: 15px;
-        }
         .login-links a {
-            color: var(--text-sec); 
-            text-decoration: none; 
-            font-weight: 600; 
-            font-size: 0.9rem;
-            transition: 0.3s; 
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid transparent;
+            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
+            margin-left: 15px; transition: 0.3s; position: relative;
         }
-        .login-links a:hover { 
-            color: #fff; 
-            border-color: var(--accent);
-            background: rgba(0, 212, 255, 0.1);
-            text-shadow: 0 0 8px var(--accent-glow); 
-        }
+        .login-links a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
 
         /* NAV */
         #main-nav {
@@ -274,16 +245,16 @@
 
         /* ODLICZANIE */
         #countdown {
-            display: flex; justify-content: center; gap: 15px; margin-bottom: 50px; flex-wrap: wrap;
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 50px;
         }
         .timer-box {
             background: var(--bg-card); border: 1px solid var(--border);
-            padding: 15px; border-radius: 12px; min-width: 70px; text-align: center;
+            padding: 15px; border-radius: 12px; min-width: 80px; text-align: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        .timer-box .val { display: block; font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+        .timer-box .val { display: block; font-size: 2rem; font-weight: 800; color: var(--accent); }
         .timer-box .label { font-size: 0.7rem; color: var(--text-sec); letter-spacing: 1px; font-weight: 600; }
-        .started { font-size: 2rem; font-weight: 800; color: var(--live-red); animation: pulse 1s infinite; text-align: center; width: 100%; }
+        .started { font-size: 2rem; font-weight: 800; color: var(--live-red); animation: pulse 1s infinite; }
 
         /* SEKCJJA MECZÓW */
         .stats-summary { 
@@ -352,8 +323,6 @@
         }
         #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        
         @media (max-width: 768px) {
             .header { flex-direction: column; gap: 15px; text-align: center; }
             .stats-summary { grid-template-columns: 1fr; }
@@ -366,7 +335,6 @@
     <div class="header">
         <h1>PUCHAR GWIAZD</h1>
         <div class="login-links">
-            <!-- NAPRAWIONE LINKI -->
             <a href="captain_panel.html"><i class="fas fa-user-shield"></i> KAPITAN</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> ADMIN</a>
         </div>
