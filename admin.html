@@ -1,386 +1,279 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puchar Gwiazd - Strona Główna</title>
-    <meta name="description" content="Oficjalna strona Pucharu Gwiazd. Sprawdź najnowsze wyniki.">
-    
-    <!-- Importy Firebase V11 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        
-        // 1. KONFIGURACJA (Twoja)
-        const HARDCODED_CONFIG = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
-        };
+    <title>Panel Administratora</title>
 
-        // Inicjalizacja
-        const app = initializeApp(HARDCODED_CONFIG);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const PATH_MATCHES = 'matches'; 
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        async function initApp() {
-            try {
-                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
-                else await signInAnonymously(auth);
-                listenForMatches();
-                startCountdown();
-            } catch (e) {
-                console.warn("Błąd logowania, próba odczytu publicznego...", e);
-                listenForMatches();
-                startCountdown();
-            }
-        }
-
-        function listenForMatches() {
-            const q = query(collection(db, PATH_MATCHES), orderBy('date', 'asc')); 
-
-            onSnapshot(q, (snapshot) => {
-                const upcomingContainer = document.getElementById('upcoming-matches');
-                const recentContainer = document.getElementById('recent-results');
-                
-                upcomingContainer.innerHTML = '<h3><i class="far fa-calendar-alt"></i> NADCHODZĄCE MECZE</h3>';
-                recentContainer.innerHTML = '<h3><i class="fas fa-trophy"></i> OSTATNIE WYNIKI</h3>';
-                
-                if (snapshot.empty) {
-                    upcomingContainer.innerHTML += '<p class="no-data">Brak zaplanowanych meczów.</p>';
-                    recentContainer.innerHTML += '<p class="no-data">Brak wyników.</p>';
-                    return;
-                }
-
-                let hasUpcoming = false;
-                let hasRecent = false;
-                let docs = [];
-                snapshot.forEach(doc => docs.push(doc.data()));
-
-                docs.forEach(m => {
-                    const status = m.status ? m.status.toLowerCase() : '';
-                    const isFinished = status === 'zakończony' || status === 'finished';
-
-                    if (isFinished) {
-                        recentContainer.innerHTML += renderMatchItem(m);
-                        hasRecent = true;
-                    } else {
-                        upcomingContainer.innerHTML += renderMatchItem(m);
-                        hasUpcoming = true;
-                    }
-                });
-
-                if (!hasUpcoming) upcomingContainer.innerHTML += '<p class="no-data">Brak zaplanowanych meczów.</p>';
-                if (!hasRecent) recentContainer.innerHTML += '<p class="no-data">Brak zakończonych meczów.</p>';
-            });
-        }
-
-        function renderMatchItem(match) {
-            const status = match.status ? match.status.toLowerCase() : '';
-            const isLive = status === 'live' || status === 'trwa';
-            const isFinished = status === 'finished' || status === 'zakończony';
-            
-            let statusClass = 'scheduled';
-            let statusText = 'PLAN';
-            let score = '- : -';
-
-            if (isLive) {
-                statusClass = 'live';
-                statusText = 'LIVE';
-                score = `${match.goalsA} : ${match.goalsB}`;
-            } else if (isFinished) {
-                statusClass = 'finished';
-                statusText = 'KONIEC';
-                score = `${match.goalsA} : ${match.goalsB}`;
-            }
-
-            // Konwersja daty
-            let dateDisplay = '';
-            if (match.date && match.date.seconds) {
-                 dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
-            } else if (match.date) {
-                 dateDisplay = `${match.date} ${match.time || ''}`;
-            }
-
-            return `
-                <div class="match-item ${isLive ? 'live-glow' : ''}">
-                    <div class="match-teams">
-                        <span class="team-name">${match.teamA}</span>
-                        <span class="score-display">${score}</span>
-                        <span class="team-name">${match.teamB}</span>
-                    </div>
-                    <div class="match-meta">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                        <span class="match-info">${dateDisplay} | Gr. ${match.group}</span>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // 3. ODLICZANIE - Poprawiona data: 14 Grudnia 2025, 12:00
-        function startCountdown() {
-            // Ustawiamy sztywną datę: 14 grudnia 2025, 12:00:00
-            // Miesiące są liczone od 0 (0=Styczeń, 11=Grudzień)
-            const targetDate = new Date(2025, 11, 14, 12, 0, 0); 
-            const el = document.getElementById('countdown');
-            
-            if (!el) return;
-
-            const updateTimer = () => {
-                const now = new Date().getTime();
-                const diff = targetDate.getTime() - now;
-
-                if (diff < 0) {
-                    el.innerHTML = '<div class="started">TURNIEJ TRWA!</div>';
-                    return;
-                }
-
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-                el.innerHTML = `
-                    <div class="timer-box"><span class="val">${d}</span><span class="label">DNI</span></div>
-                    <div class="timer-box"><span class="val">${h}</span><span class="label">GODZ</span></div>
-                    <div class="timer-box"><span class="val">${m}</span><span class="label">MIN</span></div>
-                    <div class="timer-box"><span class="val">${s}</span><span class="label">SEK</span></div>
-                `;
-            };
-            
-            // Uruchom od razu i powtarzaj co sekundę
-            updateTimer();
-            setInterval(updateTimer, 1000);
-        }
-
-        window.addEventListener('load', initApp);
-        
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-        });
-    </script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+
     <style>
-        /* =========================================
-           NOWOCZESNY STYL - NEONOWY GRANAT
-           ========================================= */
-        :root {
-            --bg-dark: #0a0e17;       /* Bardzo ciemny granat */
-            --bg-card: #131a2a;       /* Trochę jaśniejszy */
-            --accent: #00d4ff;        /* Neonowy błękit */
-            --accent-glow: rgba(0, 212, 255, 0.4);
-            --live-red: #ff2a2a;
-            --text-main: #ffffff;
-            --text-sec: #a0aec0;
-            --border: #1f2a40;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            margin: 0; padding: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden;
-        }
-
-        /* HEADER */
-        .header {
-            width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(19, 26, 42, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 10;
-        }
-        .header h1 {
-            font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 0;
-            background: linear-gradient(90deg, #fff, var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px var(--accent-glow);
+        /* KRYTYCZNE STYLE UKRYWANIA */
+        #admin-wrapper { display: none; } /* Ukryty przed logowaniem */
+        
+        /* Styl zakładek - domyślnie ukryte */
+        .tab-content { 
+            display: none; 
+            padding: 20px;
+            background: #0e1628; /* Tło kontenera */
+            border: 1px solid #1e3a5f;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
         }
         
-        .login-links a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            margin-left: 15px; transition: 0.3s; position: relative;
-        }
-        .login-links a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
-
-        /* NAV */
-        #main-nav {
-            margin: 20px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-        }
-        #main-nav a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            padding: 10px 20px; border-radius: 30px; border: 1px solid transparent;
-            transition: 0.3s; background: var(--bg-card);
-        }
-        #main-nav a:hover {
-            border-color: var(--accent); color: #fff;
-            box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px);
+        /* Klasa aktywna - pokazuje zakładkę */
+        .tab-content.active { 
+            display: block !important; 
+            animation: fadeIn 0.3s ease-in-out;
         }
 
-        /* HERO & CONTENT */
-        .content-section { width: 100%; max-width: 1000px; padding: 0 20px; box-sizing: border-box; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Pasek nawigacji zakładek */
+        .tabs-header {
+            display: flex;
+            gap: 5px;
+            border-bottom: 1px solid #1e3a5f;
+        }
+
+        .tab-button {
+            background: #0a0a1f;
+            color: #888;
+            border: 1px solid #1e3a5f;
+            border-bottom: none;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover { background: #152036; color: white; }
         
-        .hero-banner {
-            text-align: center; margin-bottom: 40px;
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), transparent);
-            padding: 40px; border-radius: 20px; border: 1px solid var(--border);
+        .tab-button.active {
+            background: #2196f3;
+            color: white;
+            border-color: #2196f3;
         }
-        .hero-banner h1 { font-size: 2.5rem; margin: 0 0 10px; text-shadow: 0 0 30px var(--accent-glow); }
-        .hero-banner p { color: var(--text-sec); font-size: 1.1rem; }
 
-        /* ODLICZANIE */
-        #countdown {
-            display: flex; justify-content: center; gap: 15px; margin-bottom: 50px;
-        }
-        .timer-box {
-            background: var(--bg-card); border: 1px solid var(--border);
-            padding: 15px; border-radius: 12px; min-width: 80px; text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .timer-box .val { display: block; font-size: 2rem; font-weight: 800; color: var(--accent); }
-        .timer-box .label { font-size: 0.7rem; color: var(--text-sec); letter-spacing: 1px; font-weight: 600; }
-        .started { font-size: 2rem; font-weight: 800; color: var(--live-red); animation: pulse 1s infinite; }
-
-        /* SEKCJJA MECZÓW */
-        .stats-summary { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
-            gap: 30px; margin-bottom: 50px; 
-        }
-        .stats-column h3 {
-            color: var(--text-main); border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px; margin-bottom: 20px; font-size: 1.2rem; letter-spacing: 1px;
-        }
-        .stats-column h3 i { color: var(--accent); margin-right: 10px; }
-
-        /* KARTA MECZU */
-        .match-item {
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: 12px; padding: 15px; margin-bottom: 15px;
-            transition: 0.3s; position: relative; overflow: hidden;
-        }
-        .match-item:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-        
-        .match-teams {
-            display: flex; justify-content: space-between; align-items: center;
-            font-weight: 700; font-size: 1.1rem; margin-bottom: 10px;
-        }
-        .score-display {
-            background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 8px;
-            color: var(--accent); font-size: 1.3rem; letter-spacing: 2px;
-        }
-        
-        .match-meta {
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.8rem; color: var(--text-sec); border-top: 1px dashed var(--border); padding-top: 10px;
-        }
-        
-        .status-badge {
-            padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase;
-        }
-        .status-badge.scheduled { background: rgba(255,255,255,0.1); color: var(--text-sec); }
-        .status-badge.live { background: var(--live-red); color: #fff; box-shadow: 0 0 10px rgba(255, 42, 42, 0.5); animation: pulse 1.5s infinite; }
-        .status-badge.finished { background: var(--accent); color: var(--bg-dark); }
-        
-        .live-glow { border-color: var(--live-red); box-shadow: 0 0 15px rgba(255, 42, 42, 0.2); }
-
-        /* BUTTONS */
-        .button {
-            display: inline-block; padding: 15px 40px; 
-            background: linear-gradient(45deg, var(--accent), #0088ff); 
-            color: var(--bg-dark); border-radius: 50px; text-decoration: none; font-weight: 800;
-            font-size: 1rem; transition: 0.3s; box-shadow: 0 0 20px var(--accent-glow);
-        }
-        .button:hover { transform: scale(1.05); box-shadow: 0 0 30px var(--accent-glow); }
-
-        /* FOOTER */
-        .footer {
-            margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
-            border-top: 1px solid var(--border); width: 100%; background: #070a11; margin-top: 60px;
-        }
-        .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
-        .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
-
-        #theme-toggle {
-            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
-            border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
-            font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: 0.3s; display: flex; justify-content: center; align-items: center;
-        }
-        #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
-
-        @media (max-width: 768px) {
-            .header { flex-direction: column; gap: 15px; text-align: center; }
-            .stats-summary { grid-template-columns: 1fr; }
-            .match-teams { font-size: 1rem; }
-            .score-display { font-size: 1.1rem; padding: 3px 10px; }
+        /* Modal (okno edycji) - musi być na wierzchu */
+        .modal {
+            display: none; /* Ukryty domyślnie */
+            position: fixed; 
+            z-index: 10000; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background-color: rgba(0, 0, 0, 0.85); 
+            justify-content: center; 
+            align-items: center;
         }
     </style>
 </head>
+
 <body>
-    <div class="header">
-        <h1>PUCHAR GWIAZD</h1>
-        <div class="login-links">
-            <a href="captain_panel.html"><i class="fas fa-user-shield"></i> KAPITAN</a>
-            <a href="admin.html"><i class="fas fa-user-cog"></i> ADMIN</a>
-        </div>
+
+    <!-- 1. EKRAN LOGOWANIA -->
+    <div class="container" id="login-box">
+        <h2>🔐 Logowanie Administratora</h2>
+        <input id="login-email" type="email" placeholder="Email admina">
+        <input id="login-pass" type="password" placeholder="Hasło">
+        <button id="login-btn">Zaloguj</button>
+        <div id="login-msg" class="message"></div>
     </div>
 
-    <nav id="main-nav">
-        <a href="index.html" style="background: var(--accent); color: var(--bg-dark);">Strona Główna</a>
-        <a href="druzyny.html">Drużyny</a>
-        <a href="regulamin.html">Regulamin</a>
-        <a href="tabela.html">Tabele</a>
-        <a href="onas.html">O Nas</a>
-    </nav>
-
-    <section class="content-section">
-        <div class="hero-banner">
-            <h1>WIELKI FINAŁ LIGI</h1>
-            <p>Śledź wyniki na żywo, tabele i statystyki najlepszych drużyn!</p>
-        </div>
+    <!-- 2. PANEL GŁÓWNY (Ukryty stylem na start) -->
+    <div class="panel" id="admin-wrapper" style="display: none;">
         
-        <div id="countdown"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: white;">Panel Zarządzania</h2>
+            <button id="logout-btn" onclick="window.logout()" style="background-color: #d32f2f; width: auto; padding: 8px 15px;">🚪 Wyloguj</button>
+        </div>
 
-        <div class="stats-summary">
-            <div id="upcoming-matches" class="stats-column">
-                <h3><i class="far fa-calendar-alt"></i> NADCHODZĄCE MECZE</h3>
-                <p class="no-data">Ładowanie...</p>
+        <!-- NAWIGACJA -->
+        <div class="tabs-header">
+            <button class="tab-button active" onclick="openTab('teams-tab', event)">Drużyny</button>
+            <button class="tab-button" onclick="openTab('players-tab', event)">Zawodnicy</button>
+            <button class="tab-button" onclick="openTab('matches-tab', event)">Mecze</button>
+            <button class="tab-button" onclick="openTab('settings-tab', event)">Ustawienia</button>
+        </div>
+
+        <!-- === ZAKŁADKA 1: DRUŻYNY === -->
+        <div id="teams-tab" class="tab-content active">
+            <div class="sub-section">
+                <h3>➕ Dodaj Nową Drużynę</h3>
+                <div class="form-row">
+                    <input id="new-team-name" placeholder="Nazwa drużyny (np. FC Barcelona)">
+                    <input id="new-team-manager" placeholder="Manager (Opcjonalnie)">
+                    <button onclick="window.addTeam()">Dodaj</button>
+                </div>
             </div>
+
+            <div class="sub-section">
+                <h3>✏️ Edycja i Lista Drużyn</h3>
+                <div class="form-row">
+                    <select id="edit-team-select"><option>Wczytywanie...</option></select>
+                    <input id="edit-team-name" placeholder="Nowa nazwa">
+                    <button onclick="window.updateTeamName()" style="background-color: #ff9800;">Zmień Nazwę</button>
+                </div>
+                <div id="teams-list" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- === ZAKŁADKA 2: ZAWODNICY === -->
+        <div id="players-tab" class="tab-content">
+            <div class="sub-section">
+                <h3>👥 Wybierz drużynę</h3>
+                <select id="players-team-select" onchange="window.selectTeamInDropdown()" style="padding: 10px; font-size: 16px;">
+                    <option value="">-- Kliknij, aby wybrać --</option>
+                </select>
+            </div>
+
+            <!-- Panel dodawania gracza -->
+            <div id="players-manager-area" style="display: none;">
+                <div class="sub-section" style="border: 1px solid #2196f3;">
+                    <h4 style="color: #2196f3; margin-top: 0;">Dodaj Zawodnika</h4>
+                    <div class="form-row" id="add-player-form">
+                        <input id="new-p-name" placeholder="Imię">
+                        <input id="new-p-surname" placeholder="Nazwisko">
+                        <input id="new-p-number" type="number" placeholder="Nr" style="width: 80px;">
+                        <input id="new-p-position" placeholder="Poz." style="width: 100px;">
+                        <button onclick="window.addPlayerAdmin()" style="background-color: #4caf50;">Dodaj</button>
+                    </div>
+                </div>
+                <h4 style="margin-top: 20px;">Aktualny Skład:</h4>
+                <div id="team-players-list"></div>
+            </div>
+        </div>
+
+        <!-- === ZAKŁADKA 3: MECZE === -->
+        <div id="matches-tab" class="tab-content">
+            <div class="sub-section">
+                <h3>⚽ Utwórz Mecz</h3>
+                <div class="form-row match-creation-row" id="add-match-form">
+                    <select id="new-match-team1"><option>Drużyna 1</option></select>
+                    <span style="padding: 0 10px; font-weight: bold;">VS</span>
+                    <select id="new-match-team2"><option>Drużyna 2</option></select>
+                    <input id="group" placeholder="Gr." style="width: 60px;">
+                    <input id="new-match-date" type="date">
+                    <input id="new-match-time" type="time">
+                    <button onclick="window.addMatch()" style="background-color: #00bfff;">Utwórz</button>
+                </div>
+            </div>
+
+            <div class="sub-section">
+                <div style="display: flex; justify-content: space-between;">
+                    <h3>Lista Meczów</h3>
+                    <select id="match-status-filter" style="width: auto;">
+                        <option value="wszyscy">Wszystkie</option>
+                        <option value="planowany">Planowane</option>
+                        <option value="trwa">Na Żywo</option>
+                        <option value="zakończony">Zakończone</option>
+                    </select>
+                </div>
+                <div id="matches-list"></div>
+            </div>
+        </div>
+
+        <!-- === ZAKŁADKA 4: USTAWIENIA === -->
+        <div id="settings-tab" class="tab-content">
+            <div class="sub-section">
+                <h3>🛡 Nadaj Uprawnienia Admina</h3>
+                <div class="form-row">
+                    <input id="new-admin-email" type="email" placeholder="Email użytkownika">
+                    <button id="grant-admin-btn">Nadaj</button>
+                </div>
+            </div>
+            <div class="sub-section">
+                <h3>🏆 Tabela Strzelców (Podgląd)</h3>
+                <div class="table-wrapper">
+                    <table id="scorers-table">
+                        <thead><tr><th>Kto</th><th>Klub</th><th>Gole</th><th>Akcja</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL EDYCJI (Musi być na samym dole, poza wrapperem) -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="window.closeEditModal()">&times;</span>
+            <h3>Edycja Meczu</h3>
             
-            <div id="recent-results" class="stats-column">
-                <h3><i class="fas fa-trophy"></i> OSTATNIE WYNIKI</h3>
-                <p class="no-data">Ładowanie...</p>
+            <div class="modal-section">
+                <h4>Wynik</h4>
+                <div class="result-inputs">
+                    <span id="edit-match-team1-name">A</span>
+                    <input type="number" id="edit-score1" style="width:60px; text-align:center;">
+                    :
+                    <input type="number" id="edit-score2" style="width:60px; text-align:center;">
+                    <span id="edit-match-team2-name">B</span>
+                </div>
+                <button class="btn btn-full" onclick="window.saveMatchResult()">Zapisz Wynik</button>
+            </div>
+
+            <div class="modal-section">
+                <h4>Strzelcy bramek</h4>
+                <div id="add-scorer-form" class="form-row">
+                    <select id="scorer-team-select" style="width:30%"></select>
+                    <select id="scorer-player-select" style="width:40%"></select>
+                    <input type="number" id="scorer-minute" placeholder="Min" style="width:20%">
+                    <button class="btn btn-small" onclick="window.addScorer()">+</button>
+                </div>
+                <div id="scorers-edit-list"></div>
             </div>
         </div>
-        
-        <div style="text-align: center; margin-bottom: 60px;">
-            <a href="tabela.html" class="button">ZOBACZ PEŁNE TABELE</a>
-        </div>
-    </section>
-
-    <div class="footer">
-        <div class="social-media-links">
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-        </div>
-        <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
     </div>
 
-    <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+    <!-- SKRYPTY -->
+    <script src="admin.js" type="module"></script> 
+
+    <script>
+        // Funkcja przełączania zakładek (wbudowana w HTML dla pewności)
+        function openTab(tabId, event) {
+            // 1. Ukryj wszystkie treści
+            var contents = document.getElementsByClassName('tab-content');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].style.display = 'none'; // Wymuś ukrycie stylem inline
+                contents[i].classList.remove('active');
+            }
+
+            // 2. Dezaktywuj przyciski
+            var buttons = document.getElementsByClassName('tab-button');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+
+            // 3. Pokaż wybraną treść
+            var selected = document.getElementById(tabId);
+            if (selected) {
+                selected.style.display = 'block'; // Wymuś pokazanie
+                selected.classList.add('active');
+            }
+
+            // 4. Aktywuj przycisk
+            if (event) {
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        // Uruchom domyślnie pierwszą zakładkę
+        document.addEventListener('DOMContentLoaded', function() {
+             // Symulacja kliknięcia w pierwszą zakładkę, żeby CSS zaskoczył
+             var firstTab = document.getElementById('teams-tab');
+             if(firstTab) {
+                 firstTab.style.display = 'block';
+                 firstTab.classList.add('active');
+             }
+        });
+    </script>
 </body>
 </html>
