@@ -7,53 +7,18 @@
 
     <!-- Style CSS -->
     <link rel="stylesheet" href="admin.css" />
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
     
     <!-- Ikony -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <!-- Firebase SDK (Wersja Compat dla kompatybilności ze starszymi bibliotekami) -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
-
     <style>
         /* Panel ukryty domyślnie - JS go pokaże po zalogowaniu */
         #admin-wrapper { display: none; }
-
-        /* Style zakładek */
-        .tabs-header {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-            overflow-x: auto;
-        }
-        .tab-button {
-            background: #1e1e1e;
-            color: #888;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        .tab-button.active {
-            background: #2196f3;
-            color: white;
-        }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .sub-section {
-            background: #151515;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #333;
-        }
     </style>
 </head>
 
@@ -93,18 +58,19 @@
 
         <!-- A. ZAKŁADKA DRUŻYNY -->
         <div id="teams-tab" class="tab-content active">
+            <!-- Sekcja dodawania -->
             <div class="sub-section">
                 <h3>➕ Dodaj Nową Drużynę</h3>
                 <div class="form-row">
                     <input id="new-team-name" placeholder="Nazwa drużyny (np. FC Barcelona)">
-                    <input id="new-team-manager" placeholder="Nazwa kapitana/menadżera (opcjonalnie)">
+                    <input id="new-team-manager" placeholder="Nazwa kapitana/menadżera">
                     <button id="create-team-btn" onclick="window.addTeam()">Dodaj Drużynę</button>
                 </div>
             </div>
 
+            <!-- Sekcja edycji nazwy -->
             <div class="sub-section">
-                <h3>✏️ Edycja Drużyn</h3>
-                <p style="color:#888; font-size: 0.9em;">Wybierz drużynę, aby zmienić jej nazwę.</p>
+                <h3>✏️ Edycja Nazw Drużyn</h3>
                 <div class="form-row">
                     <select id="edit-team-select">
                         <option value="">-- Ładowanie --</option>
@@ -112,10 +78,13 @@
                     <input id="edit-team-name" placeholder="Nowa nazwa">
                     <button id="update-team-btn" onclick="window.updateTeamName()" style="background-color: #ff9800;">Zmień Nazwę</button>
                 </div>
-                
-                <div id="teams-list" style="margin-top: 20px;">
-                    <!-- Lista drużyn generowana przez admin.js -->
-                    <p class="centered-info">Ładowanie listy drużyn...</p>
+            </div>
+
+            <!-- 🔥 NAPRAWIONE: Sekcja listy drużyn (tego brakowało) -->
+            <div class="sub-section">
+                <h3>📋 Lista Istniejących Drużyn</h3>
+                <div id="teams-list">
+                    <p class="centered-info">Wczytywanie drużyn...</p>
                 </div>
             </div>
         </div>
@@ -125,7 +94,7 @@
             <div class="sub-section">
                 <h3>👥 Zarządzanie Zawodnikami</h3>
                 <div class="form-row">
-                    <label>Wybierz drużynę do edycji składu:</label>
+                    <label>Wybierz drużynę:</label>
                     <select id="players-team-select" onchange="window.selectTeamInDropdown()">
                         <option value="">-- Najpierw wybierz drużynę --</option>
                     </select>
@@ -134,7 +103,7 @@
                 <!-- Panel dodawania gracza (widoczny po wybraniu drużyny) -->
                 <div id="players-manager-area" style="display:none; margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
                     <h4>Dodaj Zawodnika do wybranej drużyny</h4>
-                    <div class="form-row" id="add-player-form" style="background: #222; padding: 10px; border-radius: 8px;">
+                    <div class="form-row" id="add-player-form">
                         <input id="new-p-name" placeholder="Imię">
                         <input id="new-p-surname" placeholder="Nazwisko">
                         <input id="new-p-number" type="number" placeholder="Nr" style="width: 80px;">
@@ -142,7 +111,8 @@
                         <button onclick="window.addPlayerAdmin()" style="background-color: #4caf50;">Dodaj</button>
                     </div>
                     
-                    <h4 style="margin-top: 20px;">Aktualny Skład</h4>
+                    <h4 style="margin-top: 20px;">Aktualny Skład (Edycja na żywo)</h4>
+                    <!-- Tutaj admin.js wyświetli listę graczy -->
                     <div id="team-players-list"></div>
                 </div>
             </div>
@@ -176,6 +146,7 @@
                 </div>
                 <div id="matches-list">
                     <!-- Lista meczów generowana przez admin.js -->
+                    <p class="centered-info">Ładowanie meczów...</p>
                 </div>
             </div>
         </div>
@@ -186,7 +157,7 @@
                 <h3>🛡 Uprawnienia Admina</h3>
                 <div class="form-row">
                     <input id="new-admin-email" type="email" placeholder="Email użytkownika">
-                    <button id="grant-admin-btn">Nadaj Admina</button>
+                    <button id="grant-admin-btn">Nadaj</button>
                 </div>
             </div>
             
@@ -246,7 +217,6 @@
             const content = document.getElementById(tabId);
             if (content) {
                 content.style.display = 'block';
-                // Znajdź przycisk odpowiadający tej zakładce i dodaj active
                 const btns = document.querySelectorAll('.tab-button');
                 for(let btn of btns) {
                     if(btn.getAttribute('onclick').includes(tabId)) {
@@ -257,6 +227,12 @@
         }
         // Domyślne otwarcie pierwszej zakładki po załadowaniu strony
         document.addEventListener('DOMContentLoaded', () => openTab('teams-tab'));
+
+        // Funkcja wylogowania (pomocnicza)
+        window.logout = function() {
+             console.log("Wylogowywanie..."); 
+             // Właściwa logika jest w admin.js, który nadpisuje window.logout
+        }
     </script>
 </body>
 </html>
