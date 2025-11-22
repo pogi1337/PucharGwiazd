@@ -1,115 +1,248 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Kapitana - Puchar Gwiazd</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel Administratora - Puchar Gwiazd</title>
 
-    <!-- Importy Firebase V11 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, collection, query, onSnapshot, getDoc, doc, 
-            addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- Style -->
+    <link rel="stylesheet" href="admin.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-        // ==========================================
-        // 1. KONFIGURACJA FIREBASE
-        // ==========================================
-        const HARDCODED_CONFIG = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
-        };
+    <!-- Firebase SDK (Kompatybilność dla starych bibliotek, jeśli jakieś zostały) -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 
-        const app = initializeApp(HARDCODED_CONFIG);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    <style>
+        /* Ukrywamy panel do czasu zalogowania */
+        #admin-wrapper { display: none; }
         
-        // Ścieżki do głównych kolekcji
-        const PATH_USERS = 'users';     
-        const PATH_TEAMS = 'teams';
-
-        let currentTeamId = "";
-
-        // ==========================================
-        // 2. LOGIKA UI I KOMUNIKATÓW
-        // ==========================================
-        
-        function showMessage(text, type = 'success') {
-            const msgDiv = document.getElementById('custom-message');
-            if (!msgDiv) return;
-            msgDiv.textContent = text;
-            msgDiv.className = type === 'success' ? 'msg-success' : 'msg-error';
-            msgDiv.style.display = 'block';
-            setTimeout(() => msgDiv.style.display = 'none', 4000);
+        /* Zakładki */
+        .tabs-header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
         }
-
-        window.openModal = () => document.getElementById("addModal").style.display = "flex";
-        window.closeModal = () => {
-            document.getElementById("addModal").style.display = "none";
-            document.getElementById("new-name").value = "";
-            document.getElementById("new-surname").value = "";
-            document.getElementById("new-number").value = "";
-            document.getElementById("new-position").value = "";
-        };
-        
-        window.logout = async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        // ==========================================
-        // 3. LOGIKA APLIKACJI
-        // ==========================================
-
-        // A. Logowanie
-        const loginForm = document.getElementById("login-form");
-        if (loginForm) {
-            loginForm.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-                const msgArea = document.getElementById("login-msg");
-
-                msgArea.textContent = "Logowanie...";
-                msgArea.className = "message-area";
-
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    msgArea.textContent = "";
-                } catch (error) {
-                    msgArea.textContent = "Błąd logowania: " + error.message;
-                    msgArea.className = "message-area error-msg";
-                }
-            });
+        .tab-button {
+            background: #1e1e1e;
+            color: #888;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
         }
+        .tab-button:hover { color: white; background: #333; }
+        .tab-button.active {
+            background: #2196f3;
+            color: white;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .section-title { color: #2196f3; margin-top: 0; }
+        .sub-section { background: #151515; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    </style>
+</head>
 
-        // B. Obsługa stanu uwierzytelnienia
-        onAuthStateChanged(auth, async (user) => {
-            const loading = document.getElementById("loading-screen");
-            const loginView = document.getElementById("login-view");
-            const panelView = document.getElementById("panel-view");
+<body>
 
-            if (user) {
-                try {
-                    // 1. Sprawdź czy user jest w kolekcji users
-                    const userDocRef = doc(db, PATH_USERS, user.uid);
-                    const docSnap = await getDoc(userDocRef);
+    <!-- 1. OKNO LOGOWANIA -->
+    <div class="container" id="login-box">
+        <h2>🔐 Logowanie Administratora</h2>
+        <input id="login-email" type="email" placeholder="Email admina">
+        <input id="login-pass" type="password" placeholder="Hasło">
+        <button id="login-btn">Zaloguj</button>
+        <div id="login-msg" class="message"></div>
+    </div>
+
+    <!-- 2. PANEL GŁÓWNY -->
+    <div class="panel" id="admin-wrapper">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: #2196f3;">Panel Zarządzania Turniejem</h2>
+            <button id="logout-btn" onclick="window.logout()" style="background-color: #d32f2f;">🚪 Wyloguj</button>
+        </div>
+
+        <!-- ZAKŁADKI -->
+        <div class="tabs-header">
+            <button class="tab-button active" onclick="openTab('teams-tab')">Drużyny</button>
+            <button class="tab-button" onclick="openTab('players-tab')">Zawodnicy</button>
+            <button class="tab-button" onclick="openTab('matches-tab')">Mecze</button>
+            <button class="tab-button" onclick="openTab('settings-tab')">Ustawienia</button>
+        </div>
+
+        <!-- A. DRUŻYNY -->
+        <div id="teams-tab" class="tab-content active">
+            <div class="sub-section">
+                <h3 class="section-title">➕ Dodaj Nową Drużynę</h3>
+                <div class="form-row">
+                    <input id="new-team-name" placeholder="Nazwa drużyny (np. FC Barcelona)">
+                    <input id="new-team-manager" placeholder="Manager/Kapitan">
+                    <button id="create-team-btn" onclick="addTeam()">Dodaj</button>
+                </div>
+            </div>
+
+            <div class="sub-section">
+                <h3 class="section-title">✏️ Lista Drużyn</h3>
+                <p style="color:#888; font-size: 0.9em;">Kliknij w nazwę na liście poniżej, aby edytować.</p>
+                <div id="teams-list">
+                    <p class="centered-info">Ładowanie drużyn...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- B. ZAWODNICY -->
+        <div id="players-tab" class="tab-content">
+            <div class="sub-section">
+                <h3 class="section-title">👥 Zarządzanie Zawodnikami</h3>
+                <div class="form-row">
+                    <label>Wybierz drużynę:</label>
+                    <select id="players-team-select" onchange="window.selectTeamInDropdown()">
+                        <option value="">-- Najpierw wybierz drużynę --</option>
+                    </select>
+                </div>
+
+                <!-- Panel dodawania (ukryty do momentu wyboru drużyny) -->
+                <div id="players-manager-area" style="display:none; margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                    <h4>Dodaj Zawodnika</h4>
+                    <div class="form-row" id="add-player-form">
+                        <input id="new-p-name" placeholder="Imię">
+                        <input id="new-p-surname" placeholder="Nazwisko">
+                        <input id="new-p-number" type="number" placeholder="Nr" style="width: 60px;">
+                        <input id="new-p-position" placeholder="Poz." style="width: 80px;">
+                        <button onclick="addPlayerAdmin()" style="background-color: #4caf50;">Dodaj</button>
+                    </div>
                     
-                    if (docSnap.exists()) {
-                         const userData = docSnap.data();
-                         
-                         // Sprawdzamy czy jest teamManagerem
-                         if (userData.role === "teamManager" || userData.role === "admin") { // Admin też może się tu zalogować
-                            // JEST KAPITANEM
-                            currentTeamId = userData.teamId;
-                            
-                            if
+                    <h4 style="margin-top: 20px;">Aktualny Skład</h4>
+                    <div id="team-players-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- C. MECZE -->
+        <div id="matches-tab" class="tab-content">
+            <div class="sub-section">
+                <h3 class="section-title">⚽ Utwórz Mecz</h3>
+                <div class="form-row match-creation-row" id="add-match-form">
+                    <select id="new-match-team1"><option>Drużyna 1</option></select>
+                    <span>VS</span>
+                    <select id="new-match-team2"><option>Drużyna 2</option></select>
+                    <input id="group" placeholder="Grupa" style="width: 60px;">
+                    <input id="new-match-date" type="date">
+                    <input id="new-match-time" type="time">
+                    <button onclick="addMatch()" style="background-color: #00bfff;">Utwórz</button>
+                </div>
+            </div>
+
+            <div class="sub-section">
+                <h3 class="section-title">Lista Meczów</h3>
+                <div style="margin-bottom: 15px;">
+                    <label>Filtr:</label>
+                    <select id="match-status-filter" style="width: auto;">
+                        <option value="wszyscy">Wszystkie</option>
+                        <option value="planowany">Planowane</option>
+                        <option value="trwa">Na Żywo</option>
+                        <option value="zakończony">Zakończone</option>
+                    </select>
+                </div>
+                <div id="matches-list">
+                    <!-- Lista meczów z admin.js -->
+                </div>
+            </div>
+        </div>
+
+        <!-- D. USTAWIENIA -->
+        <div id="settings-tab" class="tab-content">
+            <div class="sub-section">
+                <h3 class="section-title">🛡 Uprawnienia Admina</h3>
+                <p style="color:#ccc; font-size:0.9em;">Wpisz email użytkownika, aby nadać mu pełne uprawnienia administratora.</p>
+                <div class="form-row">
+                    <input id="new-admin-email" type="email" placeholder="Email użytkownika">
+                    <button id="grant-admin-btn">Nadaj Uprawnienia</button>
+                </div>
+            </div>
+            
+            <div class="sub-section">
+                <h3 class="section-title">🏆 Tabela Strzelców (Podgląd)</h3>
+                <div class="table-wrapper">
+                    <table id="scorers-table">
+                        <thead><tr><th>Kto</th><th>Klub</th><th>Gole</th><th>Akcja</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL EDYCJI MECZU (WYNIK + STRZELCY) -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h3>Edycja Meczu</h3>
+            
+            <div class="modal-section">
+                <h4>Wynik</h4>
+                <div class="result-inputs">
+                    <span id="edit-match-team1-name">A</span>
+                    <input type="number" id="edit-score1" style="width:60px; text-align:center;">
+                    :
+                    <input type="number" id="edit-score2" style="width:60px; text-align:center;">
+                    <span id="edit-match-team2-name">B</span>
+                </div>
+                <button class="btn btn-full" onclick="saveMatchResult()">Zapisz Wynik</button>
+            </div>
+
+            <div class="modal-section">
+                <h4>Strzelcy bramek</h4>
+                <div id="add-scorer-form" class="form-row">
+                    <select id="scorer-team-select" style="width:30%"></select>
+                    <select id="scorer-player-select" style="width:40%"></select>
+                    <input type="number" id="scorer-minute" placeholder="Min" style="width:20%">
+                    <button class="btn btn-small" onclick="addScorer()">+</button>
+                </div>
+                <div id="scorers-edit-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PODPIĘCIE LOGIKI JS (MODUŁOWEJ) -->
+    <script src="admin.js" type="module"></script> 
+
+    <!-- Obsługa zakładek (HTML-only) -->
+    <script>
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            
+            const content = document.getElementById(tabId);
+            if (content) {
+                content.style.display = 'block';
+                // Znajdź przycisk odpowiadający tej zakładce i dodaj active
+                const btns = document.querySelectorAll('.tab-button');
+                for(let btn of btns) {
+                    if(btn.getAttribute('onclick').includes(tabId)) {
+                        btn.classList.add('active');
+                    }
+                }
+            }
+        }
+        
+        // Uruchom pierwszą zakładkę po załadowaniu
+        document.addEventListener('DOMContentLoaded', () => openTab('teams-tab'));
+
+        // Funkcja wylogowania (pomocnicza dla HTML onClick, właściwa logika jest w module)
+        window.logout = function() {
+            // To wywołanie zostanie przechwycone przez moduł admin.js, jeśli poprawnie przypisano window.logout
+            console.log("Wylogowywanie..."); 
+        }
+    </script>
+</body>
+</html>
