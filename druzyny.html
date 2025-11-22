@@ -4,283 +4,271 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puchar Gwiazd - Lista Drużyn</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Importy Firebase V11 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, query, onSnapshot, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // 1. KONFIGURACJA (Twoja)
+        const HARDCODED_CONFIG = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
+        };
+
+        // Inicjalizacja
+        const app = initializeApp(HARDCODED_CONFIG);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Ścieżka do głównej kolekcji
+        const PATH_TEAMS = 'teams';
+
+        // Stan aplikacji
+        const loadedPlayers = new Set(); // Zestaw ID drużyn, dla których pobrano już graczy
+
+        // Start aplikacji
+        async function initApp() {
+            try {
+                await signInAnonymously(auth);
+                loadTeams();
+            } catch (e) {
+                console.warn("Błąd logowania anonimowego, próbuję wczytać dane...", e);
+                loadTeams();
+            }
+        }
+
+        // 2. Ładowanie Drużyn
+        function loadTeams() {
+            const list = document.getElementById('teams-list');
+            
+            const q = query(collection(db, PATH_TEAMS), orderBy('name'));
+
+            onSnapshot(q, (snapshot) => {
+                list.innerHTML = ''; // Czyścimy listę
+                
+                if (snapshot.empty) {
+                    list.innerHTML = '<p style="text-align:center; color:#888;">Brak zarejestrowanych drużyn.</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const t = doc.data();
+                    const teamId = doc.id;
+
+                    // Tworzenie elementu karty drużyny
+                    const li = document.createElement('li');
+                    li.className = 'team-card';
+                    li.id = `card-${teamId}`;
+                    
+                    li.innerHTML = `
+                        <div class="team-card-header" onclick="window.toggleTeam('${teamId}')">
+                            <h3><i class="fas fa-shield-alt"></i> ${t.name}</h3>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span class="group-tag">Gr. ${t.group || '-'}</span>
+                                <i class="fas fa-chevron-down toggle-icon" id="icon-${teamId}"></i>
+                            </div>
+                        </div>
+                        <div class="team-details" id="details-${teamId}">
+                            <div class="manager-info">Kapitan/Manager: <strong>${t.manager || t.managerEmail || 'Brak danych'}</strong></div>
+                            <h4 class="squad-title">Skład:</h4>
+                            <div id="players-list-${teamId}" class="players-container">
+                                <p class="loading-text">Ładowanie składu...</p>
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(li);
+                });
+            }, (error) => {
+                console.error("Błąd:", error);
+                list.innerHTML = '<p style="color:red; text-align:center;">Błąd ładowania danych. Sprawdź połączenie.</p>';
+            });
+        }
+
+        // 3. Funkcja rozwijania i ładowania graczy (Eksportowana do window)
+        window.toggleTeam = (teamId) => {
+            const card = document.getElementById(`card-${teamId}`);
+            const details = document.getElementById(`details-${teamId}`);
+            const icon = document.getElementById(`icon-${teamId}`);
+            
+            // Przełączanie klasy active
+            const isActive = card.classList.toggle('expanded');
+            
+            // Jeśli rozwijamy i jeszcze nie pobraliśmy graczy dla tej drużyny -> pobierz ich
+            if (isActive && !loadedPlayers.has(teamId)) {
+                loadPlayersForTeam(teamId);
+                loadedPlayers.add(teamId);
+            }
+        };
+
+        // 4. Pobieranie graczy z podkolekcji
+        function loadPlayersForTeam(teamId) {
+            const container = document.getElementById(`players-list-${teamId}`);
+            
+            const playersRef = collection(db, PATH_TEAMS, teamId, 'players');
+            const q = query(playersRef, orderBy('number')); // Sortowanie po numerze
+
+            // Używamy onSnapshot, żeby skład aktualizował się na żywo
+            onSnapshot(q, (snapshot) => {
+                container.innerHTML = ''; // Czyść loader
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="empty-squad">Brak zawodników w składzie.</p>';
+                    return;
+                }
+
+                const ul = document.createElement('ul');
+                ul.className = 'players-list';
+
+                snapshot.forEach(doc => {
+                    const p = doc.data();
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span class="p-number">${p.number || '-'}</span>
+                        <span class="p-name">${p.name} ${p.surname}</span>
+                        <span class="p-pos">${p.position || ''}</span>
+                    `;
+                    ul.appendChild(li);
+                });
+                container.appendChild(ul);
+                
+                // Aktualizacja licznika (opcjonalnie)
+                // const countEl = document.querySelector(`#card-${teamId} .player-count`);
+                // if(countEl) countEl.textContent = snapshot.size;
+
+            }, (error) => {
+                console.error("Błąd graczy:", error);
+                container.innerHTML = '<p style="color:red;">Błąd pobierania składu.</p>';
+            });
+        }
+
+        // Uruchomienie
+        window.addEventListener('load', initApp);
+
+        // Theme toggle
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+    </script>
     
     <style>
-        /* ==================================
-           GLOBALNE STYLE I TRYB JASNY
-           ================================== */
-        body { 
-            font-family: 'Roboto', sans-serif; 
-            margin: 0;
-            padding: 20px 10px; 
-            background: linear-gradient(135deg, #e0f2f7 0%, #bbdefb 100%); 
-            color: #212121;
-            display: flex; 
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            transition: background 0.5s ease, color 0.5s ease;
-        }
-
-        /* NAGŁÓWEK (.header) */
-        .header {
-            width: 100%; max-width: 900px; margin-bottom: 30px; padding: 25px;
-            background-color: #ffffff; border-radius: 15px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #64b5f6;
-            display: flex; justify-content: space-between; align-items: center;
-            transition: background-color 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
-        }
-        
-        .header h1 {
-            font-family: 'Montserrat', sans-serif; color: #1565c0; font-size: 3.2em;
-            margin-bottom: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        /* LINKI LOGOWANIA (.login-links) */
-        .login-links { display: flex; gap: 15px; }
-        .login-links a {
-            color: white; background-color: #1976d2; text-decoration: none;
-            font-weight: bold; padding: 8px 12px; border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .login-links a:hover { background-color: #2196f3; }
-
-        /* NAWIGACJA (NAV) */
-        #main-nav {
-            width: 100%; max-width: 900px; background-color: #1976d2;
-            border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px; padding: 10px 0; display: flex;
-            justify-content: center; flex-wrap: wrap; gap: 20px;
-            transition: background-color 0.5s ease, box-shadow 0.5s ease;
-        }
-        #main-nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-        #main-nav a {
-            color: #ffffff; text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.1em;
-            padding: 8px 15px; border-radius: 8px; transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-        #main-nav a:hover { background-color: #2196f3; transform: translateY(-2px); }
-
-        /* GŁÓWNA TREŚĆ STRONY DRUŻYN */
-        .content-container {
-            max-width: 900px; width: 100%; margin-bottom: 30px; padding: 25px;
-            background: white; border-radius: 15px; 
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); border: 2px solid #64b5f6;
-            transition: background 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
-        }
-
-        .content-container h2 {
-            font-family: 'Montserrat', sans-serif; font-size: 2.2em; color: #1565c0;
-            margin-top: 10px; margin-bottom: 25px; padding-bottom: 5px;
-            border-bottom: 2px solid #64b5f6; font-weight: 700;
-        }
-        
-        /* KARTY DRUŻYN (Nowy styl, responsywny) */
-        #teams-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .team-card {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.3s ease, background-color 0.3s ease;
-            overflow: hidden; /* Ważne dla animacji rozwijania */
-        }
-        
-        .team-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .team-card-header:hover {
-            background-color: #e3f2fd;
-        }
-
-        .team-card-header h3 {
+        /* STYLE GLOBALNE */
+        body {
             font-family: 'Montserrat', sans-serif;
-            color: #1565c0;
-            font-size: 1.4em;
-            margin: 0;
-            display: flex;
-            align-items: center;
+            margin: 0; padding: 20px;
+            background: linear-gradient(135deg, #e0f2f7 0%, #bbdefb 100%);
+            color: #212121;
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
         }
-
-        .team-card-header .group-info {
-            font-weight: bold;
-            color: #dc3545;
-            padding: 5px 10px;
-            border-radius: 5px;
-            background-color: #ffcdd2; /* Lekkie tło dla grupy */
-        }
-
-        /* IKONA ROZWIJANIA */
-        .toggle-icon {
-            transition: transform 0.3s ease;
-        }
-        .team-card.expanded .toggle-icon {
-            transform: rotate(180deg);
-        }
-
-        /* KONTENER DETALI (UKRYTY DOMYŚLNIE) */
-        .team-details {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
-            background-color: #ffffff;
-            border-top: 1px solid #e0e0e0;
-        }
-        .team-card.expanded .team-details {
-            max-height: 500px; /* Wartość musi być większa niż maksymalna wysokość listy */
-            padding: 15px 20px;
-        }
-        
-        /* LISTA ZAWODNIKÓW W DETALACH */
-        .players-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 10px;
-        }
-        .players-list li {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px dashed #e0e0e0;
-            font-size: 0.95em;
-        }
-        .players-list li:last-child {
-            border-bottom: none;
-        }
-        .player-number {
-            font-weight: bold;
-            color: #1976d2;
-            width: 50px;
-            text-align: right;
-            padding-right: 10px;
-        }
-        
-        /* FOOTER */
-        .footer {
-            width: 100%; max-width: 900px; text-align: center; padding: 15px 0; margin-top: 30px;
-            color: #1565c0; border-top: 1px solid #64b5f6; display: flex;
-            justify-content: space-between; align-items: center;
-            transition: color 0.5s ease, border-top-color 0.5s ease;
-        }
-        .footer p { margin: 0; }
-        .social-media-links a { color: #1565c0; font-size: 1.5em; margin-left: 15px; transition: color 0.3s; }
-        .social-media-links a:hover { color: #007bff; }
-
-        /* Przełącznik trybu ciemnego */
-        #theme-toggle {
-            position: fixed; bottom: 20px; right: 20px; background-color: #1976d2;
-            color: white; border: none; border-radius: 50%; width: 50px;
-            height: 50px; font-size: 1.5em; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); transition: background-color 0.3s, transform 0.2s;
-            z-index: 1000;
-        }
-        #theme-toggle:hover { background-color: #2196f3; transform: scale(1.05); }
-
-        /* ==================================
-           STYLISTYKA TRYBU CIEMNEGO
-           ================================== */
         body.dark-mode {
             background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
             color: #e0e0e0;
         }
 
-        body.dark-mode .header {
-            background-color: #263238; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #37474f;
+        /* Header i Nav */
+        .header {
+            max-width: 900px; margin: 0 auto 30px; padding: 20px;
+            background: white; border-radius: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        body.dark-mode .header h1 { color: #90caf9; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        body.dark-mode .login-links a { background-color: #0d47a1; }
-        body.dark-mode .login-links a:hover { background-color: #1565c0; }
-        body.dark-mode #main-nav { background-color: #0d47a1; }
-        body.dark-mode #main-nav a:hover { background-color: #1565c0; }
+        .header h1 { margin: 0; color: #1565c0; }
+        body.dark-mode .header { background: #263238; }
+        body.dark-mode .header h1 { color: #90caf9; }
+
+        .login-links a {
+            color: white; background: #1976d2; padding: 8px 12px; 
+            border-radius: 5px; text-decoration: none; font-weight: bold;
+        }
+
+        #main-nav {
+            max-width: 900px; margin: 0 auto 30px; background: #1976d2;
+            border-radius: 10px; padding: 10px;
+            display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;
+        }
+        #main-nav a { color: white; text-decoration: none; font-weight: bold; padding: 5px 10px; }
+        body.dark-mode #main-nav { background: #0d47a1; }
+
+        /* KARTY DRUŻYN */
+        .content-container { max-width: 900px; margin: 0 auto; }
+        #teams-list { list-style: none; padding: 0; }
+
+        .team-card {
+            background: white; border-radius: 10px;
+            margin-bottom: 15px; overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+        body.dark-mode .team-card { background: #37474f; }
+
+        .team-card-header {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; background: rgba(0,0,0,0.02);
+        }
+        .team-card-header:hover { background: rgba(0,0,0,0.05); }
         
-        body.dark-mode .content-container {
-            background: #263238; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5); border-color: #37474f;
+        .team-card h3 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .group-tag { 
+            background: #e3f2fd; color: #1565c0; padding: 4px 8px; 
+            border-radius: 4px; font-size: 0.8rem; font-weight: bold; 
         }
-        body.dark-mode .content-container h2 {
-            color: #90caf9; border-bottom: 2px solid #37474f;
-        }
-
-        /* Karty drużyn w Dark Mode */
-        body.dark-mode .team-card {
-            background-color: #37474f;
-            border: 1px solid #455a64;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        }
-        body.dark-mode .team-card-header {
-            background-color: #37474f;
-        }
-        body.dark-mode .team-card-header:hover {
-            background-color: #455a64;
-        }
-        body.dark-mode .team-card-header h3 {
-            color: #90caf9;
-        }
-        body.dark-mode .team-card-header .group-info {
-            color: #ffab91;
-            background-color: #5d4037; /* Ciemniejsze tło dla grupy */
-        }
+        body.dark-mode .group-tag { background: #263238; color: #90caf9; }
         
-        body.dark-mode .team-details {
-            background-color: #263238;
-            border-top: 1px solid #455a64;
+        .toggle-icon { transition: transform 0.3s; }
+        .team-card.expanded .toggle-icon { transform: rotate(180deg); }
+
+        /* DETALE (ROZWIJANE) */
+        .team-details {
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out;
+            background: rgba(0,0,0,0.01);
         }
-        body.dark-mode .players-list li {
-            border-bottom: 1px dashed #455a64;
-            color: #e0e0e0;
+        .team-card.expanded .team-details { max-height: 1000px; } /* Wystarczająco dużo */
+
+        .manager-info { padding: 10px 20px; font-size: 0.9rem; color: #666; border-bottom: 1px solid #eee; }
+        body.dark-mode .manager-info { color: #aaa; border-color: #555; }
+
+        .squad-title { margin: 10px 20px 5px; color: #1565c0; font-size: 0.9rem; text-transform: uppercase; }
+        body.dark-mode .squad-title { color: #90caf9; }
+
+        /* LISTA ZAWODNIKÓW */
+        .players-list { list-style: none; padding: 0; margin: 0; }
+        .players-list li {
+            display: flex; align-items: center; padding: 8px 20px;
+            border-bottom: 1px solid #f0f0f0; font-size: 0.95rem;
         }
-        body.dark-mode .players-list .player-number {
-            color: #90caf9;
+        body.dark-mode .players-list li { border-color: #455a64; }
+        
+        .p-number { font-weight: bold; width: 30px; color: #1976d2; }
+        .p-name { flex-grow: 1; }
+        .p-pos { font-size: 0.8rem; color: #888; font-style: italic; }
+        
+        .loading-text, .empty-squad { padding: 15px 20px; color: #888; font-style: italic; font-size: 0.9rem; }
+
+        /* Przełącznik */
+        #theme-toggle {
+            position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px;
+            border-radius: 50%; background: #1976d2; color: white; border: none;
+            font-size: 1.5rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* Stopka w Dark Mode */
-        body.dark-mode .footer {
-            color: #90caf9; border-top: 1px solid #37474f;
-        }
-        body.dark-mode .social-media-links a { color: #90caf9; }
-        body.dark-mode .social-media-links a:hover { color: #bbdefb; }
-        body.dark-mode #theme-toggle { background-color: #0d47a1; }
-        body.dark-mode #theme-toggle:hover { background-color: #1565c0; }
-
-
-        /* Sekcja Responsive */
-        @media (max-width: 768px) {
-            .header { flex-direction: column; align-items: center; padding: 15px; }
-            .header h1 { font-size: 2.5em; }
-            .login-links { margin-top: 15px; gap: 10px; }
-            .login-links a { font-size: 0; padding: 10px; }
-            .login-links a i { font-size: 1.4rem; margin: 0; }
-            #main-nav { padding: 8px 0; }
-            #main-nav ul { gap: 10px; }
-            #main-nav a { font-size: 1em; padding: 6px 10px; }
-            .content-container { padding: 15px; border-radius: 0; box-shadow: none; border: none; }
-            .content-container h2 { font-size: 1.8em; margin-bottom: 15px; }
-            .footer { flex-direction: column; margin-top: 15px; }
-            .social-media-links { margin-top: 10px; }
+        @media (max-width: 600px) {
+            .header { flex-direction: column; text-align: center; }
+            .login-links { margin-top: 10px; }
         }
     </style>
 </head>
 <body>
-    
+
     <div class="header">
         <h1>Puchar Gwiazd</h1>
         <div class="login-links">
-            <a href="login_kapitana.html"><i class="fas fa-user-shield"></i> Kapitan</a>
+            <a href="captain_panel.html"><i class="fas fa-user-shield"></i> Kapitan</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> Admin</a>
         </div>
     </div>
@@ -295,164 +283,15 @@
             <li><a href="pusta-strona.html">Pusta Strona</a></li>
         </ul>
     </nav>
-    
-    <div class="content-container">
-        <h2><i class="fas fa-users-cog"></i> Wszystkie Zarejestrowane Drużyny</h2>
 
+    <div class="content-container">
+        <h2 style="text-align: center;">Lista Drużyn i Zawodników</h2>
         <ul id="teams-list">
-            <p style="text-align: center; color: #888;">Ładowanie listy drużyn...</p>
+            <!-- Tutaj JavaScript wstrzyknie karty drużyn -->
         </ul>
     </div>
-    
-    <div class="footer">
-        <p>© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
-        <div class="social-media-links">
-            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </div>
-    
-    <button id="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
 
-<script>
-    // ===================================
-    // FUNKCJONALNOŚĆ TRYBU CIEMNEGO
-    // ===================================
-    const themeToggle = document.getElementById('theme-toggle');
-    const body = document.body;
-    
-    function setDarkMode(isDark) {
-        if (isDark) {
-            body.classList.add('dark-mode');
-            themeToggle.querySelector('i').className = 'fas fa-sun';
-            localStorage.setItem('darkMode', 'enabled');
-        } else {
-            body.classList.remove('dark-mode');
-            themeToggle.querySelector('i').className = 'fas fa-moon';
-            localStorage.setItem('darkMode', 'disabled');
-        }
-    }
-    
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode === 'enabled' || (!savedMode && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        setDarkMode(true);
-    } else {
-        setDarkMode(false);
-    }
+    <button id="theme-toggle"><i class="fas fa-moon"></i></button>
 
-    themeToggle.addEventListener('click', () => {
-        const isDark = body.classList.contains('dark-mode');
-        setDarkMode(!isDark);
-    });
-
-    // ===================================
-    // FUNKCJONALNOŚĆ ROZWIJANIA LISTY
-    // ===================================
-
-    function toggleDetails(teamId) {
-        const card = document.getElementById('team-card-' + teamId);
-        if (card) {
-            card.classList.toggle('expanded');
-        }
-    }
-
-
-    // ===================================
-    // FUNKCJONALNOŚĆ FIREBASE: Ładowanie Drużyn
-    // ===================================
-    
-    const firebaseConfig = {
-        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app", 
-        projectId: "puchargwiazd-bdaa4",
-        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-        messagingSenderId: "890734185883",
-        appId: "1:890734185883:web:4868b8bbf66c4bc7dfe53e"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    
-    // Używamy ścieżki z poprzedniej korekty, która ma największą szansę zadziałać
-    const TEAMS_PATH = "teams/teams"; 
-
-    function loadTeams() {
-        const teamsList = document.getElementById('teams-list');
-        teamsList.innerHTML = '<p style="text-align: center; color: #1565c0; font-weight: bold;">Pobieranie listy drużyn...</p>';
-
-        db.ref(TEAMS_PATH).once('value').then(snapshot => {
-            const teamsData = snapshot.val();
-            teamsList.innerHTML = ''; 
-            
-            if (teamsData) {
-                const teamsArray = Object.entries(teamsData).map(([id, data]) => ({ id, ...data }));
-                
-                teamsArray.sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
-
-                const fragment = document.createDocumentFragment();
-
-                teamsArray.forEach(team => {
-                    const card = document.createElement('li');
-                    // ID karty do użycia w funkcji toggleDetails
-                    const teamId = encodeURIComponent(team.id); 
-                    card.id = `team-card-${teamId}`;
-                    card.classList.add('team-card');
-
-                    const teamName = team.name || team.id;
-                    const group = team.group ? team.group : 'Brak';
-                    const players = team.players ? Object.values(team.players) : [];
-                    const playersCount = players.length;
-                    
-                    // Budowanie listy zawodników
-                    let playersHtml = '<p style="color: #888; text-align: center;">Brak zawodników w składzie.</p>';
-                    if (playersCount > 0) {
-                        // Sortowanie zawodników po numerze
-                        const sortedPlayers = players.sort((a, b) => (a.number || 999) - (b.number || 999));
-                        
-                        playersHtml = '<ul class="players-list">';
-                        sortedPlayers.forEach(player => {
-                            const playerNumber = player.number !== undefined && player.number !== null ? player.number : '—'; 
-                            playersHtml += `<li><span class="player-number">${playerNumber}</span>${player.name}</li>`;
-                        });
-                        playersHtml += '</ul>';
-                    }
-
-
-                    card.innerHTML = `
-                        <div class="team-card-header" onclick="toggleDetails('${teamId}')">
-                            <h3><i class="fas fa-shield-alt" style="margin-right: 10px;"></i> ${teamName}</h3>
-                            <div style="display: flex; align-items: center; gap: 15px;">
-                                <span class="group-info">Grupa: ${group}</span>
-                                <i class="fas fa-chevron-down toggle-icon"></i>
-                            </div>
-                        </div>
-                        
-                        <div class="team-details">
-                            <p style="font-weight: bold; margin-bottom: 5px;">Kapitan: ${team.captainName || 'Brak danych'}</p>
-                            <p style="font-style: italic; color: #6c757d; margin-top: 0;">Liczba zawodników: ${playersCount}</p>
-                            
-                            <h4 style="font-family: 'Montserrat', sans-serif; color: #1565c0; margin-top: 20px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">Skład:</h4>
-                            ${playersHtml}
-                        </div>
-                    `;
-                    fragment.appendChild(card);
-                });
-
-                teamsList.appendChild(fragment);
-
-            } else {
-                teamsList.innerHTML = `<p style="text-align: center; color: #dc3545; font-weight: bold;">Brak zarejestrowanych drużyn w ścieżce: ${TEAMS_PATH}.</p>`;
-            }
-        }).catch(error => {
-            console.error("Błąd ładowania danych drużyn:", error);
-            teamsList.innerHTML = `<p style="text-align: center; color: #dc3545; font-weight: bold;">KRYTYCZNY BŁĄD: Nie można połączyć z bazą danych lub ścieżka ${TEAMS_PATH} jest błędna.</p>`;
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', loadTeams);
-</script>
 </body>
 </html>
