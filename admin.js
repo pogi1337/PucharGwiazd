@@ -351,7 +351,7 @@ window.openEditModal = (matchId, t1Id, t2Id, t1Name, t2Name) => {
         <option value="${t2Id}">${t2Name}</option>
     `;
     
-    // Reset selecta graczy
+    // Wyczyść listę graczy
     document.getElementById('scorer-player-select').innerHTML = '<option value="">Najpierw wybierz drużynę</option>';
 
     // Nasłuchuj zmiany drużyny -> ładuj graczy
