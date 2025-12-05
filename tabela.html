@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabele i Wyniki - Puchar Gwiazd</title>
 
-    <!-- Importy Firebase V11 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, query, onSnapshot, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -26,8 +25,36 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        const PATH_TEAMS = 'teams';
         const PATH_MATCHES = 'matches';
+
+        // ============================================
+        // 2. SZTYWNA LISTA DRUŻYN (ZMIANA ZGODNA Z PROŚBĄ)
+        // ============================================
+        const STATIC_TEAMS = [
+            // GRUPA A
+            { id: 'ga_1', name: 'Piorun Potaszniki', group: 'A' },
+            { id: 'ga_2', name: 'PKS mięsne', group: 'A' },
+            { id: 'ga_3', name: 'FC Dwójka', group: 'A' },
+            { id: 'ga_4', name: 'Fc Hetman', group: 'A' },
+            
+            // GRUPA B
+            { id: 'gb_1', name: 'Kokołaje', group: 'B' },
+            { id: 'gb_2', name: 'Mistrzowie Remisu', group: 'B' },
+            { id: 'gb_3', name: 'Down The Road', group: 'B' },
+            { id: 'gb_4', name: 'Coco Jumbos', group: 'B' },
+
+            // GRUPA C
+            { id: 'gc_1', name: 'Łobuzy', group: 'C' },
+            { id: 'gc_2', name: 'Champion Fc', group: 'C' },
+            { id: 'gc_3', name: 'Goon Fc', group: 'C' },
+            { id: 'gc_4', name: 'Czarne Perły Mozambiku', group: 'C' },
+
+            // GRUPA D
+            { id: 'gd_1', name: 'Dżołki', group: 'D' },
+            { id: 'gd_2', name: 'Sławbud', group: 'D' },
+            { id: 'gd_3', name: 'Młode Talenty', group: 'D' },
+            { id: 'gd_4', name: 'Valentino Royal', group: 'D' }
+        ];
 
         // Stan aplikacji
         let teamsMap = {}; // ID -> Nazwa
@@ -36,7 +63,6 @@
         async function initApp() {
             try {
                 await signInAnonymously(auth);
-                // Najpierw pobieramy drużyny (żeby mieć ich nazwy), potem mecze
                 loadTeamsAndMatches();
             } catch (e) {
                 console.warn("Błąd logowania, próba odczytu publicznego...", e);
@@ -45,18 +71,17 @@
         }
 
         function loadTeamsAndMatches() {
-            // 1. Pobierz drużyny
-            onSnapshot(collection(db, PATH_TEAMS), (snapshot) => {
-                teamsMap = {};
-                teamsDataRaw = [];
-                snapshot.forEach(doc => {
-                    const t = doc.data();
-                    teamsMap[doc.id] = t.name;
-                    teamsDataRaw.push({ id: doc.id, ...t });
-                });
-                // Po załadowaniu drużyn, uruchom nasłuchiwanie meczów
-                loadMatches();
+            // Zamiast pobierać z bazy, ładujemy zdefiniowane wyżej stałe
+            teamsDataRaw = STATIC_TEAMS;
+            teamsMap = {};
+            
+            // Budujemy mapę nazw dla szybkiego dostępu
+            teamsDataRaw.forEach(t => {
+                teamsMap[t.id] = t.name;
             });
+
+            // Od razu ładujemy mecze (jeśli są w bazie)
+            loadMatches();
         }
 
         function loadMatches() {
@@ -101,16 +126,28 @@
             // Przelicz wyniki z ZAKOŃCZONYCH meczów
             matches.forEach(m => {
                 if (m.status === 'finished' || m.status === 'zakończony') {
-                    const team1 = m.team1Id;
-                    const team2 = m.team2Id;
+                    // Próbujemy dopasować po ID lub po NAZWIE (dla kompatybilności ze statyczną listą)
+                    let team1Id = m.team1Id;
+                    let team2Id = m.team2Id;
+
+                    // Fallback: jeśli w meczu są nazwy, a ID nie pasują do naszych statycznych ID, szukamy po nazwie
+                    if (!teamsMap[team1Id]) {
+                        const found1 = teamsDataRaw.find(t => t.name === m.teamA);
+                        if (found1) team1Id = found1.id;
+                    }
+                    if (!teamsMap[team2Id]) {
+                        const found2 = teamsDataRaw.find(t => t.name === m.teamB);
+                        if (found2) team2Id = found2.id;
+                    }
+
                     const group = m.group || 'Bez Grupy';
                     const g1 = parseInt(m.score1 || 0);
                     const g2 = parseInt(m.score2 || 0);
 
-                    // Sprawdź czy drużyny istnieją w strukturze (mogły zostać usunięte)
-                    if (groups[group] && groups[group][team1] && groups[group][team2]) {
-                        const t1 = groups[group][team1];
-                        const t2 = groups[group][team2];
+                    // Sprawdź czy drużyny istnieją w strukturze
+                    if (groups[group] && groups[group][team1Id] && groups[group][team2Id]) {
+                        const t1 = groups[group][team1Id];
+                        const t2 = groups[group][team2Id];
 
                         t1.matches++; t2.matches++;
                         t1.goalsFor += g1; t1.goalsAgainst += g2;
@@ -141,6 +178,11 @@
             container.innerHTML = '';
 
             const sortedGroups = Object.keys(groupsStats).sort();
+
+            if (sortedGroups.length === 0) {
+                 container.innerHTML = '<p style="text-align:center">Brak danych do wyświetlenia.</p>';
+                 return;
+            }
 
             sortedGroups.forEach(groupName => {
                 const groupTeams = Object.values(groupsStats[groupName]);
@@ -238,7 +280,7 @@
     
     <style>
         /* =========================================
-           STYL NOWOCZESNY - NEONOWY GRANAT (Zgodny z index/druzyny)
+           STYL NOWOCZESNY - NEONOWY GRANAT
            ========================================= */
         :root {
             --bg-dark: #0a0e17;
@@ -264,7 +306,7 @@
             overflow-x: hidden;
         }
 
-        /* HEADER I NAV - ZGODNE Z RESZTĄ */
+        /* HEADER I NAV */
         .header {
             width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
             display: flex; justify-content: space-between; align-items: center;
@@ -336,7 +378,7 @@
         .standings-table tr:last-child td { border-bottom: none; }
         .standings-table tr:hover td { background: rgba(255,255,255,0.03); }
         
-        /* Strefa awansu (zielona linia po lewej) */
+        /* Strefa awansu */
         .promotion-zone td:first-child { 
             border-left: 3px solid var(--accent); 
         }
@@ -396,7 +438,6 @@
     </nav>
 
     <div class="content-container" id="tables-container">
-        <!-- Tutaj JavaScript wygeneruje tabele -->
         <p style="text-align:center; margin-top:50px;">Ładowanie tabel...</p>
     </div>
 
