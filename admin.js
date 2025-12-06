@@ -5,12 +5,14 @@
 // -------------------------------------------------------------------
 // Wklej tutaj swoją konfigurację z konsoli Firebase (to samo co w index.html)
 const firebaseConfig = {
-    apiKey: "TWOJE_API_KEY",
-    authDomain: "TWOJ_PROJEKT.firebaseapp.com",
-    projectId: "TWOJ_PROJEKT",
-    storageBucket: "TWOJ_PROJEKT.appspot.com",
-    messagingSenderId: "TWOJE_ID",
-    appId: "TWOJE_APP_ID"
+  apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+  authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+  databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "puchargwiazd-bdaa4",
+  storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+  messagingSenderId: "890734185883",
+  appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
+};
 };
 
 // Inicjalizacja (sprawdzamy czy już nie jest zainicjowana)
@@ -528,3 +530,4 @@ document.getElementById('grant-admin-btn').addEventListener('click', async () =>
     await db.collection('admins').add({ email: email });
     alert("Dodano uprawnienia (wymaga konfiguracji reguł Firestore).");
 });
+
