@@ -10,7 +10,7 @@
         import { getFirestore, collection, query, onSnapshot, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // 1. KONFIGURACJA (Twoja)
+        // 1. KONFIGURACJA
         const HARDCODED_CONFIG = {
             apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
             authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -20,16 +20,12 @@
             appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
         };
 
-        // Inicjalizacja
         const app = initializeApp(HARDCODED_CONFIG);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
         const PATH_MATCHES = 'matches';
 
-        // ============================================
-        // 2. SZTYWNA LISTA DRUŻYN (ZMIANA ZGODNA Z PROŚBĄ)
-        // ============================================
+        // 2. SZTYWNA LISTA DRUŻYN
         const STATIC_TEAMS = [
             // GRUPA A
             { id: 'ga_1', name: 'Piorun Potaszniki', group: 'A' },
@@ -56,31 +52,27 @@
             { id: 'gd_4', name: 'Valentino Royal', group: 'D' }
         ];
 
-        // Stan aplikacji
-        let teamsMap = {}; // ID -> Nazwa
-        let teamsDataRaw = []; // Surowe dane drużyn
+        let teamsMap = {}; 
+        let teamsDataRaw = [];
 
         async function initApp() {
             try {
                 await signInAnonymously(auth);
                 loadTeamsAndMatches();
             } catch (e) {
-                console.warn("Błąd logowania, próba odczytu publicznego...", e);
+                console.warn("Błąd logowania...", e);
                 loadTeamsAndMatches();
             }
         }
 
         function loadTeamsAndMatches() {
-            // Zamiast pobierać z bazy, ładujemy zdefiniowane wyżej stałe
             teamsDataRaw = STATIC_TEAMS;
             teamsMap = {};
             
-            // Budujemy mapę nazw dla szybkiego dostępu
             teamsDataRaw.forEach(t => {
                 teamsMap[t.id] = t.name;
             });
 
-            // Od razu ładujemy mecze (jeśli są w bazie)
             loadMatches();
         }
 
@@ -91,7 +83,7 @@
                 const matches = [];
                 snapshot.forEach(doc => matches.push(doc.data()));
                 
-                // Oblicz statystyki na podstawie meczów
+                // Oblicz statystyki
                 const stats = calculateStats(matches, teamsDataRaw);
                 
                 // Wyświetl tabele
@@ -100,13 +92,12 @@
         }
 
         // ============================================
-        // LOGIKA OBLICZANIA PUNKTÓW
+        // LOGIKA OBLICZANIA PUNKTÓW (POPRAWIONA)
         // ============================================
         function calculateStats(matches, teams) {
-            // Inicjalizacja struktury dla każdej grupy
             const groups = {};
             
-            // Przygotuj puste statystyki dla każdej drużyny
+            // Puste statystyki
             teams.forEach(team => {
                 const groupName = team.group || 'Bez Grupy';
                 if (!groups[groupName]) groups[groupName] = {};
@@ -123,28 +114,32 @@
                 };
             });
 
-            // Przelicz wyniki z ZAKOŃCZONYCH meczów
             matches.forEach(m => {
-                if (m.status === 'finished' || m.status === 'zakończony') {
-                    // Próbujemy dopasować po ID lub po NAZWIE (dla kompatybilności ze statyczną listą)
+                const status = m.status ? m.status.toLowerCase() : '';
+                if (status === 'finished' || status === 'zakończony') {
+                    
+                    // 1. USTALANIE WYNIKU (NAPRAWA: sprawdzamy goalsA/B)
+                    // Pobieramy wynik. Jeśli jest undefined, traktujemy jako 0.
+                    let g1 = (m.goalsA !== undefined && m.goalsA !== null) ? parseInt(m.goalsA) : (m.score1 ? parseInt(m.score1) : 0);
+                    let g2 = (m.goalsB !== undefined && m.goalsB !== null) ? parseInt(m.goalsB) : (m.score2 ? parseInt(m.score2) : 0);
+
+                    // 2. USTALANIE ID DRUŻYN
                     let team1Id = m.team1Id;
                     let team2Id = m.team2Id;
 
-                    // Fallback: jeśli w meczu są nazwy, a ID nie pasują do naszych statycznych ID, szukamy po nazwie
-                    if (!teamsMap[team1Id]) {
-                        const found1 = teamsDataRaw.find(t => t.name === m.teamA);
+                    // Jeśli ID nie pasuje do naszej listy, szukamy po NAZWIE
+                    if (!groups[m.group] || !groups[m.group][team1Id]) {
+                        const found1 = teams.find(t => t.name.trim().toLowerCase() === (m.teamA || '').trim().toLowerCase());
                         if (found1) team1Id = found1.id;
                     }
-                    if (!teamsMap[team2Id]) {
-                        const found2 = teamsDataRaw.find(t => t.name === m.teamB);
+                    if (!groups[m.group] || !groups[m.group][team2Id]) {
+                        const found2 = teams.find(t => t.name.trim().toLowerCase() === (m.teamB || '').trim().toLowerCase());
                         if (found2) team2Id = found2.id;
                     }
 
-                    const group = m.group || 'Bez Grupy';
-                    const g1 = parseInt(m.score1 || 0);
-                    const g2 = parseInt(m.score2 || 0);
+                    const group = m.group;
 
-                    // Sprawdź czy drużyny istnieją w strukturze
+                    // 3. NALICZANIE PUNKTÓW
                     if (groups[group] && groups[group][team1Id] && groups[group][team2Id]) {
                         const t1 = groups[group][team1Id];
                         const t2 = groups[group][team2Id];
@@ -154,12 +149,17 @@
                         t2.goalsFor += g2; t2.goalsAgainst += g1;
 
                         if (g1 > g2) {
-                            t1.wins++; t1.points += 3;
+                            // Wygrana T1
+                            t1.wins++;
+                            t1.points += 3;
                             t2.losses++;
                         } else if (g2 > g1) {
-                            t2.wins++; t2.points += 3;
+                            // Wygrana T2
+                            t2.wins++;
+                            t2.points += 3;
                             t1.losses++;
                         } else {
+                            // Remis
                             t1.draws++; t1.points += 1;
                             t2.draws++; t2.points += 1;
                         }
@@ -170,9 +170,6 @@
             return groups;
         }
 
-        // ============================================
-        // RENDEROWANIE TABEL
-        // ============================================
         function renderTables(groupsStats, allMatches) {
             const container = document.getElementById('tables-container');
             container.innerHTML = '';
@@ -180,27 +177,25 @@
             const sortedGroups = Object.keys(groupsStats).sort();
 
             if (sortedGroups.length === 0) {
-                 container.innerHTML = '<p style="text-align:center">Brak danych do wyświetlenia.</p>';
+                 container.innerHTML = '<p style="text-align:center">Brak danych.</p>';
                  return;
             }
 
             sortedGroups.forEach(groupName => {
                 const groupTeams = Object.values(groupsStats[groupName]);
                 
-                // Sortowanie tabeli: Punkty > Różnica Bramek > Bramki Strzelone
+                // Sortowanie: Punkty -> Bilans -> Strzelone
                 groupTeams.sort((a, b) => {
                     if (b.points !== a.points) return b.points - a.points;
-                    const goalDiffA = a.goalsFor - a.goalsAgainst;
-                    const goalDiffB = b.goalsFor - b.goalsAgainst;
-                    if (goalDiffB !== goalDiffA) return goalDiffB - goalDiffA;
+                    const diffA = a.goalsFor - a.goalsAgainst;
+                    const diffB = b.goalsFor - b.goalsAgainst;
+                    if (diffB !== diffA) return diffB - diffA;
                     return b.goalsFor - a.goalsFor;
                 });
 
-                // Generowanie HTML tabeli
                 let tableRows = '';
                 groupTeams.forEach((t, index) => {
                     const goalDiff = t.goalsFor - t.goalsAgainst;
-                    // Wyróżnienie top 2 (np. awans)
                     const rowClass = index < 2 ? 'promotion-zone' : '';
                     
                     tableRows += `
@@ -219,16 +214,20 @@
                     `;
                 });
 
-                // Mecze dla tej grupy
+                // Mecze w tej grupie
                 const groupMatches = allMatches.filter(m => (m.group === groupName) && (m.status === 'finished' || m.status === 'zakończony'));
                 let matchesHtml = '';
                 if (groupMatches.length > 0) {
                     matchesHtml = `<div class="matches-list"><h4>Wyniki Grupy ${groupName}</h4>`;
                     groupMatches.forEach(m => {
+                        // Pobieramy wynik do wyświetlenia (zabezpieczenie)
+                        const s1 = (m.goalsA !== undefined) ? m.goalsA : (m.score1 || 0);
+                        const s2 = (m.goalsB !== undefined) ? m.goalsB : (m.score2 || 0);
+                        
                         matchesHtml += `
                             <div class="match-row">
                                 <span>${m.teamA}</span>
-                                <span class="score">${m.score1} - ${m.score2}</span>
+                                <span class="score">${s1} - ${s2}</span>
                                 <span>${m.teamB}</span>
                             </div>
                         `;
@@ -236,7 +235,6 @@
                     matchesHtml += '</div>';
                 }
 
-                // Składanie sekcji grupy
                 const section = document.createElement('div');
                 section.className = 'group-section';
                 section.innerHTML = `
@@ -292,8 +290,6 @@
             --text-sec: #a0aec0;
             --border: #1f2a40;
             --table-head: #1a233a;
-            --table-row: #161e31;
-            --table-row-alt: #131a2a;
         }
 
         body {
@@ -306,7 +302,6 @@
             overflow-x: hidden;
         }
 
-        /* HEADER I NAV */
         .header {
             width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
             display: flex; justify-content: space-between; align-items: center;
@@ -319,26 +314,17 @@
             background: linear-gradient(90deg, #fff, var(--accent));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .login-links a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            margin-left: 15px; transition: 0.3s;
-        }
-        .login-links a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
+        .login-links a { color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem; margin-left: 15px; transition: 0.3s; }
+        .login-links a:hover { color: var(--accent); }
 
-        #main-nav {
-            margin: 20px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-        }
+        #main-nav { margin: 20px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
         #main-nav a {
             color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
             padding: 10px 20px; border-radius: 30px; border: 1px solid transparent;
             transition: 0.3s; background: var(--bg-card);
         }
-        #main-nav a:hover {
-            border-color: var(--accent); color: #fff;
-            box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px);
-        }
+        #main-nav a:hover { border-color: var(--accent); color: #fff; transform: translateY(-2px); }
 
-        /* TABELE */
         .content-container { width: 100%; max-width: 1000px; padding: 0 20px; box-sizing: border-box; }
         
         .group-section {
@@ -355,40 +341,24 @@
         }
 
         .table-responsive { overflow-x: auto; }
-
-        .standings-table {
-            width: 100%; border-collapse: collapse; font-size: 0.9rem;
-        }
-
+        .standings-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
         .standings-table th {
             background: var(--table-head); color: var(--text-sec);
             padding: 12px; text-align: center; font-weight: 600;
             text-transform: uppercase; font-size: 0.8rem;
         }
         .standings-table th.team-head { text-align: left; padding-left: 20px; }
-
-        .standings-table td {
-            padding: 12px; text-align: center; border-bottom: 1px solid var(--border);
-            color: var(--text-main);
-        }
+        .standings-table td { padding: 12px; text-align: center; border-bottom: 1px solid var(--border); color: var(--text-main); }
         .standings-table td.team { text-align: left; padding-left: 20px; font-weight: 600; }
         .standings-table td.pts { color: var(--accent); font-weight: 800; font-size: 1.1rem; }
         .standings-table td.pos { color: var(--text-sec); font-weight: 700; }
-
         .standings-table tr:last-child td { border-bottom: none; }
         .standings-table tr:hover td { background: rgba(255,255,255,0.03); }
         
-        /* Strefa awansu */
-        .promotion-zone td:first-child { 
-            border-left: 3px solid var(--accent); 
-        }
+        .promotion-zone td:first-child { border-left: 3px solid var(--accent); }
 
-        /* Lista wyników w grupie */
-        .matches-list {
-            padding: 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border);
-        }
+        .matches-list { padding: 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border); }
         .matches-list h4 { margin: 0 0 15px; color: var(--text-sec); font-size: 0.9rem; text-transform: uppercase; }
-        
         .match-row {
             display: flex; justify-content: space-between; padding: 8px 0;
             border-bottom: 1px dashed var(--border); font-size: 0.9rem;
@@ -396,21 +366,20 @@
         .match-row:last-child { border-bottom: none; }
         .match-row .score { font-weight: 800; color: var(--accent); letter-spacing: 2px; }
 
-        /* FOOTER */
         .footer {
             margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
             border-top: 1px solid var(--border); width: 100%; background: #070a11; margin-top: 60px;
         }
         .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
-        .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
+        .social-media-links a:hover { color: #fff; transform: scale(1.2); }
 
         #theme-toggle {
             position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
             border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
             font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: 0.3s; display: flex; justify-content: center; align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
-        #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        #theme-toggle:hover { border-color: var(--accent); }
 
         @media (max-width: 600px) {
             .header { flex-direction: column; gap: 15px; text-align: center; }
@@ -420,7 +389,6 @@
     </style>
 </head>
 <body>
-
     <div class="header">
         <h1>PUCHAR GWIAZD</h1>
         <div class="login-links">
@@ -451,7 +419,5 @@
     </div>
 
     <button id="theme-toggle"><i class="fas fa-moon"></i></button>
-
 </body>
 </html>
-
