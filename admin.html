@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Panel Administratora</title>
 
-    <link rel="icon" type="image/png" href="logo.png">
-
     <link rel="stylesheet" href="admin.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
@@ -26,7 +24,7 @@
 
         .container, .panel {
             padding: 20px;
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
         }
 
@@ -39,7 +37,6 @@
             border: 1px solid #333;
             background-color: #1e2a3a;
             color: white;
-            font-size: 14px;
         }
 
         button {
@@ -47,23 +44,20 @@
             background-color: #2196f3;
             border: none;
             font-weight: bold;
-            transition: background 0.2s;
         }
-        button:hover { background-color: #1976d2; }
+        button:hover { opacity: 0.9; }
 
         .form-row {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
             margin-bottom: 15px;
-            align-items: center;
         }
 
         .message {
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
-            text-align: center;
         }
         .message.success { background-color: #4caf50; color: white; }
         .message.error { background-color: #f44336; color: white; }
@@ -103,7 +97,7 @@
             font-weight: 600;
             border-radius: 8px 8px 0 0;
             transition: all 0.2s;
-            flex-grow: 1;
+            flex-grow: 1; /* Przyciski rozciągają się */
         }
 
         .tab-button:hover { background: #152036; color: white; }
@@ -112,15 +106,6 @@
             background: #2196f3;
             color: white;
             border-color: #2196f3;
-        }
-
-        /* --- LISTA MECZÓW --- */
-        .match-card {
-            background: #152036;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border: 1px solid #333;
         }
 
         /* --- MODAL (OKNO EDYCJI) --- */
@@ -140,10 +125,10 @@
             padding: 25px;
             border: 1px solid #2196f3;
             border-radius: 8px;
-            width: 95%;
-            max-width: 550px;
+            width: 90%;
+            max-width: 500px;
             position: relative;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
         }
 
         .modal-section {
@@ -165,21 +150,38 @@
 
         .result-inputs {
             display: flex; 
-            justify-content: space-between; 
+            justify-content: center; 
             align-items: center; 
             gap: 10px; 
-            font-size: 1.1em; 
+            font-size: 1.2em; 
             font-weight: bold;
             margin-bottom: 10px;
         }
 
-        .btn-full { width: 100%; margin-top: 5px; }
-        .btn-small { width: auto; padding: 10px 15px; font-weight: bold; font-size: 18px; }
+        .btn-full { width: 100%; margin-top: 10px; }
+        .btn-small { width: auto; padding: 10px 20px; }
+
+        /* --- STYL DLA PRZYCISKU USUWANIA STRZELCA --- */
+        .btn-delete {
+            background-color: #cf2e2e; /* Czerwony */
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.2s;
+        }
+        .btn-delete:hover {
+            background-color: #b30000;
+        }
 
         /* Tabela strzelców */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
-        th { color: #aaa; font-size: 0.9em; }
+        th { color: #aaa; }
+        /* Wycentrowanie kolumny Akcja */
+        th:last-child, td:last-child { text-align: center; }
     </style>
 </head>
 
@@ -187,7 +189,7 @@
 
     <div class="container" id="login-box">
         <h2 style="text-align: center;">🔐 Logowanie Administratora</h2>
-        <div style="display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 0 auto;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
             <input id="login-email" type="email" placeholder="Email admina">
             <input id="login-pass" type="password" placeholder="Hasło">
             <button id="login-btn">Zaloguj</button>
@@ -290,16 +292,33 @@
                     <button id="grant-admin-btn">Nadaj</button>
                 </div>
             </div>
+            
             <div class="sub-section">
-                <h3>🏆 Tabela Strzelców (Podgląd)</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>🏆 Zarządzanie Tabelą Strzelców</h3>
+                    <button onclick="window.loadScorersTable()" class="btn-small" style="background: #2196f3; font-size:0.8em;">
+                        <i class="fas fa-sync-alt"></i> Odśwież
+                    </button>
+                </div>
                 <div class="table-wrapper">
                     <table id="scorers-table">
-                        <thead><tr><th>Kto</th><th>Klub</th><th>Gole</th><th>Akcja</th></tr></thead>
-                        <tbody></tbody>
+                        <thead>
+                            <tr>
+                                <th>Kto</th>
+                                <th>Klub</th>
+                                <th>Gole</th>
+                                <th style="width: 80px; text-align: center;">Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
                     </table>
                 </div>
+                <p style="color: #888; font-size: 0.9em; margin-top: 10px;">
+                    <i class="fas fa-info-circle"></i> Usunięcie strzelca tutaj usuwa tylko wpis z globalnej tabeli. Aby usunąć gola z meczu, edytuj konkretny mecz w zakładce "Mecze".
+                </p>
             </div>
-        </div>
+            </div>
 
     </div>
 
@@ -323,19 +342,13 @@
             <div class="modal-section" style="border-bottom: none;">
                 <h4>Dodaj Gola</h4>
                 <div id="add-scorer-form" class="form-row">
-                    <select id="scorer-team-select" style="flex: 2;" onchange="window.updateScorerPlayers(this.value)">
-                        <option value="">Wybierz drużynę</option>
-                    </select>
-                    
-                    <select id="scorer-player-select" style="flex: 3;">
-                        <option value="">Najpierw wybierz drużynę</option>
-                    </select>
-
+                    <select id="scorer-team-select" style="flex: 2;"></select>
+                    <select id="scorer-player-select" style="flex: 3;"></select>
                     <input type="number" id="scorer-minute" placeholder="Min" style="width:50px;">
                     <button class="btn btn-small" onclick="window.addScorer()" style="background: #4caf50;">+</button>
                 </div>
                 
-                <h4>Lista bramek:</h4>
+                <h4>Lista bramek w tym meczu:</h4>
                 <div id="scorers-edit-list" style="max-height: 150px; overflow-y: auto;"></div>
             </div>
         </div>
