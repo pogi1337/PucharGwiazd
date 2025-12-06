@@ -35,37 +35,69 @@
             }
         }
 
+        // --- POMOCNIK: TWORZENIE DATY DO SORTOWANIA ---
+        function getMatchDateTime(match) {
+            // Jeśli brak daty, wrzuć na koniec (rok 9999)
+            if (!match.date) return new Date(9999, 0, 1);
+            
+            // Jeśli to String "YYYY-MM-DD"
+            if (typeof match.date === 'string') {
+                const timeStr = match.time || "00:00";
+                return new Date(`${match.date}T${timeStr}`);
+            }
+            // Jeśli to Timestamp Firebase
+            if (match.date.seconds) {
+                return new Date(match.date.seconds * 1000);
+            }
+            return new Date(9999, 0, 1);
+        }
+
         // --- NASŁUCHIWANIE DANYCH ---
         function listenForMatches() {
             const q = query(collection(db, 'matches'), orderBy('date', 'asc'));
 
             onSnapshot(q, (snapshot) => {
-                const groupA = document.getElementById('list-group-a');
-                const groupB = document.getElementById('list-group-b');
-                const groupC = document.getElementById('list-group-c');
-                const groupD = document.getElementById('list-group-d');
-                const knockoutList = document.getElementById('knockout-list');
+                const groupAContainer = document.getElementById('list-group-a');
+                const groupBContainer = document.getElementById('list-group-b');
+                const groupCContainer = document.getElementById('list-group-c');
+                const groupDContainer = document.getElementById('list-group-d');
+                const knockoutContainer = document.getElementById('knockout-list');
 
-                if (!groupA || !groupB || !groupC || !groupD || !knockoutList) return;
+                if (!groupAContainer || !groupBContainer || !groupCContainer || !groupDContainer || !knockoutContainer) return;
                 
-                groupA.innerHTML = '';
-                groupB.innerHTML = '';
-                groupC.innerHTML = '';
-                groupD.innerHTML = '';
-                knockoutList.innerHTML = '';
+                // 1. Zbieramy dane do tablic (żeby je posortować przed wyświetleniem)
+                let matchesA = [];
+                let matchesB = [];
+                let matchesC = [];
+                let matchesD = [];
+                let matchesKnockout = [];
 
                 if (snapshot.empty) return;
 
                 snapshot.forEach(doc => {
                     const m = doc.data();
-                    const html = renderMatchCard(m);
-                    
-                    if (m.group === 'A') groupA.innerHTML += html;
-                    else if (m.group === 'B') groupB.innerHTML += html;
-                    else if (m.group === 'C') groupC.innerHTML += html;
-                    else if (m.group === 'D') groupD.innerHTML += html;
-                    else knockoutList.innerHTML += html;
+                    if (m.group === 'A') matchesA.push(m);
+                    else if (m.group === 'B') matchesB.push(m);
+                    else if (m.group === 'C') matchesC.push(m);
+                    else if (m.group === 'D') matchesD.push(m);
+                    else matchesKnockout.push(m);
                 });
+
+                // 2. Sortowanie po dacie i godzinie
+                const sortFn = (a, b) => getMatchDateTime(a) - getMatchDateTime(b);
+                
+                matchesA.sort(sortFn);
+                matchesB.sort(sortFn);
+                matchesC.sort(sortFn);
+                matchesD.sort(sortFn);
+                matchesKnockout.sort(sortFn);
+
+                // 3. Renderowanie
+                groupAContainer.innerHTML = matchesA.map(m => renderMatchCard(m)).join('');
+                groupBContainer.innerHTML = matchesB.map(m => renderMatchCard(m)).join('');
+                groupCContainer.innerHTML = matchesC.map(m => renderMatchCard(m)).join('');
+                groupDContainer.innerHTML = matchesD.map(m => renderMatchCard(m)).join('');
+                knockoutContainer.innerHTML = matchesKnockout.map(m => renderMatchCard(m)).join('');
             });
         }
 
@@ -139,16 +171,14 @@
         // --- ZWIJANIE / ROZWIJANIE GRUP ---
         window.toggleGroup = function(listId, headerElement) {
             const list = document.getElementById(listId);
-            const icon = headerElement.querySelector('.fa-chevron-down');
             
-            // Jeśli lista jest ukryta (display: none), to ją pokaż
-            if (list.style.display === 'none') {
-                list.style.display = 'block';
-                headerElement.classList.remove('collapsed');
+            // Toggle logiki
+            if (list.style.display === 'block') {
+                list.style.display = 'none'; // Schowaj
+                headerElement.classList.remove('active'); // Zmień styl nagłówka
             } else {
-                // Jeśli jest widoczna, to ją ukryj
-                list.style.display = 'none';
-                headerElement.classList.add('collapsed');
+                list.style.display = 'block'; // Pokaż
+                headerElement.classList.add('active'); // Zmień styl nagłówka
             }
         }
 
@@ -174,7 +204,6 @@
 
         window.addEventListener('load', initApp);
         
-        // Zabezpieczenie przycisku motywu
         const themeBtn = document.getElementById('theme-toggle');
         if (themeBtn) {
             themeBtn.addEventListener('click', () => {
@@ -271,41 +300,46 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 20px;
-            height: fit-content; /* Ważne, żeby dopasowywało się do zawartości */
+            height: fit-content;
         }
 
         /* NAGŁÓWEK ZWIJANY */
         .group-header {
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px; margin-bottom: 20px;
+            border-bottom: 2px solid var(--border); /* Domyślnie szary, bo zwinięte */
+            padding-bottom: 10px; 
+            margin-bottom: 0; /* Brak marginesu, bo zwinięte */
             color: #fff; font-size: 1.2rem; letter-spacing: 2px;
-            cursor: pointer; /* Kursor rączki */
+            cursor: pointer;
             user-select: none;
             transition: 0.3s;
         }
-        .group-header:hover {
-            opacity: 0.8;
-        }
+        .group-header:hover { opacity: 0.8; color: var(--accent); }
         
         .group-header i {
             transition: transform 0.3s ease;
             font-size: 1rem; color: var(--accent);
+            transform: rotate(-90deg); /* Domyślnie bokiem (zamknięte) */
         }
 
-        /* Klasa dodawana gdy zwinięte */
-        .group-header.collapsed {
-            margin-bottom: 0; /* Usuń margines gdy zwinięte */
-            border-bottom-color: var(--border);
+        /* Styl gdy AKTYWNE (Rozwinięte) */
+        .group-header.active {
+            border-bottom-color: var(--accent);
+            margin-bottom: 20px;
         }
-        .group-header.collapsed i {
-            transform: rotate(-90deg); /* Obrót strzałki */
+        .group-header.active i {
+            transform: rotate(0deg); /* Strzałka w dół */
         }
 
-        /* Lista meczów */
+        /* Lista meczów - DOMYŚLNIE UKRYTA */
         .match-list-container {
-            display: block; /* Domyślnie widoczne */
-            /* Animacja jest trudna przy height:auto, więc używamy JS display:none/block */
+            display: none; 
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* KNOCKOUT VIEW */
