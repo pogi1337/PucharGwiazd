@@ -27,13 +27,10 @@
         // --- INICJALIZACJA ---
         async function initApp() {
             try {
-                // Próba logowania anonimowego
                 await signInAnonymously(auth);
-                console.log("Zalogowano anonimowo");
                 listenForMatches();
             } catch (e) {
-                console.warn("Błąd Auth (sprawdź konsolę Firebase):", e.message);
-                // Mimo błędu logowania, próbujemy pobrać dane (jeśli reguły są publiczne)
+                console.warn("Auth info:", e.message);
                 listenForMatches();
             }
         }
@@ -43,49 +40,31 @@
             const q = query(collection(db, 'matches'), orderBy('date', 'asc'));
 
             onSnapshot(q, (snapshot) => {
-                // 1. Sprawdzamy czy elementy istnieją w HTML
                 const groupA = document.getElementById('list-group-a');
                 const groupB = document.getElementById('list-group-b');
                 const groupC = document.getElementById('list-group-c');
                 const groupD = document.getElementById('list-group-d');
                 const knockoutList = document.getElementById('knockout-list');
 
-                // Zabezpieczenie przed błędem "innerHTML of null"
-                if (!groupA || !groupB || !groupC || !groupD || !knockoutList) {
-                    console.error("Błąd: Brak kontenerów w HTML! Upewnij się, że skopiowałeś całe <body>.");
-                    return;
-                }
+                if (!groupA || !groupB || !groupC || !groupD || !knockoutList) return;
                 
-                // Czyszczenie list
                 groupA.innerHTML = '';
                 groupB.innerHTML = '';
                 groupC.innerHTML = '';
                 groupD.innerHTML = '';
                 knockoutList.innerHTML = '';
 
-                if (snapshot.empty) {
-                    // Informacja o braku meczów
-                    return;
-                }
+                if (snapshot.empty) return;
 
                 snapshot.forEach(doc => {
                     const m = doc.data();
                     const html = renderMatchCard(m);
                     
-                    // --- LOGIKA PRZYPISANIA DO GRUP ---
-                    // Sprawdzamy pole 'group'. Jeśli jest A, B, C lub D -> Faza grupowa
-                    if (m.group === 'A') {
-                        groupA.innerHTML += html;
-                    } else if (m.group === 'B') {
-                        groupB.innerHTML += html;
-                    } else if (m.group === 'C') {
-                        groupC.innerHTML += html;
-                    } else if (m.group === 'D') {
-                        groupD.innerHTML += html;
-                    } else {
-                        // Jeśli nie ma grupy, wrzucamy do pucharowej
-                        knockoutList.innerHTML += html;
-                    }
+                    if (m.group === 'A') groupA.innerHTML += html;
+                    else if (m.group === 'B') groupB.innerHTML += html;
+                    else if (m.group === 'C') groupC.innerHTML += html;
+                    else if (m.group === 'D') groupD.innerHTML += html;
+                    else knockoutList.innerHTML += html;
                 });
             });
         }
@@ -96,7 +75,6 @@
             const isLive = status === 'live' || status === 'trwa';
             const isFinished = status === 'finished' || status === 'zakończony';
             
-            // 1. Status Badge
             let statusBadge = `<span class="status-badge scheduled">PLAN</span>`;
             let scoreClass = '';
             
@@ -107,36 +85,21 @@
                 statusBadge = `<span class="status-badge finished">KONIEC</span>`;
             }
 
-            // 2. Naprawa Daty i Godziny (dla Stringów z Twojej bazy)
             let dateDisplay = 'TBA';
-            
             if (match.date) {
-                // Jeśli data to tekst np. "2025-12-14"
                 if (typeof match.date === 'string') {
-                    // Tworzymy datę
                     const d = new Date(match.date);
-                    // Formatujemy na DD.MM (np. 14.12)
                     const day = String(d.getDate()).padStart(2, '0');
                     const month = String(d.getMonth() + 1).padStart(2, '0');
                     dateDisplay = `${day}.${month}`;
-                    
-                    // Doklejamy godzinę, jeśli jest w bazie
-                    if (match.time) {
-                        dateDisplay += ` ${match.time}`;
-                    }
-                } 
-                // Zabezpieczenie na wypadek Timestamp
-                else if (match.date.seconds) {
+                    if (match.time) dateDisplay += ` ${match.time}`;
+                } else if (match.date.seconds) {
                     const d = new Date(match.date.seconds * 1000);
                     dateDisplay = d.toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
                 }
             }
 
-            // 3. Naprawa Etykiety "Faza Pucharowa"
             let stageLabel = '';
-            
-            // Etykieta wyświetla się TYLKO jeśli pole 'stage' ISTNIEJE i NIE JEST PUSTE
-            // oraz NIE JEST równe 'group'
             if (match.stage && match.stage !== 'group') {
                 const stageNames = {
                     'quarterfinal': 'Ćwierćfinał',
@@ -148,7 +111,6 @@
                 stageLabel = `<div class="stage-label">${labelText}</div>`;
             }
 
-            // 4. Wynik (Obsługa 0 vs null)
             const scoreA = (match.goalsA !== undefined && match.goalsA !== null) ? match.goalsA : '-';
             const scoreB = (match.goalsB !== undefined && match.goalsB !== null) ? match.goalsB : '-';
 
@@ -172,6 +134,22 @@
                     </div>
                 </div>
             `;
+        }
+
+        // --- ZWIJANIE / ROZWIJANIE GRUP ---
+        window.toggleGroup = function(listId, headerElement) {
+            const list = document.getElementById(listId);
+            const icon = headerElement.querySelector('.fa-chevron-down');
+            
+            // Jeśli lista jest ukryta (display: none), to ją pokaż
+            if (list.style.display === 'none') {
+                list.style.display = 'block';
+                headerElement.classList.remove('collapsed');
+            } else {
+                // Jeśli jest widoczna, to ją ukryj
+                list.style.display = 'none';
+                headerElement.classList.add('collapsed');
+            }
         }
 
         // --- OBSŁUGA ZAKŁADEK (TABS) ---
@@ -293,11 +271,41 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 20px;
+            height: fit-content; /* Ważne, żeby dopasowywało się do zawartości */
         }
+
+        /* NAGŁÓWEK ZWIJANY */
         .group-header {
-            text-align: center; border-bottom: 2px solid var(--accent);
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--accent);
             padding-bottom: 10px; margin-bottom: 20px;
             color: #fff; font-size: 1.2rem; letter-spacing: 2px;
+            cursor: pointer; /* Kursor rączki */
+            user-select: none;
+            transition: 0.3s;
+        }
+        .group-header:hover {
+            opacity: 0.8;
+        }
+        
+        .group-header i {
+            transition: transform 0.3s ease;
+            font-size: 1rem; color: var(--accent);
+        }
+
+        /* Klasa dodawana gdy zwinięte */
+        .group-header.collapsed {
+            margin-bottom: 0; /* Usuń margines gdy zwinięte */
+            border-bottom-color: var(--border);
+        }
+        .group-header.collapsed i {
+            transform: rotate(-90deg); /* Obrót strzałki */
+        }
+
+        /* Lista meczów */
+        .match-list-container {
+            display: block; /* Domyślnie widoczne */
+            /* Animacja jest trudna przy height:auto, więc używamy JS display:none/block */
         }
 
         /* KNOCKOUT VIEW */
@@ -323,26 +331,22 @@
         }
 
         .mc-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sec); margin-bottom: 10px; }
-        
         .mc-content { display: flex; align-items: center; justify-content: space-between; }
         .mc-team { flex: 1; display: flex; align-items: center; gap: 10px; }
         .mc-team.home { justify-content: flex-end; text-align: right; }
         .mc-team.away { justify-content: flex-start; text-align: left; }
-        
         .t-name { font-weight: 600; font-size: 0.95rem; }
         .t-score { 
             font-size: 1.2rem; font-weight: 800; background: rgba(255,255,255,0.05); 
             padding: 2px 10px; border-radius: 6px; min-width: 30px; text-align: center;
         }
         .t-score.live-text { color: var(--live-red); }
-        
         .mc-vs { font-size: 0.8rem; color: var(--text-sec); margin: 0 10px; font-weight: 300; }
 
         .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; }
         .status-badge.scheduled { background: rgba(255,255,255,0.1); }
         .status-badge.live { background: var(--live-red); color: #fff; animation: pulse 1s infinite; }
         .status-badge.finished { background: var(--accent); color: var(--bg-dark); }
-        
         .no-data { text-align: center; color: var(--text-sec); font-style: italic; margin-top: 20px; }
 
         /* FOOTER */
@@ -390,23 +394,35 @@
         
         <div id="group-stage-view">
             <div class="group-column">
-                <div class="group-header">GRUPA A</div>
-                <div id="list-group-a"></div>
+                <div class="group-header" onclick="toggleGroup('list-group-a', this)">
+                    <span>GRUPA A</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div id="list-group-a" class="match-list-container"></div>
             </div>
 
             <div class="group-column">
-                <div class="group-header">GRUPA B</div>
-                <div id="list-group-b"></div>
+                <div class="group-header" onclick="toggleGroup('list-group-b', this)">
+                    <span>GRUPA B</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div id="list-group-b" class="match-list-container"></div>
             </div>
 
             <div class="group-column">
-                <div class="group-header">GRUPA C</div>
-                <div id="list-group-c"></div>
+                <div class="group-header" onclick="toggleGroup('list-group-c', this)">
+                    <span>GRUPA C</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div id="list-group-c" class="match-list-container"></div>
             </div>
 
             <div class="group-column">
-                <div class="group-header">GRUPA D</div>
-                <div id="list-group-d"></div>
+                <div class="group-header" onclick="toggleGroup('list-group-d', this)">
+                    <span>GRUPA D</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div id="list-group-d" class="match-list-container"></div>
             </div>
         </div>
 
