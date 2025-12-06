@@ -24,22 +24,24 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // Logika pobierania meczów
+        // --- INICJALIZACJA ---
         async function initApp() {
             try {
                 await signInAnonymously(auth);
                 listenForMatches();
             } catch (e) {
                 console.error("Auth error:", e);
+                // Próbujemy nasłuchiwać nawet przy błędzie auth (jeśli reguły są publiczne)
                 listenForMatches();
             }
         }
 
+        // --- NASŁUCHIWANIE DANYCH ---
         function listenForMatches() {
             const q = query(collection(db, 'matches'), orderBy('date', 'asc'));
 
             onSnapshot(q, (snapshot) => {
-                // Kontenery
+                // Uchwyty do kontenerów HTML
                 const groups = {
                     'A': document.getElementById('list-group-a'),
                     'B': document.getElementById('list-group-b'),
@@ -48,7 +50,7 @@
                 };
                 const knockoutContainer = document.getElementById('knockout-list');
                 
-                // Czyszczenie
+                // Wyczyszczenie list przed nowym renderowaniem
                 Object.values(groups).forEach(el => el.innerHTML = '');
                 knockoutContainer.innerHTML = '';
 
@@ -61,29 +63,29 @@
                     const m = doc.data();
                     const html = renderMatchCard(m);
                     
-                    // Logika podziału: Sprawdzamy pole "stage" (etap) lub "group"
-                    // W bazie danych powinieneś mieć pole: stage: 'group' | 'quarterfinal' | 'semifinal' | 'final'
-                    // Oraz pole group: 'A' | 'B' | 'C' | 'D' (tylko dla fazy grupowej)
-
-                    const isGroupStage = m.stage === 'group' || (m.group && ['A','B','C','D'].includes(m.group));
-
-                    if (isGroupStage && groups[m.group]) {
+                    // --- LOGIKA PRZYPISANIA DO GRUPY LUB FAZY PUCHAROWEJ ---
+                    // Sprawdzamy czy mecz ma przypisaną grupę A, B, C lub D.
+                    // Działa to nawet jeśli nie ma pola 'stage'.
+                    const hasGroup = m.group && ['A','B','C','D'].includes(m.group);
+                    
+                    if (hasGroup && groups[m.group]) {
+                        // To jest mecz grupowy
                         groups[m.group].innerHTML += html;
                     } else {
-                        // Faza pucharowa (ćwierćfinały, półfinały, finał)
+                        // To jest mecz pucharowy (ćwierćfinał, finał itp.)
                         knockoutContainer.innerHTML += html;
                     }
                 });
-                
-                // Ukryj puste grupy (opcjonalne, tutaj zostawiamy nagłówki)
             });
         }
 
+        // --- RENDEROWANIE KARTY MECZU ---
         function renderMatchCard(match) {
             const status = match.status ? match.status.toLowerCase() : 'scheduled';
             const isLive = status === 'live' || status === 'trwa';
             const isFinished = status === 'finished' || status === 'zakończony';
             
+            // 1. Status (LIVE / KONIEC / PLAN)
             let statusBadge = `<span class="status-badge scheduled">PLAN</span>`;
             let scoreClass = '';
             
@@ -94,23 +96,48 @@
                 statusBadge = `<span class="status-badge finished">KONIEC</span>`;
             }
 
-            // Data
+            // 2. Data i Godzina (Obsługa Stringów z Twojej bazy)
             let dateDisplay = 'TBA';
-            if (match.date && match.date.seconds) {
-                 dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
+            
+            if (match.date) {
+                // Jeśli data to string "2025-12-14"
+                if (typeof match.date === 'string') {
+                    const d = new Date(match.date);
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0'); // Miesiące są 0-11
+                    dateDisplay = `${day}.${month}`;
+                    
+                    // Jeśli jest godzina "12:00", doklejamy ją
+                    if (match.time) {
+                        dateDisplay += ` ${match.time}`;
+                    }
+                } 
+                // Zabezpieczenie: Jeśli kiedyś użyjesz Timestamp z Firebase
+                else if (match.date.seconds) {
+                    const d = new Date(match.date.seconds * 1000);
+                    dateDisplay = d.toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
+                }
             }
 
-            // Nazwa etapu dla fazy pucharowej
+            // 3. Etykieta Fazy (tylko dla pucharowej)
             let stageLabel = '';
-            if (!match.group || match.stage !== 'group') {
+            
+            // Wyświetlamy etykietę TYLKO jeśli pole 'stage' istnieje i NIE JEST to 'group'
+            if (match.stage && match.stage !== 'group') {
                 const stageNames = {
                     'quarterfinal': 'Ćwierćfinał',
                     'semifinal': 'Półfinał',
                     'final': 'WIELKI FINAŁ',
                     '3rdplace': 'Mecz o 3. miejsce'
                 };
-                stageLabel = `<div class="stage-label">${stageNames[match.stage] || match.stage || 'Faza Pucharowa'}</div>`;
+                const labelText = stageNames[match.stage] || match.stage;
+                stageLabel = `<div class="stage-label">${labelText}</div>`;
             }
+
+            // 4. Wynik (Obsługa 0 vs null)
+            // Używamy operatora ?? (nullish coalescing), żeby 0 wyświetlało się jako 0, a nie '-'
+            const scoreA = match.goalsA ?? '-';
+            const scoreB = match.goalsB ?? '-';
 
             return `
                 <div class="match-card ${isLive ? 'card-live' : ''} ${match.stage === 'final' ? 'card-final' : ''}">
@@ -122,11 +149,11 @@
                     <div class="mc-content">
                         <div class="mc-team home">
                             <span class="t-name">${match.teamA}</span>
-                            <span class="t-score ${scoreClass}">${match.goalsA ?? '-'}</span>
+                            <span class="t-score ${scoreClass}">${scoreA}</span>
                         </div>
                         <div class="mc-vs">vs</div>
                         <div class="mc-team away">
-                            <span class="t-score ${scoreClass}">${match.goalsB ?? '-'}</span>
+                            <span class="t-score ${scoreClass}">${scoreB}</span>
                             <span class="t-name">${match.teamB}</span>
                         </div>
                     </div>
@@ -134,7 +161,7 @@
             `;
         }
 
-        // Obsługa zakładek (Tabs)
+        // --- OBSŁUGA ZAKŁADEK (TABS) ---
         window.switchTab = function(tabName) {
             const groupView = document.getElementById('group-stage-view');
             const knockoutView = document.getElementById('knockout-stage-view');
@@ -156,7 +183,7 @@
 
         window.addEventListener('load', initApp);
         
-        // Theme Toggle
+        // Theme Toggle (Ozdobny)
         document.getElementById('theme-toggle').addEventListener('click', () => {
              alert("Tryb nocny jest domyślny.");
         });
@@ -191,7 +218,7 @@
             overflow-x: hidden;
         }
 
-        /* HEADER & NAV - Copy from index */
+        /* HEADER & NAV */
         .header {
             width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
             display: flex; justify-content: center; align-items: center;
@@ -226,164 +253,4 @@
         }
         .tab-btn {
             padding: 12px 30px; border: none; background: transparent;
-            color: var(--text-sec); font-family: inherit; font-weight: 700;
-            cursor: pointer; border-radius: 40px; transition: 0.3s;
-        }
-        .tab-btn.active {
-            background: var(--accent); color: var(--bg-dark);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        /* LAYOUTS */
-        .content-container { width: 100%; max-width: 1100px; padding: 0 20px; box-sizing: border-box; }
-
-        /* GRID DLA GRUP (2 kolumny na desktopie) */
-        #group-stage-view {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-            width: 100%;
-        }
-
-        .group-column {
-            background: rgba(19, 26, 42, 0.5);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-        }
-        .group-header {
-            text-align: center; border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px; margin-bottom: 20px;
-            color: #fff; font-size: 1.2rem; letter-spacing: 2px;
-        }
-
-        /* KNOCKOUT VIEW */
-        #knockout-stage-view {
-            display: none; /* Domyślnie ukryte */
-            width: 100%; max-width: 800px; margin: 0 auto;
-        }
-
-        /* MATCH CARD STYLE */
-        .match-card {
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: 8px; margin-bottom: 15px; padding: 15px;
-            transition: 0.2s; position: relative; overflow: hidden;
-        }
-        .match-card:hover { border-color: var(--accent); transform: translateX(5px); }
-        
-        .card-live { border-color: var(--live-red); box-shadow: 0 0 10px rgba(255,42,42,0.2); }
-        .card-final { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
-
-        .stage-label {
-            font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
-            color: var(--accent); margin-bottom: 5px; font-weight: 700;
-        }
-
-        .mc-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sec); margin-bottom: 10px; }
-        
-        .mc-content { display: flex; align-items: center; justify-content: space-between; }
-        .mc-team { flex: 1; display: flex; align-items: center; gap: 10px; }
-        .mc-team.home { justify-content: flex-end; text-align: right; }
-        .mc-team.away { justify-content: flex-start; text-align: left; }
-        
-        .t-name { font-weight: 600; font-size: 0.95rem; }
-        .t-score { 
-            font-size: 1.2rem; font-weight: 800; background: rgba(255,255,255,0.05); 
-            padding: 2px 10px; border-radius: 6px; min-width: 30px; text-align: center;
-        }
-        .t-score.live-text { color: var(--live-red); }
-        
-        .mc-vs { font-size: 0.8rem; color: var(--text-sec); margin: 0 10px; font-weight: 300; }
-
-        .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; }
-        .status-badge.scheduled { background: rgba(255,255,255,0.1); }
-        .status-badge.live { background: var(--live-red); color: #fff; animation: pulse 1s infinite; }
-        .status-badge.finished { background: var(--accent); color: var(--bg-dark); }
-
-        /* FOOTER */
-        .footer {
-            margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
-            border-top: 1px solid var(--border); width: 100%; background: #070a11; margin-top: 60px;
-        }
-        .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
-        .social-media-links a:hover { color: #fff; transform: scale(1.2); }
-        
-        #theme-toggle {
-            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
-            border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
-            font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        @media (max-width: 600px) {
-            #group-stage-view { grid-template-columns: 1fr; }
-            .content-container { padding: 0 10px; }
-            .header h1 { font-size: 1.4rem; }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>TERMINARZ</h1>
-    </div>
-
-    <nav id="main-nav">
-        <a href="index.html">Strona Główna</a>
-        <a href="druzyny.html">Drużyny</a>
-        <a href="terminarz.html" style="background: var(--accent); color: var(--bg-dark);">Terminarz</a>
-        <a href="regulamin.html">Regulamin</a>
-        <a href="tabela.html">Tabele</a>
-        <a href="onas.html">O Nas</a>
-    </nav>
-
-    <div class="tabs-container">
-        <button id="btn-group" class="tab-btn active" onclick="switchTab('group')">FAZA GRUPOWA</button>
-        <button id="btn-knockout" class="tab-btn" onclick="switchTab('knockout')">FAZA PUCHAROWA</button>
-    </div>
-
-    <div class="content-container">
-        
-        <div id="group-stage-view">
-            <div class="group-column">
-                <div class="group-header">GRUPA A</div>
-                <div id="list-group-a"></div>
-            </div>
-
-            <div class="group-column">
-                <div class="group-header">GRUPA B</div>
-                <div id="list-group-b"></div>
-            </div>
-
-            <div class="group-column">
-                <div class="group-header">GRUPA C</div>
-                <div id="list-group-c"></div>
-            </div>
-
-            <div class="group-column">
-                <div class="group-header">GRUPA D</div>
-                <div id="list-group-d"></div>
-            </div>
-        </div>
-
-        <div id="knockout-stage-view">
-            <h2 style="text-align: center; color: var(--accent); margin-bottom: 30px;">DROGA DO PUCHARU</h2>
-            <div id="knockout-list">
-                <p class="no-data">Faza pucharowa jeszcze się nie rozpoczęła.</p>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="footer">
-        <div class="social-media-links">
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-        </div>
-        <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
-    </div>
-
-    <button id="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
-</body>
-</html>
+            color: var(--text-sec); font-family:
