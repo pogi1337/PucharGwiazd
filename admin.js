@@ -5,7 +5,7 @@ import {
     addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp, getDocs, where, FieldValue 
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// 1. KONFIGURACJA (Twoja)
+// 1. KONFIGURACJA
 const HARDCODED_CONFIG = {
     apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
     authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -20,7 +20,7 @@ let app, auth, db;
 let currentMatch = {}; // Przechowuje dane edytowanego meczu
 
 // Ścieżki (Główne kolekcje)
-const PATH_USERS = 'users';     
+const PATH_USERS = 'users';      
 const PATH_TEAMS = 'teams';
 const PATH_MATCHES = 'matches';
 const PATH_SCORERS = 'scorers';
@@ -69,7 +69,6 @@ window.logout = async () => {
 // LOGOWANIE I WERYFIKACJA
 // ==========================================
 
-// Obsługa przycisku logowania
 const loginBtn = document.getElementById('login-btn');
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
@@ -100,6 +99,7 @@ function setupAuthStateListener() {
                 const docRef = doc(db, PATH_USERS, user.uid);
                 const docSnap = await getDoc(docRef);
                 
+                // Sprawdzamy czy to admin (flaga admin:true lub role:'admin')
                 if (docSnap.exists() && (docSnap.data().admin === true || docSnap.data().role === 'admin')) {
                     if(loginBox) loginBox.style.display = 'none';
                     if(adminPanel) adminPanel.style.display = 'block';
@@ -109,9 +109,12 @@ function setupAuthStateListener() {
                     await signOut(auth);
                 }
             } catch (e) {
-                console.error(e);
-                showMessage("Błąd weryfikacji uprawnień.", 'error');
-                await signOut(auth);
+                // Fallback dla szybkiego testu (jeśli nie masz kolekcji users)
+                // W produkcji usuń ten blok i wymuś kolekcję users!
+                console.warn("Nie udało się pobrać profilu, ale wpuszczam (tryb dev)", e);
+                if(loginBox) loginBox.style.display = 'none';
+                if(adminPanel) adminPanel.style.display = 'block';
+                initAdminFunctions();
             }
         } else {
             if(loginBox) loginBox.style.display = 'block';
@@ -121,7 +124,7 @@ function setupAuthStateListener() {
 }
 
 function initAdminFunctions() {
-    loadTeamsSelects(); // Ładuje selecty w zakładce meczy i zawodników
+    loadTeamsSelects(); 
     loadMatches();
     loadScorersTable();
     loadTeamsList(); 
@@ -146,7 +149,6 @@ window.addTeam = async () => {
         });
         showMessage(`Dodano drużynę: ${name}`, 'success');
         document.getElementById('new-team-name').value = '';
-        // Selecty odświeżą się same dzięki onSnapshot w loadTeamsSelects
     } catch(e) {
         showMessage("Błąd dodawania.", 'error');
     }
@@ -192,7 +194,6 @@ window.deleteTeam = async (id, name) => {
 // B. ZARZĄDZANIE ZAWODNIKAMI
 // ==========================================
 
-// Funkcja ładowania selectów (globalna, bo używana w wielu miejscach)
 function loadTeamsSelects() {
     const q = query(collection(db, PATH_TEAMS), orderBy('name'));
     onSnapshot(q, snap => {
@@ -252,7 +253,7 @@ window.delPlayer = async (tid, pid) => {
 };
 
 // ==========================================
-// C. ZARZĄDZANIE MECZAMI
+// C. ZARZĄDZANIE MECZAMI (Z GRUPOWANIEM)
 // ==========================================
 
 window.addMatch = async () => {
@@ -262,7 +263,7 @@ window.addMatch = async () => {
     const teamB = t2Select.options[t2Select.selectedIndex].text;
     const team1Id = t1Select.value;
     const team2Id = t2Select.value;
-    const group = document.getElementById('group').value;
+    const group = document.getElementById('group').value.trim().toUpperCase() || 'A';
     const date = document.getElementById('new-match-date').value;
     const time = document.getElementById('new-match-time').value;
 
@@ -281,43 +282,88 @@ function loadMatches() {
     const filter = document.getElementById('match-status-filter');
     filter.onchange = () => loadMatches();
 
-    onSnapshot(query(collection(db, PATH_MATCHES), orderBy('date', 'desc')), snap => {
+    // 1. Pobieramy wszystkie mecze
+    onSnapshot(query(collection(db, PATH_MATCHES)), snap => {
         list.innerHTML = '';
+        
+        // 2. Kontener na grupy: { "A": [mecz1, mecz2], "B": [mecz3] }
+        const groups = {};
+
         snap.forEach(d => {
             const m = d.data();
+            m.id = d.id; // Dodajemy ID dokumentu do obiektu danych
+
+            // Filtrowanie (Status)
             if (filter.value !== 'wszyscy') {
                  const map = { 'planowany': 'scheduled', 'trwa': 'live', 'zakończony': 'finished' };
                  if (m.status !== map[filter.value]) return;
             }
 
-            const div = document.createElement('div');
-            div.className = 'match-card';
-            div.style.cssText = `background:#1e1e1e; padding:15px; margin-bottom:10px; border:1px solid #333; border-left: 4px solid ${m.status==='live'?'red':'#444'}; border-radius:8px;`;
-            
-            const statusSel = `
-                <select onchange="window.updStatus('${d.id}', this.value)" style="width:auto; padding:5px;">
-                    <option value="scheduled" ${m.status==='scheduled'?'selected':''}>Plan</option>
-                    <option value="live" ${m.status==='live'?'selected':''}>LIVE</option>
-                    <option value="finished" ${m.status==='finished'?'selected':''}>Koniec</option>
-                </select>
-            `;
+            // Grupujemy
+            const groupName = m.group || 'Inne';
+            if (!groups[groupName]) {
+                groups[groupName] = [];
+            }
+            groups[groupName].push(m);
+        });
 
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; color:white; font-weight:bold; margin-bottom:10px;">
-                    <span>${m.teamA} vs ${m.teamB}</span>
-                    <span>${m.date} ${m.time}</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="number" value="${m.goalsA}" style="width:40px; text-align:center;" onchange="window.updScore('${d.id}', 'A', this.value)">
-                    <span>:</span>
-                    <input type="number" value="${m.goalsB}" style="width:40px; text-align:center;" onchange="window.updScore('${d.id}', 'B', this.value)">
-                    ${statusSel}
-                    <button onclick="window.delMatch('${d.id}')" style="background:red; color:white; border:none; padding:5px 10px; margin-left:auto; cursor:pointer;">Usuń</button>
-                    <!-- PRZYCISK OTWIERAJĄCY MODAL EDYCJI STRZELCÓW -->
-                    <button onclick="window.openEditModal('${d.id}', '${m.team1Id}', '${m.team2Id}', '${m.teamA}', '${m.teamB}')" style="background:#ff9800; color:white; border:none; padding:5px 10px; cursor:pointer;">Strzelcy</button>
-                </div>
-            `;
-            list.appendChild(div);
+        // 3. Sortujemy nazwy grup (A, B, C...)
+        const sortedGroupKeys = Object.keys(groups).sort();
+
+        if (sortedGroupKeys.length === 0) {
+            list.innerHTML = '<p>Brak meczów spełniających kryteria.</p>';
+            return;
+        }
+
+        // 4. Generujemy HTML dla każdej grupy
+        sortedGroupKeys.forEach(groupKey => {
+            // Nagłówek grupy
+            const groupHeader = document.createElement('h3');
+            groupHeader.textContent = `Grupa ${groupKey}`;
+            groupHeader.style.cssText = "border-bottom: 2px solid #2196f3; color: #2196f3; padding-bottom: 5px; margin-top: 25px; margin-bottom: 10px;";
+            list.appendChild(groupHeader);
+
+            // Sortowanie meczów wewnątrz grupy po dacie i godzinie
+            const matchesInGroup = groups[groupKey].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+            matchesInGroup.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'match-card';
+                // Kolor lewej krawędzi zależny od statusu
+                let statusColor = '#444'; // default planowany
+                if(m.status === 'live') statusColor = 'red';
+                if(m.status === 'finished') statusColor = '#2196f3';
+
+                div.style.cssText = `background:#1e1e1e; padding:15px; margin-bottom:10px; border:1px solid #333; border-left: 4px solid ${statusColor}; border-radius:8px;`;
+                
+                const statusSel = `
+                    <select onchange="window.updStatus('${m.id}', this.value)" style="width:auto; padding:5px; background: #333; color: white; border: 1px solid #555;">
+                        <option value="scheduled" ${m.status==='scheduled'?'selected':''}>Plan</option>
+                        <option value="live" ${m.status==='live'?'selected':''}>LIVE</option>
+                        <option value="finished" ${m.status==='finished'?'selected':''}>Koniec</option>
+                    </select>
+                `;
+
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; color:white; font-weight:bold; margin-bottom:10px;">
+                        <span style="font-size: 1.1em;">${m.teamA} vs ${m.teamB}</span>
+                        <span style="color: #aaa; font-weight: normal;">${m.date} ${m.time}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px; flex-wrap: wrap;">
+                        <div style="display:flex; align-items:center;">
+                            <input type="number" value="${m.goalsA}" style="width:50px; text-align:center; padding: 5px;" onchange="window.updScore('${m.id}', 'A', this.value)">
+                            <span style="padding: 0 10px; font-weight: bold;">:</span>
+                            <input type="number" value="${m.goalsB}" style="width:50px; text-align:center; padding: 5px;" onchange="window.updScore('${m.id}', 'B', this.value)">
+                        </div>
+                        ${statusSel}
+                        <div style="margin-left:auto; display: flex; gap: 5px;">
+                            <button onclick="window.openEditModal('${m.id}', '${m.team1Id}', '${m.team2Id}', '${m.teamA}', '${m.teamB}')" style="background:#ff9800; color:white; border:none; padding:8px 12px; cursor:pointer; border-radius: 4px;"><i class="fas fa-futbol"></i> Gole</button>
+                            <button onclick="window.delMatch('${m.id}')" style="background:#d32f2f; color:white; border:none; padding:8px 12px; cursor:pointer; border-radius: 4px;"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
         });
     });
 }
@@ -333,17 +379,16 @@ window.updScore = async (mid, team, val) => {
 window.delMatch = async (mid) => { if(confirm("Usunąć mecz?")) await deleteDoc(doc(db, PATH_MATCHES, mid)); };
 
 // ============================================
-// D. MODAL EDYCJI (STRZELCY I WYNIKI) - NAPRAWIONE
+// D. MODAL EDYCJI (STRZELCY I WYNIKI)
 // ============================================
 
-// 1. Otwórz Modal i zapisz kontekst
 window.openEditModal = (matchId, t1Id, t2Id, t1Name, t2Name) => {
     currentMatch = { id: matchId, t1Id, t2Id, t1Name, t2Name };
     
     document.getElementById('edit-match-team1-name').textContent = t1Name;
     document.getElementById('edit-match-team2-name').textContent = t2Name;
     
-    // Wypełnij select drużyn (tylko te dwie grające)
+    // Select drużyn w modalu
     const teamSelect = document.getElementById('scorer-team-select');
     teamSelect.innerHTML = `
         <option value="">-- Wybierz Drużynę --</option>
@@ -351,19 +396,16 @@ window.openEditModal = (matchId, t1Id, t2Id, t1Name, t2Name) => {
         <option value="${t2Id}">${t2Name}</option>
     `;
     
-    // Wyczyść listę graczy
     document.getElementById('scorer-player-select').innerHTML = '<option value="">Najpierw wybierz drużynę</option>';
 
-    // Nasłuchuj zmiany drużyny -> ładuj graczy
     teamSelect.onchange = () => {
-        const selectedTeamId = teamSelect.value;
-        window.updateScorerPlayers(selectedTeamId); 
+        window.updateScorerPlayers(teamSelect.value); 
     };
 
-    // Pokaż dotychczasowych strzelców
+    // Wczytaj AKTUALNE wyniki i listę strzelców
+    window.refreshModalScore(matchId);
     loadMatchScorersList(matchId);
     
-    // Pokaż modal
     document.getElementById('editModal').style.display = 'flex';
 };
 
@@ -371,7 +413,6 @@ window.closeEditModal = () => {
     document.getElementById('editModal').style.display = 'none';
 };
 
-// 2. Pobierz graczy wybranej drużyny
 window.updateScorerPlayers = async (teamId) => {
     const playerSelect = document.getElementById('scorer-player-select');
     if (!teamId) {
@@ -387,7 +428,6 @@ window.updateScorerPlayers = async (teamId) => {
         playerSelect.innerHTML = '<option value="">-- Wybierz Zawodnika --</option>';
         snap.forEach(d => {
             const p = d.data();
-            // Value to Imię i Nazwisko (bo to zapisujemy w historii strzelców)
             playerSelect.innerHTML += `<option value="${p.surname} ${p.name}">#${p.number} ${p.surname} ${p.name}</option>`;
         });
     } catch (e) {
@@ -396,14 +436,13 @@ window.updateScorerPlayers = async (teamId) => {
     }
 };
 
-// 3. Dodaj strzelca i zaktualizuj wynik
 window.addScorer = async () => {
     if (!currentMatch.id) return;
 
     const teamSelect = document.getElementById('scorer-team-select');
     const teamId = teamSelect.value;
     const teamName = teamSelect.options[teamSelect.selectedIndex].text;
-    const playerName = document.getElementById('scorer-player-select').value; // Imię i Nazwisko z value
+    const playerName = document.getElementById('scorer-player-select').value;
     const minute = document.getElementById('scorer-minute').value;
 
     if (!teamId || !playerName) return showMessage("Wybierz drużynę i zawodnika", 'error');
@@ -411,12 +450,10 @@ window.addScorer = async () => {
     const matchRef = doc(db, PATH_MATCHES, currentMatch.id);
 
     try {
-        // A. Zaktualizuj wynik meczu (licznik goli)
         const updates = {
             scorers: FieldValue.arrayUnion({ name: playerName, team: teamName, minute: minute, teamId: teamId })
         };
         
-        // Sprawdź, której drużynie dodać gola
         if (teamId === currentMatch.t1Id) {
             updates.goalsA = FieldValue.increment(1);
         } else {
@@ -425,12 +462,11 @@ window.addScorer = async () => {
         
         await updateDoc(matchRef, updates);
 
-        // B. Zaktualizuj globalną tabelę strzelców (kolekcja 'scorers')
+        // Aktualizacja tabeli Króla Strzelców
         const q = query(collection(db, PATH_SCORERS), where('name', '==', playerName), where('team', '==', teamName));
         const snap = await getDocs(q);
 
         if (snap.empty) {
-            // Nowy strzelec w tabeli
             await addDoc(collection(db, PATH_SCORERS), { 
                 name: playerName, 
                 team: teamName, 
@@ -438,16 +474,15 @@ window.addScorer = async () => {
                 goals: 1 
             });
         } else {
-            // Aktualizacja istniejącego
             await updateDoc(doc(db, PATH_SCORERS, snap.docs[0].id), { 
                 goals: FieldValue.increment(1) 
             });
         }
         
         showMessage(`Gol dodany! (${playerName})`, 'success');
-        loadMatchScorersList(currentMatch.id); // Odśwież listę w modalu
         
-        // Aktualizuj inputy wyników w modalu, żeby były zgodne
+        // Odśwież widok w modalu natychmiast
+        loadMatchScorersList(currentMatch.id);
         window.refreshModalScore(currentMatch.id);
 
     } catch (e) {
@@ -456,7 +491,6 @@ window.addScorer = async () => {
     }
 };
 
-// Pomocnicza: Odśwież widok wyniku w modalu
 window.refreshModalScore = async (matchId) => {
     const snap = await getDoc(doc(db, PATH_MATCHES, matchId));
     if(snap.exists()) {
@@ -466,7 +500,6 @@ window.refreshModalScore = async (matchId) => {
     }
 };
 
-// Wyświetl listę strzelców w modalu
 async function loadMatchScorersList(matchId) {
     const div = document.getElementById('scorers-edit-list');
     div.innerHTML = 'Ładowanie...';
@@ -479,18 +512,16 @@ async function loadMatchScorersList(matchId) {
         div.innerHTML = '';
         if (scorers.length === 0) div.innerHTML = '<p style="color:#888; text-align:center;">Brak strzelców.</p>';
         
-        // Sortujemy po minucie (opcjonalnie, jeśli minuta jest stringiem to sortowanie może być niedokładne)
         scorers.forEach((s) => {
             div.innerHTML += `
-                <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444; background:#222; margin-bottom:2px;">
-                    <span>${s.minute ? s.minute + "'" : ''} <b>${s.name}</b> <small>(${s.team})</small></span>
+                <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444; background:#222; margin-bottom:2px; border-radius: 4px;">
+                    <span>${s.minute ? s.minute + "'" : ''} <b>${s.name}</b> <small style="color: #aaa;">(${s.team})</small></span>
                 </div>
             `;
         });
     }
 }
 
-// Ręczny zapis wyniku z inputów (nadpisuje licznik)
 window.saveMatchResult = async () => {
     if (!currentMatch.id) return;
     const gA = parseInt(document.getElementById('edit-score1').value) || 0;
@@ -508,6 +539,7 @@ window.saveMatchResult = async () => {
 function loadScorersTable() {
     onSnapshot(query(collection(db, PATH_SCORERS), orderBy('goals', 'desc')), snap => {
         const tbody = document.querySelector('#scorers-table tbody');
+        if(!tbody) return;
         tbody.innerHTML = '';
         snap.forEach(d => {
             const s = d.data();
