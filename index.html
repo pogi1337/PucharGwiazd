@@ -3,8 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regulamin - Puchar Gwiazd</title>
-    <meta name="description" content="Oficjalny regulamin 4. edycji Pucharu Gwiazd. Zapoznaj się z zasadami turnieju, punktacją i systemem gry.">
+    <title>Puchar Gwiazd - Strona Główna</title>
+    <meta name="description" content="Oficjalna strona Pucharu Gwiazd. Sprawdź najnowsze wyniki.">
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // 1. KONFIGURACJA (Twoja)
+        const HARDCODED_CONFIG = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
+        };
+
+        // Inicjalizacja
+        const app = initializeApp(HARDCODED_CONFIG);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const PATH_MATCHES = 'matches'; 
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        async function initApp() {
+            try {
+                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
+                else await signInAnonymously(auth);
+                listenForMatches();
+                startCountdown();
+            } catch (e) {
+                console.warn("Błąd logowania, próba odczytu publicznego...", e);
+                listenForMatches();
+                startCountdown();
+            }
+        }
+
+        function listenForMatches() {
+            // Pobieramy wszystko posortowane po dacie rosnąco (najstarsze/najbliższe najpierw)
+            const q = query(collection(db, PATH_MATCHES), orderBy('date', 'asc')); 
+
+            onSnapshot(q, (snapshot) => {
+                const upcomingContainer = document.getElementById('upcoming-matches');
+                const recentContainer = document.getElementById('recent-results');
+                
+                // Reset nagłówków
+                upcomingContainer.innerHTML = '<h3><i class="far fa-calendar-alt"></i> NAJBLIŻSZE MECZE</h3>';
+                recentContainer.innerHTML = '<h3><i class="fas fa-trophy"></i> OSTATNIE WYNIKI</h3>';
+                
+                if (snapshot.empty) {
+                    upcomingContainer.innerHTML += '<p class="no-data">Brak danych.</p>';
+                    recentContainer.innerHTML += '<p class="no-data">Brak danych.</p>';
+                    return;
+                }
+
+                // 1. Podział na kategorie
+                let liveMatches = [];
+                let upcomingMatches = [];
+                let finishedMatches = [];
+
+                snapshot.forEach(doc => {
+                    const m = doc.data();
+                    const status = m.status ? m.status.toLowerCase() : '';
+
+                    if (status === 'live' || status === 'trwa') {
+                        liveMatches.push(m);
+                    } else if (status === 'finished' || status === 'zakończony') {
+                        finishedMatches.push(m);
+                    } else {
+                        upcomingMatches.push(m);
+                    }
+                });
+
+                // 2. Sortowanie i Limitowanie
+
+                // LIVE: Bierzemy 1 (jeśli są)
+                const liveDisplay = liveMatches.slice(0, 1);
+
+                // UPCOMING: Są już posortowane ASC (najbliższe), bierzemy 2
+                const upcomingDisplay = upcomingMatches.slice(0, 2);
+
+                // FINISHED: Sortujemy odwrotnie (najnowsze na górze), bierzemy 2
+                finishedMatches.sort((a, b) => b.date - a.date); 
+                const finishedDisplay = finishedMatches.slice(0, 2);
+
+                // 3. Renderowanie
+                let hasLeftContent = false;
+                let hasRightContent = false;
+
+                // Lewa kolumna: LIVE + UPCOMING
+                liveDisplay.forEach(m => {
+                    upcomingContainer.innerHTML += renderMatchItem(m);
+                    hasLeftContent = true;
+                });
+                upcomingDisplay.forEach(m => {
+                    upcomingContainer.innerHTML += renderMatchItem(m);
+                    hasLeftContent = true;
+                });
+
+                // Prawa kolumna: FINISHED
+                finishedDisplay.forEach(m => {
+                    recentContainer.innerHTML += renderMatchItem(m);
+                    hasRightContent = true;
+                });
+
+                // Obsługa pustych stanów
+                if (!hasLeftContent) upcomingContainer.innerHTML += '<p class="no-data">Brak nadchodzących spotkań.</p>';
+                if (!hasRightContent) recentContainer.innerHTML += '<p class="no-data">Brak zakończonych meczów.</p>';
+                
+                // Dodajemy przycisk do pełnego terminarza w kolumnie
+                upcomingContainer.innerHTML += '<div style="margin-top:15px; text-align:right;"><a href="terminarz.html" style="font-size:0.8rem; color:var(--accent);">Zobacz wszystkie ></a></div>';
+            });
+        }
+
+        function renderMatchItem(match) {
+            const status = match.status ? match.status.toLowerCase() : '';
+            const isLive = status === 'live' || status === 'trwa';
+            const isFinished = status === 'finished' || status === 'zakończony';
+            
+            let statusClass = 'scheduled';
+            let statusText = 'PLAN';
+            let score = '- : -';
+
+            if (isLive) {
+                statusClass = 'live';
+                statusText = 'LIVE';
+                score = `${match.goalsA} : ${match.goalsB}`;
+            } else if (isFinished) {
+                statusClass = 'finished';
+                statusText = 'KONIEC';
+                score = `${match.goalsA} : ${match.goalsB}`;
+            }
+
+            // Konwersja daty
+            let dateDisplay = '';
+            if (match.date && match.date.seconds) {
+                 dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
+            } else if (match.date) {
+                 dateDisplay = `${match.date} ${match.time || ''}`;
+            }
+
+            return `
+                <div class="match-item ${isLive ? 'live-glow' : ''}">
+                    <div class="match-teams">
+                        <span class="team-name">${match.teamA}</span>
+                        <span class="score-display">${score}</span>
+                        <span class="team-name">${match.teamB}</span>
+                    </div>
+                    <div class="match-meta">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <span class="match-info">${dateDisplay} | Gr. ${match.group}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 3. ODLICZANIE - Data: 14 Grudnia 2025, 12:00
+        function startCountdown() {
+            const targetDate = new Date(2025, 11, 14, 12, 0, 0); 
+            const el = document.getElementById('countdown');
+            
+            if (!el) return;
+
+            const updateTimer = () => {
+                const now = new Date().getTime();
+                const diff = targetDate.getTime() - now;
+
+                if (diff < 0) {
+                    el.innerHTML = '<div class="started">TURNIEJ TRWA!</div>';
+                    return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                el.innerHTML = `
+                    <div class="timer-box"><span class="val">${d}</span><span class="label">DNI</span></div>
+                    <div class="timer-box"><span class="val">${h}</span><span class="label">GODZ</span></div>
+                    <div class="timer-box"><span class="val">${m}</span><span class="label">MIN</span></div>
+                    <div class="timer-box"><span class="val">${s}</span><span class="label">SEK</span></div>
+                `;
+            };
+            
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        window.addEventListener('load', initApp);
+        
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            alert("Motyw nocny jest domyślny!");
+        });
+    </script>
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -18,6 +212,7 @@
             --bg-card: #131a2a;       /* Trochę jaśniejszy */
             --accent: #00d4ff;        /* Neonowy błękit */
             --accent-glow: rgba(0, 212, 255, 0.4);
+            --live-red: #ff2a2a;
             --text-main: #ffffff;
             --text-sec: #a0aec0;
             --border: #1f2a40;
@@ -31,13 +226,12 @@
             min-height: 100vh;
             display: flex; flex-direction: column; align-items: center;
             overflow-x: hidden;
-            line-height: 1.6;
         }
 
         /* HEADER */
         .header {
             width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
             background: rgba(19, 26, 42, 0.8);
             backdrop-filter: blur(10px);
             border-radius: 16px;
@@ -50,8 +244,13 @@
             background: linear-gradient(90deg, #fff, var(--accent));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-shadow: 0 0 20px var(--accent-glow);
-            text-transform: uppercase;
         }
+        
+        .login-links a {
+            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
+            margin-left: 15px; transition: 0.3s; position: relative;
+        }
+        .login-links a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
 
         /* NAV */
         #main-nav {
@@ -67,68 +266,89 @@
             box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px);
         }
 
-        /* CONTENT */
-        .content-section {
-            width: 100%; max-width: 800px; padding: 40px; box-sizing: border-box;
-            background: var(--bg-card);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            margin-bottom: 50px;
+        /* HERO & CONTENT */
+        .content-section { width: 100%; max-width: 1000px; padding: 0 20px; box-sizing: border-box; }
+        
+        .hero-banner {
+            text-align: center; margin-bottom: 40px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), transparent);
+            padding: 40px; border-radius: 20px; border: 1px solid var(--border);
         }
+        .hero-banner h1 { font-size: 2.5rem; margin: 0 0 10px; text-shadow: 0 0 30px var(--accent-glow); }
+        .hero-banner p { color: var(--text-sec); font-size: 1.1rem; }
 
-        .content-section h2 {
-            text-align: center; font-size: 2rem; margin-bottom: 40px; margin-top: 0;
-            color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.1);
-            border-bottom: 2px solid var(--accent); padding-bottom: 15px;
+        /* ODLICZANIE */
+        #countdown {
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 50px;
         }
+        .timer-box {
+            background: var(--bg-card); border: 1px solid var(--border);
+            padding: 15px; border-radius: 12px; min-width: 80px; text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .timer-box .val { display: block; font-size: 2rem; font-weight: 800; color: var(--accent); }
+        .timer-box .label { font-size: 0.7rem; color: var(--text-sec); letter-spacing: 1px; font-weight: 600; }
+        .started { font-size: 2rem; font-weight: 800; color: var(--live-red); animation: pulse 1s infinite; }
 
-        .content-section h3 {
-            color: var(--accent);
-            font-size: 1.3rem;
-            margin-top: 30px; margin-bottom: 15px;
-            border-left: 4px solid var(--accent);
-            padding-left: 10px;
+        /* SEKCJJA MECZÓW */
+        .stats-summary { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+            gap: 30px; margin-bottom: 50px; 
         }
+        .stats-column h3 {
+            color: var(--text-main); border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px; margin-bottom: 20px; font-size: 1.2rem; letter-spacing: 1px;
+        }
+        .stats-column h3 i { color: var(--accent); margin-right: 10px; }
 
-        .content-section p {
-            color: var(--text-sec);
-            margin-bottom: 15px;
-            font-size: 1rem;
+        /* KARTA MECZU */
+        .match-item {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 15px; margin-bottom: 15px;
+            transition: 0.3s; position: relative; overflow: hidden;
         }
+        .match-item:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        
+        .match-teams {
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: 700; font-size: 1.1rem; margin-bottom: 10px;
+        }
+        .score-display {
+            background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 8px;
+            color: var(--accent); font-size: 1.3rem; letter-spacing: 2px;
+        }
+        
+        .match-meta {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.8rem; color: var(--text-sec); border-top: 1px dashed var(--border); padding-top: 10px;
+        }
+        
+        .status-badge {
+            padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase;
+        }
+        .status-badge.scheduled { background: rgba(255,255,255,0.1); color: var(--text-sec); }
+        .status-badge.live { background: var(--live-red); color: #fff; box-shadow: 0 0 10px rgba(255, 42, 42, 0.5); animation: pulse 1.5s infinite; }
+        .status-badge.finished { background: var(--accent); color: var(--bg-dark); }
+        
+        .live-glow { border-color: var(--live-red); box-shadow: 0 0 15px rgba(255, 42, 42, 0.2); }
 
-        .content-section ul {
-            list-style: none;
-            padding: 0;
-            margin-bottom: 20px;
+        /* BUTTONS */
+        .button {
+            display: inline-block; padding: 15px 40px; 
+            background: linear-gradient(45deg, var(--accent), #0088ff); 
+            color: var(--bg-dark); border-radius: 50px; text-decoration: none; font-weight: 800;
+            font-size: 1rem; transition: 0.3s; box-shadow: 0 0 20px var(--accent-glow);
         }
-
-        .content-section ul li {
-            color: var(--text-main);
-            margin-bottom: 10px;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .content-section ul li::before {
-            content: "•";
-            color: var(--accent);
-            font-weight: bold;
-            font-size: 1.5em;
-            position: absolute;
-            left: 0;
-            top: -5px;
-        }
+        .button:hover { transform: scale(1.05); box-shadow: 0 0 30px var(--accent-glow); }
 
         /* FOOTER */
         .footer {
             margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
-            border-top: 1px solid var(--border); width: 100%; background: #070a11;
+            border-top: 1px solid var(--border); width: 100%; background: #070a11; margin-top: 60px;
         }
         .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
         .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
-        
-        /* THEME TOGGLE */
+
         #theme-toggle {
             position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
             border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
@@ -137,72 +357,56 @@
         }
         #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 
-        /* RESPONSYWNOŚĆ */
-        @media (max-width: 600px) {
-            .header { border-radius: 0 0 20px 20px; margin-top: 0; border: none; border-bottom: 1px solid var(--border); }
-            #main-nav { gap: 8px; }
-            #main-nav a { padding: 8px 15px; font-size: 0.8rem; }
-            .content-section { padding: 20px; }
-            .header h1 { font-size: 1.4rem; }
+        @media (max-width: 768px) {
+            .header { flex-direction: column; gap: 15px; text-align: center; }
+            .stats-summary { grid-template-columns: 1fr; }
+            .match-teams { font-size: 1rem; }
+            .score-display { font-size: 1.1rem; padding: 3px 10px; }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>REGULAMIN - PUCHAR GWIAZD</h1>
+        <h1>PUCHAR GWIAZD</h1>
+        <div class="login-links">
+            <a href="captain_panel.html"><i class="fas fa-user-shield"></i> KAPITAN</a>
+            <a href="admin.html"><i class="fas fa-user-cog"></i> ADMIN</a>
+        </div>
     </div>
 
     <nav id="main-nav">
-        <a href="index.html">Strona Główna</a>
+        <a href="index.html" style="background: var(--accent); color: var(--bg-dark);">Strona Główna</a>
         <a href="druzyny.html">Drużyny</a>
-        <a href="regulamin.html" style="background: var(--accent); color: var(--bg-dark);">Regulamin</a>
+        <a href="terminarz.html">Terminarz</a>
+        <a href="regulamin.html">Regulamin</a>
         <a href="tabela.html">Tabele</a>
         <a href="onas.html">O Nas</a>
     </nav>
 
     <section class="content-section">
-        <h2>Zasady 4. Edycji</h2>
-        <p>Wszyscy uczestnicy Pucharu Gwiazd są zobowiązani do przestrzegania niniejszego regulaminu. Celem turnieju jest zapewnienie sprawiedliwej i przyjemnej rywalizacji dla wszystkich.</p>
+        <div class="hero-banner">
+            <h1>WIELKI FINAŁ LIGI</h1>
+            <p>Śledź wyniki na żywo, tabele i statystyki najlepszych drużyn!</p>
+        </div>
         
-        <h3>1. Uczestnictwo</h3>
-        <ul>
-            <li>W Turnieju mogą brać udział drużyny złożone z co najmniej 5 zawodników i maksymalnie z 10 graczy.</li>
-            <li>Wszyscy zawodnicy biorący udział w turnieju muszą mieć ukończone 13 lat.</li>
-            <li>Organizatorzy nie biorą odpowiedzialności za ewentualne kontuzje, zniszczenie lub zgubienie mienia.</li>
-            <li>Każdy uczestnik 4. edycji "Pucharu Gwiazd" może należeć tylko do jednej drużyny.</li>
-        </ul>
+        <div id="countdown"></div>
 
-        <h3>2. Format Turnieju</h3>
-        <ul>
-            <li>Turniej zostanie rozegrany w systemie 4 grup po 4 drużyny.</li>
-            <li>Po fazie grupowej rozgrywane będą ćwierćfinały, w których zagrają drużyny, które zajęły pierwsze lub drugie miejsce w grupie.</li>
-            <li>W kolejnych etapach rozegrane zostaną półfinały oraz mecze o Puchary.</li>
-            <li>Szczegółowy harmonogram meczów znajduje się na stronie głównej.</li>
-        </ul>
-
-        <h3>3. Zasady Gry</h3>
-        <p>Wszystkie mecze 4. edycji "Pucharu Gwiazd" będą rozgrywane zgodnie z zasadami piłki nożnej, z następującymi wyjątkami dotyczącymi kartek:</p>
-        <ul>
-            <li><strong>Żółta kartka:</strong> Jest zwykłym upomnieniem od sędziego (nie różni się od standardowych zasad).</li>
-            <li><strong>Czerwona kartka:</strong> Zawodnik musi zejść z boiska na minutę lub do momentu stracenia/zdobycia bramki przez jego drużynę. W tym konkretnym meczu ukarany zawodnik nie może już wrócić na boisko, ale może wejść za niego inny zawodnik.</li>
-        </ul>
+        <div class="stats-summary">
+            <div id="upcoming-matches" class="stats-column">
+                <h3><i class="far fa-calendar-alt"></i> NAJBLIŻSZE MECZE</h3>
+                <p class="no-data">Ładowanie...</p>
+            </div>
+            
+            <div id="recent-results" class="stats-column">
+                <h3><i class="fas fa-trophy"></i> OSTATNIE WYNIKI</h3>
+                <p class="no-data">Ładowanie...</p>
+            </div>
+        </div>
         
-        <h3>4. Fair Play</h3>
-        <p>Oczekujemy od wszystkich uczestników zachowania zasad fair play. Wszelkie formy oszustwa, toksycznego zachowania lub celowego zakłócania przebiegu meczu będą skutkować dyskwalifikacją.</p>
-
-        <h3>5. Postępowanie w Przypadku Sporów</h3>
-        <p>Wszelkie spory lub niejasności dotyczące przebiegu meczów będą rozstrzygane przez sędziego turnieju. Decyzje sędziego są ostateczne.</p>
-
-        <h3>6. Nagrody</h3>
-        <p>Nagrody na turnieju przewidziane są za:</p>
-        <ul>
-            <li>Pierwsze, drugie oraz trzecie miejsce dla drużyn.</li>
-            <li>Osiągnięcia indywidualne dla zawodników.</li>
-            <li>Dla kibiców przewidziany jest konkurs z nagrodą główną oraz wiele nagród pobocznych.</li>
-        </ul>
-
-        <h3>7. Zmiany w Regulaminie</h3>
-        <p>Organizator zastrzega sobie prawo do wprowadzania zmian w regulaminie, o czym uczestnicy zostaną poinformowani z odpowiednim wyprzedzeniem.</p>
+        <div style="text-align: center; margin-bottom: 60px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <a href="terminarz.html" class="button">PEŁNY TERMINARZ</a>
+            <a href="tabela.html" class="button" style="background: transparent; border: 1px solid var(--accent); color: var(--accent); box-shadow: none;">TABELE GRUP</a>
+        </div>
     </section>
 
     <div class="footer">
@@ -213,15 +417,6 @@
         <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
     </div>
 
-    <button id="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
-
-    <script>
-        // Prosta obsługa Theme Toggle
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            alert("Motyw nocny jest aktywny domyślnie!");
-        });
-    </script>
+    <button id="theme-toggle"><i class="fas fa-moon"></i></button>
 </body>
 </html>
