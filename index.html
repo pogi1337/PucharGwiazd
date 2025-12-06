@@ -41,15 +41,30 @@
             }
         }
 
+        // --- NOWA FUNKCJA POMOCNICZA DO DATY ---
+        // Łączy datę i godzinę, żeby poprawnie sortować
+        function getMatchDateTime(match) {
+            if (!match.date) return new Date(9999, 0, 1); // Brak daty -> na koniec
+            
+            // Jeśli data to tekst "2025-12-14"
+            if (typeof match.date === 'string') {
+                const timeStr = match.time || "00:00";
+                return new Date(`${match.date}T${timeStr}`);
+            }
+            // Jeśli to Timestamp Firebase
+            if (match.date.seconds) {
+                return new Date(match.date.seconds * 1000);
+            }
+            return new Date(9999, 0, 1);
+        }
+
         function listenForMatches() {
-            // Pobieramy wszystko posortowane po dacie rosnąco (najstarsze/najbliższe najpierw)
-            const q = query(collection(db, PATH_MATCHES), orderBy('date', 'asc')); 
+            const q = query(collection(db, PATH_MATCHES)); // Pobieramy wszystko, sortujemy w JS dla pewności
 
             onSnapshot(q, (snapshot) => {
                 const upcomingContainer = document.getElementById('upcoming-matches');
                 const recentContainer = document.getElementById('recent-results');
                 
-                // Reset nagłówków
                 upcomingContainer.innerHTML = '<h3><i class="far fa-calendar-alt"></i> NAJBLIŻSZE MECZE</h3>';
                 recentContainer.innerHTML = '<h3><i class="fas fa-trophy"></i> OSTATNIE WYNIKI</h3>';
                 
@@ -77,19 +92,21 @@
                     }
                 });
 
-                // 2. Sortowanie i Limitowanie
+                // 2. SORTOWANIE (To naprawia Twój problem)
+                
+                // Nadchodzące: Sortujemy ROSNĄCO (od najbliższej daty i godziny)
+                upcomingMatches.sort((a, b) => getMatchDateTime(a) - getMatchDateTime(b));
 
-                // LIVE: Bierzemy 1 (jeśli są)
+                // Zakończone: Sortujemy MALEJĄCO (od najnowszej daty i godziny - te co skończyły się przed chwilą)
+                finishedMatches.sort((a, b) => getMatchDateTime(b) - getMatchDateTime(a));
+
+
+                // 3. Wybieranie do wyświetlenia
                 const liveDisplay = liveMatches.slice(0, 1);
-
-                // UPCOMING: Są już posortowane ASC (najbliższe), bierzemy 2
-                const upcomingDisplay = upcomingMatches.slice(0, 2);
-
-                // FINISHED: Sortujemy odwrotnie (najnowsze na górze), bierzemy 2
-                finishedMatches.sort((a, b) => b.date - a.date); 
+                const upcomingDisplay = upcomingMatches.slice(0, 2); // Teraz weźmie 2 faktycznie najbliższe
                 const finishedDisplay = finishedMatches.slice(0, 2);
 
-                // 3. Renderowanie
+                // 4. Renderowanie
                 let hasLeftContent = false;
                 let hasRightContent = false;
 
@@ -113,7 +130,6 @@
                 if (!hasLeftContent) upcomingContainer.innerHTML += '<p class="no-data">Brak nadchodzących spotkań.</p>';
                 if (!hasRightContent) recentContainer.innerHTML += '<p class="no-data">Brak zakończonych meczów.</p>';
                 
-                // Dodajemy przycisk do pełnego terminarza w kolumnie
                 upcomingContainer.innerHTML += '<div style="margin-top:15px; text-align:right;"><a href="terminarz.html" style="font-size:0.8rem; color:var(--accent);">Zobacz wszystkie ></a></div>';
             });
         }
@@ -139,10 +155,18 @@
 
             // Konwersja daty
             let dateDisplay = '';
-            if (match.date && match.date.seconds) {
-                 dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
-            } else if (match.date) {
-                 dateDisplay = `${match.date} ${match.time || ''}`;
+            if (match.date) {
+                if (typeof match.date === 'string') {
+                    // Obsługa formatu YYYY-MM-DD
+                    const d = new Date(match.date);
+                    const day = String(d.getDate()).padStart(2, '0');
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    dateDisplay = `${day}.${month}`;
+                    // Doklejamy godzinę
+                    if(match.time) dateDisplay += ` ${match.time}`;
+                } else if (match.date.seconds) {
+                    dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
+                }
             }
 
             return `
