@@ -1,500 +1,389 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puchar Gwiazd - Strona Główna</title>
-    <link rel="icon" type="image/png" href="logo.png">
-    <meta name="description" content="Oficjalna strona Pucharu Gwiazd. Sprawdź najnowsze wyniki.">
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        
-        // 1. KONFIGURACJA (Twoja)
-        const HARDCODED_CONFIG = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
-        };
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel Administratora</title>
 
-        // Inicjalizacja
-        const app = initializeApp(HARDCODED_CONFIG);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const PATH_MATCHES = 'matches'; 
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        async function initApp() {
-            try {
-                if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken);
-                else await signInAnonymously(auth);
-                listenForMatches();
-                startCountdown();
-            } catch (e) {
-                console.warn("Błąd logowania, próba odczytu publicznego...", e);
-                listenForMatches();
-                startCountdown();
-            }
-        }
-
-        function getMatchDateTime(match) {
-            if (!match.date) return new Date(9999, 0, 1);
-            if (typeof match.date === 'string') {
-                const timeStr = match.time || "00:00";
-                return new Date(`${match.date}T${timeStr}`);
-            }
-            if (match.date.seconds) {
-                return new Date(match.date.seconds * 1000);
-            }
-            return new Date(9999, 0, 1);
-        }
-
-        function listenForMatches() {
-            const q = query(collection(db, PATH_MATCHES));
-
-            onSnapshot(q, (snapshot) => {
-                const upcomingContainer = document.getElementById('upcoming-matches');
-                const recentContainer = document.getElementById('recent-results');
-                
-                upcomingContainer.innerHTML = '<h3><i class="far fa-calendar-alt"></i> NAJBLIŻSZE MECZE</h3>';
-                recentContainer.innerHTML = '<h3><i class="fas fa-trophy"></i> OSTATNIE WYNIKI</h3>';
-                
-                if (snapshot.empty) {
-                    upcomingContainer.innerHTML += '<p class="no-data">Brak danych.</p>';
-                    recentContainer.innerHTML += '<p class="no-data">Brak danych.</p>';
-                    return;
-                }
-
-                let liveMatches = [];
-                let upcomingMatches = [];
-                let finishedMatches = [];
-
-                snapshot.forEach(doc => {
-                    const m = doc.data();
-                    const status = m.status ? m.status.toLowerCase() : '';
-
-                    if (status === 'live' || status === 'trwa') {
-                        liveMatches.push(m);
-                    } else if (status === 'finished' || status === 'zakończony') {
-                        finishedMatches.push(m);
-                    } else {
-                        upcomingMatches.push(m);
-                    }
-                });
-
-                upcomingMatches.sort((a, b) => getMatchDateTime(a) - getMatchDateTime(b));
-                finishedMatches.sort((a, b) => getMatchDateTime(b) - getMatchDateTime(a));
-
-                const liveDisplay = liveMatches.slice(0, 1);
-                const upcomingDisplay = upcomingMatches.slice(0, 2);
-                const finishedDisplay = finishedMatches.slice(0, 2);
-
-                let hasLeftContent = false;
-                let hasRightContent = false;
-
-                liveDisplay.forEach(m => {
-                    upcomingContainer.innerHTML += renderMatchItem(m);
-                    hasLeftContent = true;
-                });
-                upcomingDisplay.forEach(m => {
-                    upcomingContainer.innerHTML += renderMatchItem(m);
-                    hasLeftContent = true;
-                });
-
-                finishedDisplay.forEach(m => {
-                    recentContainer.innerHTML += renderMatchItem(m);
-                    hasRightContent = true;
-                });
-
-                if (!hasLeftContent) upcomingContainer.innerHTML += '<p class="no-data">Brak nadchodzących spotkań.</p>';
-                if (!hasRightContent) recentContainer.innerHTML += '<p class="no-data">Brak zakończonych meczów.</p>';
-                
-                upcomingContainer.innerHTML += '<div style="margin-top:15px; text-align:right;"><a href="terminarz.html" style="font-size:0.8rem; color:var(--accent);">Zobacz wszystkie ></a></div>';
-            });
-        }
-
-        function renderMatchItem(match) {
-            const status = match.status ? match.status.toLowerCase() : '';
-            const isLive = status === 'live' || status === 'trwa';
-            const isFinished = status === 'finished' || status === 'zakończony';
-            
-            let statusClass = 'scheduled';
-            let statusText = 'PLAN';
-            let score = '- : -';
-
-            if (isLive) {
-                statusClass = 'live';
-                statusText = 'LIVE';
-                score = `${match.goalsA} : ${match.goalsB}`;
-            } else if (isFinished) {
-                statusClass = 'finished';
-                statusText = 'KONIEC';
-                score = `${match.goalsA} : ${match.goalsB}`;
-            }
-
-            let dateDisplay = '';
-            if (match.date) {
-                if (typeof match.date === 'string') {
-                    const d = new Date(match.date);
-                    const day = String(d.getDate()).padStart(2, '0');
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                    dateDisplay = `${day}.${month}`;
-                    if(match.time) dateDisplay += ` ${match.time}`;
-                } else if (match.date.seconds) {
-                    dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
-                }
-            }
-
-            return `
-                <div class="match-item ${isLive ? 'live-glow' : ''}">
-                    <div class="match-teams">
-                        <span class="team-name">${match.teamA}</span>
-                        <span class="score-display">${score}</span>
-                        <span class="team-name">${match.teamB}</span>
-                    </div>
-                    <div class="match-meta">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                        <span class="match-info">${dateDisplay} | Gr. ${match.group}</span>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function startCountdown() {
-            const targetDate = new Date(2025, 11, 14, 12, 0, 0); 
-            const el = document.getElementById('countdown');
-            if (!el) return;
-
-            const updateTimer = () => {
-                const now = new Date().getTime();
-                const diff = targetDate.getTime() - now;
-
-                if (diff < 0) {
-                    el.innerHTML = '<div class="started">TURNIEJ TRWA!</div>';
-                    return;
-                }
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const s = Math.floor((diff % (1000 * 60)) / 1000);
-
-                el.innerHTML = `
-                    <div class="timer-box"><span class="val">${d}</span><span class="label">DNI</span></div>
-                    <div class="timer-box"><span class="val">${h}</span><span class="label">GODZ</span></div>
-                    <div class="timer-box"><span class="val">${m}</span><span class="label">MIN</span></div>
-                    <div class="timer-box"><span class="val">${s}</span><span class="label">SEK</span></div>
-                `;
-            };
-            updateTimer();
-            setInterval(updateTimer, 1000);
-        }
-
-        window.addEventListener('load', initApp);
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            alert("Motyw nocny jest domyślny!");
-        });
-    </script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+
     <style>
-        /* =========================================
-           STYLE - NEONOWY GRANAT
-           ========================================= */
-        :root {
-            --bg-dark: #0a0e17;
-            --bg-card: #131a2a;
-            --accent: #00d4ff;
-            --accent-glow: rgba(0, 212, 255, 0.4);
-            --live-red: #ff2a2a;
-            --text-main: #ffffff;
-            --text-sec: #a0aec0;
-            --border: #1f2a40;
-            --yt-color: #FF0000;
-        }
-
+        /* --- STYLE PODSTAWOWE --- */
         body {
-            font-family: 'Montserrat', sans-serif;
-            margin: 0; padding: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #050a14;
+            color: #fff;
+            margin: 0;
+            padding: 0;
         }
 
-        /* HEADER */
-        .header {
-            width: 100%; max-width: 1000px; padding: 15px 25px; margin-top: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(19, 26, 42, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 10;
+        .container, .panel {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        .header-branding {
-            display: flex; align-items: center; gap: 15px;
-        }
-        .header-logo {
-            height: 50px; width: auto; filter: drop-shadow(0 0 5px var(--accent-glow));
-            transition: transform 0.3s;
-        }
-        .header-logo:hover { transform: scale(1.1); }
+        h2, h3, h4 { color: #f0f0f0; }
 
-        .header h1 {
-            font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 0;
-            background: linear-gradient(90deg, #fff, var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px var(--accent-glow);
+        input, select, button {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background-color: #1e2a3a;
+            color: white;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #2196f3;
+            border: none;
+            font-weight: bold;
+        }
+        button:hover { opacity: 0.9; }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .message.success { background-color: #4caf50; color: white; }
+        .message.error { background-color: #f44336; color: white; }
+
+        /* --- ZAKŁADKI (TABS) --- */
+        #admin-wrapper { display: none; } /* Ukryty przed logowaniem */
+        
+        .tab-content { 
+            display: none; 
+            padding: 20px;
+            background: #0e1628;
+            border: 1px solid #1e3a5f;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
         }
         
-        .login-links a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            margin-left: 15px; transition: 0.3s; position: relative;
-        }
-        .login-links a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
-
-        /* NAV */
-        #main-nav {
-            margin: 20px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-        }
-        #main-nav a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            padding: 10px 20px; border-radius: 30px; border: 1px solid transparent;
-            transition: 0.3s; background: var(--bg-card);
-        }
-        #main-nav a:hover {
-            border-color: var(--accent); color: #fff;
-            box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px);
+        .tab-content.active { 
+            display: block !important; 
+            animation: fadeIn 0.3s ease-in-out;
         }
 
-        /* HERO & CONTENT */
-        .content-section { width: 100%; max-width: 1000px; padding: 0 20px; box-sizing: border-box; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .tabs-header {
+            display: flex;
+            gap: 5px;
+            border-bottom: 1px solid #1e3a5f;
+        }
+
+        .tab-button {
+            background: #0a0a1f;
+            color: #888;
+            border: 1px solid #1e3a5f;
+            border-bottom: none;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+            flex-grow: 1; /* Przyciski rozciągają się */
+        }
+
+        .tab-button:hover { background: #152036; color: white; }
         
-        .hero-banner {
-            text-align: center; margin-bottom: 40px;
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), transparent);
-            padding: 40px; border-radius: 20px; border: 1px solid var(--border);
+        .tab-button.active {
+            background: #2196f3;
+            color: white;
+            border-color: #2196f3;
         }
-        .hero-banner h1 { font-size: 2.5rem; margin: 0 0 10px; text-shadow: 0 0 30px var(--accent-glow); }
-        .hero-banner p { color: var(--text-sec); font-size: 1.1rem; }
 
-        /* ODLICZANIE */
-        #countdown { display: flex; justify-content: center; gap: 15px; margin-bottom: 50px; }
-        .timer-box {
-            background: var(--bg-card); border: 1px solid var(--border);
-            padding: 15px; border-radius: 12px; min-width: 80px; text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        /* --- MODAL (OKNO EDYCJI) --- */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 10000; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background-color: rgba(0, 0, 0, 0.85); 
+            justify-content: center; 
+            align-items: center;
         }
-        .timer-box .val { display: block; font-size: 2rem; font-weight: 800; color: var(--accent); }
-        .timer-box .label { font-size: 0.7rem; color: var(--text-sec); letter-spacing: 1px; font-weight: 600; }
-        .started { font-size: 2rem; font-weight: 800; color: var(--live-red); animation: pulse 1s infinite; }
 
-        /* SEKCJE MECZOWE */
-        .stats-summary { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
-            gap: 30px; margin-bottom: 50px; 
+        .modal-content {
+            background-color: #152036;
+            padding: 25px;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
         }
-        .stats-column h3 {
-            color: var(--text-main); border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px; margin-bottom: 20px; font-size: 1.2rem; letter-spacing: 1px;
-        }
-        .stats-column h3 i { color: var(--accent); margin-right: 10px; }
 
-        /* KARTY */
-        .match-item {
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: 12px; padding: 15px; margin-bottom: 15px;
-            transition: 0.3s; position: relative; overflow: hidden;
+        .modal-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
         }
-        .match-item:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-        .match-teams {
-            display: flex; justify-content: space-between; align-items: center;
-            font-weight: 700; font-size: 1.1rem; margin-bottom: 10px;
-        }
-        .score-display {
-            background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 8px;
-            color: var(--accent); font-size: 1.3rem; letter-spacing: 2px;
-        }
-        .match-meta {
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.8rem; color: var(--text-sec); border-top: 1px dashed var(--border); padding-top: 10px;
-        }
-        .status-badge {
-            padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase;
-        }
-        .status-badge.scheduled { background: rgba(255,255,255,0.1); color: var(--text-sec); }
-        .status-badge.live { background: var(--live-red); color: #fff; box-shadow: 0 0 10px rgba(255, 42, 42, 0.5); animation: pulse 1.5s infinite; }
-        .status-badge.finished { background: var(--accent); color: var(--bg-dark); }
-        .live-glow { border-color: var(--live-red); box-shadow: 0 0 15px rgba(255, 42, 42, 0.2); }
 
-        /* YOUTUBE BANNER */
-        .yt-banner {
-            margin: 60px 0 40px; background: linear-gradient(135deg, #1f0000, #000);
-            border: 1px solid var(--yt-color); border-radius: 20px; padding: 30px;
-            text-align: center; box-shadow: 0 0 40px rgba(255, 0, 0, 0.15); position: relative; overflow: hidden;
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .yt-banner::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,0,0,0.1) 0%, transparent 60%);
-            animation: pulse 3s infinite;
-        }
-        .yt-icon { font-size: 3.5rem; color: var(--yt-color); margin-bottom: 15px; display: block; }
-        .yt-banner h2 { font-size: 1.8rem; margin: 10px 0; color: #fff; text-shadow: 0 0 20px var(--yt-color); position: relative; }
-        .yt-banner p { color: #ccc; margin-bottom: 25px; position: relative; }
-        .yt-button {
-            display: inline-flex; align-items: center; gap: 10px;
-            background: var(--yt-color); color: #fff; padding: 12px 35px; border-radius: 50px;
-            text-decoration: none; font-weight: 800; font-size: 1rem; transition: 0.3s; position: relative; z-index: 2;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
-        }
-        .yt-button:hover { transform: scale(1.05); background: #cc0000; box-shadow: 0 0 30px rgba(255, 0, 0, 0.7); }
+        .close:hover { color: #fff; }
 
-        /* LOCATION SECTION */
-        .location-section {
-            margin: 60px 0 40px; text-align: center;
+        .result-inputs {
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 10px; 
+            font-size: 1.2em; 
+            font-weight: bold;
+            margin-bottom: 10px;
         }
-        .location-header h2 {
-            font-size: 1.5rem; color: var(--text-main); margin-bottom: 5px;
-        }
-        .location-header h2 i { color: var(--accent); margin-right: 8px; }
-        .location-header p {
-            color: var(--text-sec); margin-bottom: 20px; font-size: 1.1rem;
-        }
-        .map-wrapper {
-            width: 100%; border-radius: 20px; overflow: hidden;
-            border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: 0.3s;
-        }
-        .map-wrapper:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
 
-        /* BUTTONS */
-        .button {
-            display: inline-block; padding: 15px 40px; 
-            background: linear-gradient(45deg, var(--accent), #0088ff); 
-            color: var(--bg-dark); border-radius: 50px; text-decoration: none; font-weight: 800;
-            font-size: 1rem; transition: 0.3s; box-shadow: 0 0 20px var(--accent-glow);
-        }
-        .button:hover { transform: scale(1.05); box-shadow: 0 0 30px var(--accent-glow); }
+        .btn-full { width: 100%; margin-top: 10px; }
+        .btn-small { width: auto; padding: 10px 20px; }
 
-        /* FOOTER */
-        .footer {
-            margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
-            border-top: 1px solid var(--border); width: 100%; background: #070a11; margin-top: 60px;
+        /* --- STYL DLA PRZYCISKU USUWANIA STRZELCA --- */
+        .btn-delete {
+            background-color: #cf2e2e; /* Czerwony */
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.2s;
         }
-        .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
-        .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
+        .btn-delete:hover {
+            background-color: #b30000;
+        }
 
-        #theme-toggle {
-            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
-            border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
-            font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: 0.3s; display: flex; justify-content: center; align-items: center;
-        }
-        #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
-
-        @media (max-width: 768px) {
-            .header { flex-direction: column; gap: 15px; text-align: center; }
-            .header-branding { flex-direction: column; }
-            .stats-summary { grid-template-columns: 1fr; }
-            .match-teams { font-size: 1rem; }
-            .score-display { font-size: 1.1rem; padding: 3px 10px; }
-        }
+        /* Tabela strzelców */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: #aaa; }
+        /* Wycentrowanie kolumny Akcja */
+        th:last-child, td:last-child { text-align: center; }
     </style>
 </head>
+
 <body>
-    <div class="header">
-        <div class="header-branding">
-            <img src="logo.png" alt="Logo" class="header-logo">
-            <h1>PUCHAR GWIAZD</h1>
+
+    <div class="container" id="login-box">
+        <h2 style="text-align: center;">🔐 Logowanie Administratora</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <input id="login-email" type="email" placeholder="Email admina">
+            <input id="login-pass" type="password" placeholder="Hasło">
+            <button id="login-btn">Zaloguj</button>
         </div>
-        <div class="login-links">
-            <a href="captain_panel.html"><i class="fas fa-user-shield"></i> KAPITAN</a>
-            <a href="admin.html"><i class="fas fa-user-cog"></i> ADMIN</a>
-        </div>
+        <div id="login-msg" class="message"></div>
     </div>
 
-    <nav id="main-nav">
-        <a href="index.html" style="background: var(--accent); color: var(--bg-dark);">Strona Główna</a>
-        <a href="druzyny.html">Drużyny</a>
-        <a href="terminarz.html">Terminarz</a>
-        <a href="regulamin.html">Regulamin</a>
-        <a href="tabela.html">Tabele</a>
-        <a href="onas.html">O Nas</a>
-    </nav>
-
-    <section class="content-section">
-        <div class="hero-banner">
-            <h1>WIELKI FINAŁ LIGI</h1>
-            <p>Śledź wyniki na żywo, tabele i statystyki najlepszych drużyn!</p>
-        </div>
+    <div class="panel" id="admin-wrapper" style="display: none;">
         
-        <div id="countdown"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: white;">Panel Zarządzania</h2>
+            <button id="logout-btn" onclick="window.logout()" style="background-color: #d32f2f; width: auto; padding: 8px 15px;">🚪 Wyloguj</button>
+        </div>
 
-        <div class="stats-summary">
-            <div id="upcoming-matches" class="stats-column">
-                <h3><i class="far fa-calendar-alt"></i> NAJBLIŻSZE MECZE</h3>
-                <p class="no-data">Ładowanie...</p>
+        <div class="tabs-header">
+            <button class="tab-button active" onclick="openTab('teams-tab', event)">Drużyny</button>
+            <button class="tab-button" onclick="openTab('players-tab', event)">Zawodnicy</button>
+            <button class="tab-button" onclick="openTab('matches-tab', event)">Mecze</button>
+            <button class="tab-button" onclick="openTab('settings-tab', event)">Ustawienia</button>
+        </div>
+
+        <div id="teams-tab" class="tab-content active">
+            <div class="sub-section">
+                <h3>➕ Dodaj Nową Drużynę</h3>
+                <div class="form-row">
+                    <input id="new-team-name" placeholder="Nazwa drużyny (np. FC Barcelona)" style="flex: 2;">
+                    <input id="new-team-manager" placeholder="Manager (Opcjonalnie)" style="flex: 1;">
+                    <button onclick="window.addTeam()">Dodaj</button>
+                </div>
+            </div>
+
+            <div class="sub-section">
+                <h3>✏️ Edycja i Lista Drużyn</h3>
+                <div class="form-row">
+                    <select id="edit-team-select" style="flex: 1;"><option>Wczytywanie...</option></select>
+                    <input id="edit-team-name" placeholder="Nowa nazwa" style="flex: 1;">
+                    <button onclick="window.updateTeamName()" style="background-color: #ff9800;">Zmień Nazwę</button>
+                </div>
+                <div id="teams-list" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <div id="players-tab" class="tab-content">
+            <div class="sub-section">
+                <h3>👥 Wybierz drużynę</h3>
+                <select id="players-team-select" onchange="window.selectTeamInDropdown()" style="width: 100%; padding: 10px; font-size: 16px;">
+                    <option value="">-- Kliknij, aby wybrać --</option>
+                </select>
+            </div>
+
+            <div id="players-manager-area" style="display: none; margin-top: 20px;">
+                <div class="sub-section" style="border: 1px solid #2196f3; padding: 15px; border-radius: 8px; background: #152036;">
+                    <h4 style="color: #2196f3; margin-top: 0;">Dodaj Zawodnika</h4>
+                    <div class="form-row" id="add-player-form">
+                        <input id="new-p-name" placeholder="Imię" style="flex: 1;">
+                        <input id="new-p-surname" placeholder="Nazwisko" style="flex: 1;">
+                        <input id="new-p-number" type="number" placeholder="Nr" style="width: 60px;">
+                        <input id="new-p-position" placeholder="Poz." style="width: 80px;">
+                        <button onclick="window.addPlayerAdmin()" style="background-color: #4caf50;">Dodaj</button>
+                    </div>
+                </div>
+                <h4 style="margin-top: 20px;">Aktualny Skład:</h4>
+                <div id="team-players-list"></div>
+            </div>
+        </div>
+
+        <div id="matches-tab" class="tab-content">
+            <div class="sub-section">
+                <h3>⚽ Utwórz Mecz</h3>
+                <div class="form-row match-creation-row" id="add-match-form">
+                    <select id="new-match-team1" style="flex: 1;"><option>Drużyna 1</option></select>
+                    <span style="padding: 10px; font-weight: bold; display: flex; align-items: center;">VS</span>
+                    <select id="new-match-team2" style="flex: 1;"><option>Drużyna 2</option></select>
+                    <input id="group" placeholder="Gr." style="width: 60px;">
+                    <input id="new-match-date" type="date">
+                    <input id="new-match-time" type="time">
+                    <button onclick="window.addMatch()" style="background-color: #00bfff;">Utwórz</button>
+                </div>
+            </div>
+
+            <div class="sub-section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>Lista Meczów</h3>
+                    <select id="match-status-filter" style="width: auto;">
+                        <option value="wszyscy">Wszystkie</option>
+                        <option value="planowany">Planowane</option>
+                        <option value="trwa">Na Żywo</option>
+                        <option value="zakończony">Zakończone</option>
+                    </select>
+                </div>
+                <div id="matches-list"></div>
+            </div>
+        </div>
+
+        <div id="settings-tab" class="tab-content">
+            <div class="sub-section">
+                <h3>🛡 Nadaj Uprawnienia Admina</h3>
+                <div class="form-row">
+                    <input id="new-admin-email" type="email" placeholder="Email użytkownika" style="flex: 1;">
+                    <button id="grant-admin-btn">Nadaj</button>
+                </div>
             </div>
             
-            <div id="recent-results" class="stats-column">
-                <h3><i class="fas fa-trophy"></i> OSTATNIE WYNIKI</h3>
-                <p class="no-data">Ładowanie...</p>
+            <div class="sub-section">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>🏆 Zarządzanie Tabelą Strzelców</h3>
+                    <button onclick="window.loadScorersTable()" class="btn-small" style="background: #2196f3; font-size:0.8em;">
+                        <i class="fas fa-sync-alt"></i> Odśwież
+                    </button>
+                </div>
+                <div class="table-wrapper">
+                    <table id="scorers-table">
+                        <thead>
+                            <tr>
+                                <th>Kto</th>
+                                <th>Klub</th>
+                                <th>Gole</th>
+                                <th style="width: 80px; text-align: center;">Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+                <p style="color: #888; font-size: 0.9em; margin-top: 10px;">
+                    <i class="fas fa-info-circle"></i> Usunięcie strzelca tutaj usuwa tylko wpis z globalnej tabeli. Aby usunąć gola z meczu, edytuj konkretny mecz w zakładce "Mecze".
+                </p>
             </div>
-        </div>
-        
-        <div style="text-align: center; margin-bottom: 40px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-            <a href="terminarz.html" class="button">PEŁNY TERMINARZ</a>
-            <a href="tabela.html" class="button" style="background: transparent; border: 1px solid var(--accent); color: var(--accent); box-shadow: none;">TABELE GRUP</a>
-        </div>
-
-        <div class="yt-banner">
-            <i class="fab fa-youtube yt-icon"></i>
-            <h2>TRANSMISJA LIVE</h2>
-            <p>Oglądaj mecze Pucharu Gwiazd na żywo na naszym kanale!</p>
-            <a href="https://www.youtube.com/@PucharGwiazd/videos" target="_blank" class="yt-button">
-                <i class="fas fa-play"></i> PRZEJDŹ DO KANAŁU
-            </a>
-        </div>
-
-        <div class="location-section">
-            <div class="location-header">
-                <h2><i class="fas fa-map-marked-alt"></i> MIEJSCE TURNIEJU</h2>
-                <p>Hala sportowa w Górznie, powiat Mazowiecki</p>
             </div>
-            <div class="map-wrapper">
-                <iframe 
-                    width="100%" 
-                    height="400" 
-                    frameborder="0" 
-                    scrolling="no" 
-                    marginheight="0" 
-                    marginwidth="0" 
-                    src="https://maps.google.com/maps?q=Hala+Sportowa+Górzno+08-404&t=&z=14&ie=UTF8&iwloc=&output=embed">
-                </iframe>
-            </div>
-        </div>
 
-    </section>
-
-    <div class="footer">
-        <div class="social-media-links">
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="https://www.youtube.com/@PucharGwiazd/videos" target="_blank"><i class="fab fa-youtube"></i></a>
-        </div>
-        <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
     </div>
 
-    <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="window.closeEditModal()">&times;</span>
+            <h3 style="margin-top: 0; text-align: center; color: #2196f3;">Edycja Meczu</h3>
+            
+            <div class="modal-section">
+                <h4 style="text-align: center;">Wynik</h4>
+                <div class="result-inputs">
+                    <span id="edit-match-team1-name" style="flex: 1; text-align: right;">A</span>
+                    <input type="number" id="edit-score1" style="width:60px; text-align:center;">
+                    <span>:</span>
+                    <input type="number" id="edit-score2" style="width:60px; text-align:center;">
+                    <span id="edit-match-team2-name" style="flex: 1; text-align: left;">B</span>
+                </div>
+                <button class="btn btn-full" onclick="window.saveMatchResult()" style="background: #2196f3;">Zapisz Wynik Ręcznie</button>
+            </div>
+
+            <div class="modal-section" style="border-bottom: none;">
+                <h4>Dodaj Gola</h4>
+                <div id="add-scorer-form" class="form-row">
+                    <select id="scorer-team-select" style="flex: 2;"></select>
+                    <select id="scorer-player-select" style="flex: 3;"></select>
+                    <input type="number" id="scorer-minute" placeholder="Min" style="width:50px;">
+                    <button class="btn btn-small" onclick="window.addScorer()" style="background: #4caf50;">+</button>
+                </div>
+                
+                <h4>Lista bramek w tym meczu:</h4>
+                <div id="scorers-edit-list" style="max-height: 150px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js" type="module"></script> 
+
+    <script>
+        function openTab(tabId, event) {
+            var contents = document.getElementsByClassName('tab-content');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].style.display = 'none';
+                contents[i].classList.remove('active');
+            }
+            var buttons = document.getElementsByClassName('tab-button');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            var selected = document.getElementById(tabId);
+            if (selected) {
+                selected.style.display = 'block';
+                selected.classList.add('active');
+            }
+            if (event) {
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+             var firstTab = document.getElementById('teams-tab');
+             if(firstTab) {
+                 firstTab.style.display = 'block';
+                 firstTab.classList.add('active');
+             }
+        });
+    </script>
 </body>
 </html>
