@@ -43,16 +43,13 @@
         }
 
         // --- NOWA FUNKCJA POMOCNICZA DO DATY ---
-        // Łączy datę i godzinę, żeby poprawnie sortować
         function getMatchDateTime(match) {
-            if (!match.date) return new Date(9999, 0, 1); // Brak daty -> na koniec
+            if (!match.date) return new Date(9999, 0, 1);
             
-            // Jeśli data to tekst "2025-12-14"
             if (typeof match.date === 'string') {
                 const timeStr = match.time || "00:00";
                 return new Date(`${match.date}T${timeStr}`);
             }
-            // Jeśli to Timestamp Firebase
             if (match.date.seconds) {
                 return new Date(match.date.seconds * 1000);
             }
@@ -60,7 +57,7 @@
         }
 
         function listenForMatches() {
-            const q = query(collection(db, PATH_MATCHES)); // Pobieramy wszystko, sortujemy w JS dla pewności
+            const q = query(collection(db, PATH_MATCHES));
 
             onSnapshot(q, (snapshot) => {
                 const upcomingContainer = document.getElementById('upcoming-matches');
@@ -75,7 +72,6 @@
                     return;
                 }
 
-                // 1. Podział na kategorie
                 let liveMatches = [];
                 let upcomingMatches = [];
                 let finishedMatches = [];
@@ -93,25 +89,16 @@
                     }
                 });
 
-                // 2. SORTOWANIE (To naprawia Twój problem)
-                
-                // Nadchodzące: Sortujemy ROSNĄCO (od najbliższej daty i godziny)
                 upcomingMatches.sort((a, b) => getMatchDateTime(a) - getMatchDateTime(b));
-
-                // Zakończone: Sortujemy MALEJĄCO (od najnowszej daty i godziny - te co skończyły się przed chwilą)
                 finishedMatches.sort((a, b) => getMatchDateTime(b) - getMatchDateTime(a));
 
-
-                // 3. Wybieranie do wyświetlenia
                 const liveDisplay = liveMatches.slice(0, 1);
-                const upcomingDisplay = upcomingMatches.slice(0, 2); // Teraz weźmie 2 faktycznie najbliższe
+                const upcomingDisplay = upcomingMatches.slice(0, 2);
                 const finishedDisplay = finishedMatches.slice(0, 2);
 
-                // 4. Renderowanie
                 let hasLeftContent = false;
                 let hasRightContent = false;
 
-                // Lewa kolumna: LIVE + UPCOMING
                 liveDisplay.forEach(m => {
                     upcomingContainer.innerHTML += renderMatchItem(m);
                     hasLeftContent = true;
@@ -121,13 +108,11 @@
                     hasLeftContent = true;
                 });
 
-                // Prawa kolumna: FINISHED
                 finishedDisplay.forEach(m => {
                     recentContainer.innerHTML += renderMatchItem(m);
                     hasRightContent = true;
                 });
 
-                // Obsługa pustych stanów
                 if (!hasLeftContent) upcomingContainer.innerHTML += '<p class="no-data">Brak nadchodzących spotkań.</p>';
                 if (!hasRightContent) recentContainer.innerHTML += '<p class="no-data">Brak zakończonych meczów.</p>';
                 
@@ -154,16 +139,13 @@
                 score = `${match.goalsA} : ${match.goalsB}`;
             }
 
-            // Konwersja daty
             let dateDisplay = '';
             if (match.date) {
                 if (typeof match.date === 'string') {
-                    // Obsługa formatu YYYY-MM-DD
                     const d = new Date(match.date);
                     const day = String(d.getDate()).padStart(2, '0');
                     const month = String(d.getMonth() + 1).padStart(2, '0');
                     dateDisplay = `${day}.${month}`;
-                    // Doklejamy godzinę
                     if(match.time) dateDisplay += ` ${match.time}`;
                 } else if (match.date.seconds) {
                     dateDisplay = new Date(match.date.seconds * 1000).toLocaleString([], {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
@@ -185,7 +167,6 @@
             `;
         }
         
-        // 3. ODLICZANIE - Data: 14 Grudnia 2025, 12:00
         function startCountdown() {
             const targetDate = new Date(2025, 11, 14, 12, 0, 0); 
             const el = document.getElementById('countdown');
@@ -241,6 +222,7 @@
             --text-main: #ffffff;
             --text-sec: #a0aec0;
             --border: #1f2a40;
+            --yt-color: #FF0000;      /* Kolor YouTube */
         }
 
         body {
@@ -255,7 +237,7 @@
 
         /* HEADER */
         .header {
-            width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
+            width: 100%; max-width: 1000px; padding: 15px 25px; margin-top: 20px;
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(19, 26, 42, 0.8);
             backdrop-filter: blur(10px);
@@ -264,6 +246,24 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             z-index: 10;
         }
+
+        /* Kontener dla LOGO i TYTUŁU */
+        .header-branding {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            height: 50px;
+            width: auto;
+            filter: drop-shadow(0 0 5px var(--accent-glow));
+            transition: transform 0.3s;
+        }
+        .header-logo:hover {
+            transform: scale(1.1);
+        }
+
         .header h1 {
             font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 0;
             background: linear-gradient(90deg, #fff, var(--accent));
@@ -357,6 +357,37 @@
         
         .live-glow { border-color: var(--live-red); box-shadow: 0 0 15px rgba(255, 42, 42, 0.2); }
 
+        /* NOWA SEKCJA YOUTUBE */
+        .yt-banner {
+            margin: 60px 0 40px;
+            background: linear-gradient(135deg, #1f0000, #000);
+            border: 1px solid var(--yt-color);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .yt-banner::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,0,0,0.1) 0%, transparent 60%);
+            animation: pulse 3s infinite;
+        }
+        .yt-icon { font-size: 3.5rem; color: var(--yt-color); margin-bottom: 15px; display: block; }
+        .yt-banner h2 { font-size: 1.8rem; margin: 10px 0; color: #fff; text-shadow: 0 0 20px var(--yt-color); position: relative; }
+        .yt-banner p { color: #ccc; margin-bottom: 25px; position: relative; }
+        
+        .yt-button {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: var(--yt-color); color: #fff;
+            padding: 12px 35px; border-radius: 50px;
+            text-decoration: none; font-weight: 800; font-size: 1rem;
+            transition: 0.3s; position: relative; z-index: 2;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+        }
+        .yt-button:hover { transform: scale(1.05); background: #cc0000; box-shadow: 0 0 30px rgba(255, 0, 0, 0.7); }
+
         /* BUTTONS */
         .button {
             display: inline-block; padding: 15px 40px; 
@@ -384,6 +415,7 @@
 
         @media (max-width: 768px) {
             .header { flex-direction: column; gap: 15px; text-align: center; }
+            .header-branding { flex-direction: column; } /* Logo nad tekstem na telefonie */
             .stats-summary { grid-template-columns: 1fr; }
             .match-teams { font-size: 1rem; }
             .score-display { font-size: 1.1rem; padding: 3px 10px; }
@@ -392,7 +424,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>PUCHAR GWIAZD</h1>
+        <div class="header-branding">
+            <img src="logo.png" alt="Logo Puchar Gwiazd" class="header-logo">
+            <h1>PUCHAR GWIAZD</h1>
+        </div>
+        
         <div class="login-links">
             <a href="captain_panel.html"><i class="fas fa-user-shield"></i> KAPITAN</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> ADMIN</a>
@@ -428,16 +464,27 @@
             </div>
         </div>
         
-        <div style="text-align: center; margin-bottom: 60px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        <div style="text-align: center; margin-bottom: 40px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
             <a href="terminarz.html" class="button">PEŁNY TERMINARZ</a>
             <a href="tabela.html" class="button" style="background: transparent; border: 1px solid var(--accent); color: var(--accent); box-shadow: none;">TABELE GRUP</a>
         </div>
+
+        <div class="yt-banner">
+            <i class="fab fa-youtube yt-icon"></i>
+            <h2>TRANSMISJA LIVE</h2>
+            <p>Oglądaj mecze Pucharu Gwiazd na żywo na naszym kanale!</p>
+            <a href="https://www.youtube.com/@PucharGwiazd/videos" target="_blank" class="yt-button">
+                <i class="fas fa-play"></i> PRZEJDŹ DO KANAŁU
+            </a>
+        </div>
+
     </section>
 
     <div class="footer">
         <div class="social-media-links">
             <a href="#"><i class="fab fa-tiktok"></i></a>
             <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.youtube.com/@PucharGwiazd/videos" target="_blank"><i class="fab fa-youtube"></i></a>
         </div>
         <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
     </div>
@@ -445,4 +492,3 @@
     <button id="theme-toggle"><i class="fas fa-moon"></i></button>
 </body>
 </html>
-
