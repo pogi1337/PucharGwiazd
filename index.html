@@ -42,10 +42,8 @@
             }
         }
 
-        // --- NOWA FUNKCJA POMOCNICZA DO DATY ---
         function getMatchDateTime(match) {
             if (!match.date) return new Date(9999, 0, 1);
-            
             if (typeof match.date === 'string') {
                 const timeStr = match.time || "00:00";
                 return new Date(`${match.date}T${timeStr}`);
@@ -170,7 +168,6 @@
         function startCountdown() {
             const targetDate = new Date(2025, 11, 14, 12, 0, 0); 
             const el = document.getElementById('countdown');
-            
             if (!el) return;
 
             const updateTimer = () => {
@@ -181,7 +178,6 @@
                     el.innerHTML = '<div class="started">TURNIEJ TRWA!</div>';
                     return;
                 }
-
                 const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -194,13 +190,11 @@
                     <div class="timer-box"><span class="val">${s}</span><span class="label">SEK</span></div>
                 `;
             };
-            
             updateTimer();
             setInterval(updateTimer, 1000);
         }
 
         window.addEventListener('load', initApp);
-        
         document.getElementById('theme-toggle').addEventListener('click', () => {
             alert("Motyw nocny jest domyślny!");
         });
@@ -211,18 +205,18 @@
     
     <style>
         /* =========================================
-           NOWOCZESNY STYL - NEONOWY GRANAT
+           STYLE - NEONOWY GRANAT
            ========================================= */
         :root {
-            --bg-dark: #0a0e17;       /* Bardzo ciemny granat */
-            --bg-card: #131a2a;       /* Trochę jaśniejszy */
-            --accent: #00d4ff;        /* Neonowy błękit */
+            --bg-dark: #0a0e17;
+            --bg-card: #131a2a;
+            --accent: #00d4ff;
             --accent-glow: rgba(0, 212, 255, 0.4);
             --live-red: #ff2a2a;
             --text-main: #ffffff;
             --text-sec: #a0aec0;
             --border: #1f2a40;
-            --yt-color: #FF0000;      /* Kolor YouTube */
+            --yt-color: #FF0000;
         }
 
         body {
@@ -247,22 +241,14 @@
             z-index: 10;
         }
 
-        /* Kontener dla LOGO i TYTUŁU */
         .header-branding {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            display: flex; align-items: center; gap: 15px;
         }
-
         .header-logo {
-            height: 50px;
-            width: auto;
-            filter: drop-shadow(0 0 5px var(--accent-glow));
+            height: 50px; width: auto; filter: drop-shadow(0 0 5px var(--accent-glow));
             transition: transform 0.3s;
         }
-        .header-logo:hover {
-            transform: scale(1.1);
-        }
+        .header-logo:hover { transform: scale(1.1); }
 
         .header h1 {
             font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 0;
@@ -303,9 +289,7 @@
         .hero-banner p { color: var(--text-sec); font-size: 1.1rem; }
 
         /* ODLICZANIE */
-        #countdown {
-            display: flex; justify-content: center; gap: 15px; margin-bottom: 50px;
-        }
+        #countdown { display: flex; justify-content: center; gap: 15px; margin-bottom: 50px; }
         .timer-box {
             background: var(--bg-card); border: 1px solid var(--border);
             padding: 15px; border-radius: 12px; min-width: 80px; text-align: center;
@@ -315,7 +299,7 @@
         .timer-box .label { font-size: 0.7rem; color: var(--text-sec); letter-spacing: 1px; font-weight: 600; }
         .started { font-size: 2rem; font-weight: 800; color: var(--live-red); animation: pulse 1s infinite; }
 
-        /* SEKCJJA MECZÓW */
+        /* SEKCJE MECZOWE */
         .stats-summary { 
             display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
             gap: 30px; margin-bottom: 50px; 
@@ -326,14 +310,13 @@
         }
         .stats-column h3 i { color: var(--accent); margin-right: 10px; }
 
-        /* KARTA MECZU */
+        /* KARTY */
         .match-item {
             background: var(--bg-card); border: 1px solid var(--border);
             border-radius: 12px; padding: 15px; margin-bottom: 15px;
             transition: 0.3s; position: relative; overflow: hidden;
         }
         .match-item:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-        
         .match-teams {
             display: flex; justify-content: space-between; align-items: center;
             font-weight: 700; font-size: 1.1rem; margin-bottom: 10px;
@@ -342,32 +325,23 @@
             background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 8px;
             color: var(--accent); font-size: 1.3rem; letter-spacing: 2px;
         }
-        
         .match-meta {
             display: flex; justify-content: space-between; align-items: center;
             font-size: 0.8rem; color: var(--text-sec); border-top: 1px dashed var(--border); padding-top: 10px;
         }
-        
         .status-badge {
             padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase;
         }
         .status-badge.scheduled { background: rgba(255,255,255,0.1); color: var(--text-sec); }
         .status-badge.live { background: var(--live-red); color: #fff; box-shadow: 0 0 10px rgba(255, 42, 42, 0.5); animation: pulse 1.5s infinite; }
         .status-badge.finished { background: var(--accent); color: var(--bg-dark); }
-        
         .live-glow { border-color: var(--live-red); box-shadow: 0 0 15px rgba(255, 42, 42, 0.2); }
 
-        /* NOWA SEKCJA YOUTUBE */
+        /* YOUTUBE BANNER */
         .yt-banner {
-            margin: 60px 0 40px;
-            background: linear-gradient(135deg, #1f0000, #000);
-            border: 1px solid var(--yt-color);
-            border-radius: 20px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 0 40px rgba(255, 0, 0, 0.15);
-            position: relative;
-            overflow: hidden;
+            margin: 60px 0 40px; background: linear-gradient(135deg, #1f0000, #000);
+            border: 1px solid var(--yt-color); border-radius: 20px; padding: 30px;
+            text-align: center; box-shadow: 0 0 40px rgba(255, 0, 0, 0.15); position: relative; overflow: hidden;
         }
         .yt-banner::before {
             content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
@@ -377,16 +351,34 @@
         .yt-icon { font-size: 3.5rem; color: var(--yt-color); margin-bottom: 15px; display: block; }
         .yt-banner h2 { font-size: 1.8rem; margin: 10px 0; color: #fff; text-shadow: 0 0 20px var(--yt-color); position: relative; }
         .yt-banner p { color: #ccc; margin-bottom: 25px; position: relative; }
-        
         .yt-button {
             display: inline-flex; align-items: center; gap: 10px;
-            background: var(--yt-color); color: #fff;
-            padding: 12px 35px; border-radius: 50px;
-            text-decoration: none; font-weight: 800; font-size: 1rem;
-            transition: 0.3s; position: relative; z-index: 2;
+            background: var(--yt-color); color: #fff; padding: 12px 35px; border-radius: 50px;
+            text-decoration: none; font-weight: 800; font-size: 1rem; transition: 0.3s; position: relative; z-index: 2;
             box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
         }
         .yt-button:hover { transform: scale(1.05); background: #cc0000; box-shadow: 0 0 30px rgba(255, 0, 0, 0.7); }
+
+        /* LOCATION SECTION */
+        .location-section {
+            margin: 60px 0 40px; text-align: center; width: 100%;
+        }
+        .location-header h2 {
+            font-size: 1.5rem; color: var(--text-main); margin-bottom: 5px;
+        }
+        .location-header h2 i { color: var(--accent); margin-right: 8px; }
+        .location-header p {
+            color: var(--text-sec); margin-bottom: 20px; font-size: 1.1rem;
+        }
+        .map-wrapper {
+            width: 100%; border-radius: 20px; overflow: hidden;
+            border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: 0.3s; height: 400px;
+        }
+        .map-wrapper:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+        .map-wrapper iframe {
+            width: 100%; height: 100%; border: 0;
+        }
 
         /* BUTTONS */
         .button {
@@ -415,20 +407,20 @@
 
         @media (max-width: 768px) {
             .header { flex-direction: column; gap: 15px; text-align: center; }
-            .header-branding { flex-direction: column; } /* Logo nad tekstem na telefonie */
+            .header-branding { flex-direction: column; }
             .stats-summary { grid-template-columns: 1fr; }
             .match-teams { font-size: 1rem; }
             .score-display { font-size: 1.1rem; padding: 3px 10px; }
+            .map-wrapper { height: 300px; }
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-branding">
-            <img src="logo.png" alt="Logo Puchar Gwiazd" class="header-logo">
+            <img src="logo.png" alt="Logo" class="header-logo">
             <h1>PUCHAR GWIAZD</h1>
         </div>
-        
         <div class="login-links">
             <a href="captain_panel.html"><i class="fas fa-user-shield"></i> KAPITAN</a>
             <a href="admin.html"><i class="fas fa-user-cog"></i> ADMIN</a>
@@ -476,6 +468,19 @@
             <a href="https://www.youtube.com/@PucharGwiazd/videos" target="_blank" class="yt-button">
                 <i class="fas fa-play"></i> PRZEJDŹ DO KANAŁU
             </a>
+        </div>
+
+        <div class="location-section">
+            <div class="location-header">
+                <h2><i class="fas fa-map-marked-alt"></i> MIEJSCE TURNIEJU</h2>
+                <p>Hala sportowa w Górznie, powiat Mazowiecki (08-404)</p>
+            </div>
+            <div class="map-wrapper">
+                <iframe 
+                    src="https://maps.google.com/maps?q=Hala+Sportowa+Górzno+08-404&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                    allowfullscreen>
+                </iframe>
+            </div>
         </div>
 
     </section>
