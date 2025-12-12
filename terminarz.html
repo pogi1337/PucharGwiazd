@@ -55,7 +55,8 @@
 
         // --- NASŁUCHIWANIE DANYCH ---
         function listenForMatches() {
-            const q = query(collection(db, 'matches'), orderBy('date', 'asc'));
+            // Pobieramy wszystko, a sortujemy w JS, żeby uniknąć problemów z indeksami
+            const q = query(collection(db, 'matches'));
 
             onSnapshot(q, (snapshot) => {
                 const groupAContainer = document.getElementById('list-group-a');
@@ -77,11 +78,14 @@
 
                 snapshot.forEach(doc => {
                     const m = doc.data();
-                    if (m.group === 'A') matchesA.push(m);
-                    else if (m.group === 'B') matchesB.push(m);
-                    else if (m.group === 'C') matchesC.push(m);
-                    else if (m.group === 'D') matchesD.push(m);
-                    else matchesKnockout.push(m);
+                    // Zabezpieczenie przed brakiem pola group
+                    const group = m.group ? m.group.toString().toUpperCase() : 'INNE';
+
+                    if (group === 'A') matchesA.push(m);
+                    else if (group === 'B') matchesB.push(m);
+                    else if (group === 'C') matchesC.push(m);
+                    else if (group === 'D') matchesD.push(m);
+                    else matchesKnockout.push(m); // Wszystko co nie ma grupy A-D idzie do pucharowej lub "inne"
                 });
 
                 // 2. Sortowanie po dacie i godzinie
@@ -98,15 +102,24 @@
                 groupBContainer.innerHTML = matchesB.map(m => renderMatchCard(m)).join('');
                 groupCContainer.innerHTML = matchesC.map(m => renderMatchCard(m)).join('');
                 groupDContainer.innerHTML = matchesD.map(m => renderMatchCard(m)).join('');
-                knockoutContainer.innerHTML = matchesKnockout.map(m => renderMatchCard(m)).join('');
+                
+                if (matchesKnockout.length > 0) {
+                    knockoutContainer.innerHTML = matchesKnockout.map(m => renderMatchCard(m)).join('');
+                } else {
+                    knockoutContainer.innerHTML = '<p class="no-data">Faza pucharowa jeszcze się nie rozpoczęła.</p>';
+                }
             });
         }
 
-        // --- RENDEROWANIE KARTY MECZU ---
+        // --- RENDEROWANIE KARTY MECZU (NAPRAWIONE "UNDEFINED") ---
         function renderMatchCard(match) {
-            const status = match.status ? match.status.toLowerCase() : 'scheduled';
-            const isLive = status === 'live' || status === 'trwa';
-            const isFinished = status === 'finished' || status === 'zakończony';
+            // Normalizacja statusu
+            let rawStatus = match.status || 'scheduled';
+            rawStatus = rawStatus.toLowerCase();
+            
+            // Mapowanie statusów (angielski z bazy -> polski widok)
+            const isLive = rawStatus === 'live' || rawStatus === 'trwa';
+            const isFinished = rawStatus === 'finished' || rawStatus === 'zakończony';
             
             let statusBadge = `<span class="status-badge scheduled">PLAN</span>`;
             let scoreClass = '';
@@ -118,6 +131,7 @@
                 statusBadge = `<span class="status-badge finished">KONIEC</span>`;
             }
 
+            // Formatowanie daty
             let dateDisplay = 'TBA';
             if (match.date) {
                 if (typeof match.date === 'string') {
@@ -132,6 +146,26 @@
                 }
             }
 
+            // Nazwy drużyn (obsługa obu formatów nazw pól w bazie)
+            const teamA = match.teamA || match.team1Name || "Drużyna A";
+            const teamB = match.teamB || match.team2Name || "Drużyna B";
+
+            // --- NAPRAWA "UNDEFINED" W WYNIKU ---
+            // Sprawdzamy czy goalsA/goalsB istnieją. Jeśli nie, sprawdzamy score1/score2. 
+            // Jeśli nadal nic nie ma (null lub undefined), wstawiamy myślnik '-'.
+            // Ważne: 0 jest poprawnym wynikiem, więc używamy (val !== undefined && val !== null)
+            
+            let scoreA = '-';
+            let scoreB = '-';
+
+            if (match.goalsA !== undefined && match.goalsA !== null) scoreA = match.goalsA;
+            else if (match.score1 !== undefined && match.score1 !== null) scoreA = match.score1;
+
+            if (match.goalsB !== undefined && match.goalsB !== null) scoreB = match.goalsB;
+            else if (match.score2 !== undefined && match.score2 !== null) scoreB = match.score2;
+
+
+            // Etykieta fazy (ćwierćfinał itp.)
             let stageLabel = '';
             if (match.stage && match.stage !== 'group') {
                 const stageNames = {
@@ -144,9 +178,6 @@
                 stageLabel = `<div class="stage-label">${labelText}</div>`;
             }
 
-            const scoreA = (match.goalsA !== undefined && match.goalsA !== null) ? match.goalsA : '-';
-            const scoreB = (match.goalsB !== undefined && match.goalsB !== null) ? match.goalsB : '-';
-
             return `
                 <div class="match-card ${isLive ? 'card-live' : ''} ${match.stage === 'final' ? 'card-final' : ''}">
                     ${stageLabel}
@@ -156,13 +187,13 @@
                     </div>
                     <div class="mc-content">
                         <div class="mc-team home">
-                            <span class="t-name">${match.teamA}</span>
+                            <span class="t-name">${teamA}</span>
                             <span class="t-score ${scoreClass}">${scoreA}</span>
                         </div>
                         <div class="mc-vs">vs</div>
                         <div class="mc-team away">
                             <span class="t-score ${scoreClass}">${scoreB}</span>
-                            <span class="t-name">${match.teamB}</span>
+                            <span class="t-name">${teamB}</span>
                         </div>
                     </div>
                 </div>
@@ -483,4 +514,3 @@
     </button>
 </body>
 </html>
-
