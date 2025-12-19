@@ -1,4 +1,4 @@
-// admin.js - WERSJA FINALNA (GRUPY + STRZELCY + NAPRAWA BAZY)
+// admin.js - WERSJA ZABEZPIECZONA (WHITELIST)
 
 // ===================================================================
 // 1. KONFIGURACJA FIREBASE
@@ -26,35 +26,70 @@ const db = firebase.firestore();
 let currentMatchId = null;
 
 // ===================================================================
-// 2. LOGOWANIE I AUTORYZACJA
+// 2. LOGOWANIE I AUTORYZACJA (ZABEZPIECZENIE)
 // ===================================================================
 
-auth.onAuthStateChanged(user => {
-    if (user) {
-        console.log("Zalogowano:", user.email);
-        document.getElementById('login-box').style.display = 'none';
-        document.getElementById('admin-wrapper').style.display = 'block';
-        
-        // Ładowanie danych po zalogowaniu
-        loadTeamsForSelects();
-        loadMatches();
-        loadScorersTable();
-    } else {
-        document.getElementById('login-box').style.display = 'block';
-        document.getElementById('admin-wrapper').style.display = 'none';
+// LISTA DOZWOLONYCH ADMINÓW
+const ALLOWED_ADMINS = [
+    "kacpernwm77@gmail.com",
+    "krzysztof.lodzinski@interia.pl"
+];
+
+// Czekamy na załadowanie HTML, żeby podpiąć przycisk logowania
+document.addEventListener('DOMContentLoaded', () => {
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            const msg = document.getElementById('login-msg');
+
+            msg.textContent = "Logowanie...";
+            msg.className = "message";
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .catch(error => {
+                    msg.textContent = "Błąd: " + error.message;
+                    msg.className = "message error";
+                });
+        });
     }
 });
 
-document.getElementById('login-btn').addEventListener('click', () => {
-    const email = document.getElementById('login-email').value;
-    const pass = document.getElementById('login-pass').value;
-    const msg = document.getElementById('login-msg');
+// Główna funkcja sprawdzająca uprawnienia
+auth.onAuthStateChanged(user => {
+    const loginBox = document.getElementById('login-box');
+    const adminWrapper = document.getElementById('admin-wrapper');
 
-    auth.signInWithEmailAndPassword(email, pass)
-        .catch(error => {
-            msg.textContent = "Błąd: " + error.message;
-            msg.className = "message error";
-        });
+    if (user) {
+        // SPRAWDZENIE CZY EMAIL JEST NA LIŚCIE
+        if (ALLOWED_ADMINS.includes(user.email)) {
+            console.log("Zalogowano Admina:", user.email);
+            
+            if(loginBox) loginBox.style.display = 'none';
+            if(adminWrapper) adminWrapper.style.display = 'block';
+            
+            // Ładowanie danych (z małym opóźnieniem dla pewności)
+            setTimeout(() => {
+                if(window.loadTeamsForSelects) loadTeamsForSelects();
+                if(window.loadMatches) loadMatches();
+                if(window.loadScorersTable) loadScorersTable();
+            }, 100);
+
+        } else {
+            // Zalogowany, ale nie ma go na liście -> WYRZUĆ
+            console.warn("Próba nieautoryzowanego wejścia:", user.email);
+            alert("Brak uprawnień administratora dla konta: " + user.email);
+            auth.signOut(); // Wyloguj natychmiast
+            
+            if(loginBox) loginBox.style.display = 'block';
+            if(adminWrapper) adminWrapper.style.display = 'none';
+        }
+    } else {
+        // Nikt nie jest zalogowany
+        if(loginBox) loginBox.style.display = 'block';
+        if(adminWrapper) adminWrapper.style.display = 'none';
+    }
 });
 
 window.logout = () => {
@@ -83,11 +118,11 @@ window.addTeam = async () => {
         loadTeamsForSelects();
     } catch (e) {
         console.error(e);
-        alert("Błąd dodawania drużyny");
+        alert("Błąd dodawania drużyny: " + e.message);
     }
 };
 
-async function loadTeamsForSelects() {
+window.loadTeamsForSelects = async () => {
     const snapshot = await db.collection('teams').orderBy('name').get();
     
     const ids = ['edit-team-select', 'players-team-select', 'new-match-team1', 'new-match-team2'];
@@ -113,7 +148,7 @@ async function loadTeamsForSelects() {
             teamsListDiv.innerHTML += `<div style="padding:5px; border-bottom:1px solid #333;">${team.name} <small>(${team.manager || '-'})</small></div>`;
         }
     });
-}
+};
 
 window.updateTeamName = async () => {
     const teamId = document.getElementById('edit-team-select').value;
@@ -164,7 +199,7 @@ window.addPlayerAdmin = async () => {
     }
 };
 
-async function loadTeamPlayers(teamId) {
+window.loadTeamPlayers = async (teamId) => {
     const listDiv = document.getElementById('team-players-list');
     listDiv.innerHTML = "Ładowanie...";
     
@@ -182,16 +217,16 @@ async function loadTeamPlayers(teamId) {
             </div>
         `;
     });
-}
+};
 
 window.deletePlayer = async (teamId, playerId) => {
     if(!confirm("Usunąć zawodnika?")) return;
     await db.collection('teams').doc(teamId).collection('players').doc(playerId).delete();
-    loadTeamPlayers(teamId);
+    window.loadTeamPlayers(teamId);
 };
 
 // ===================================================================
-// 5. ZARZĄDZANIE MECZAMI (SORTOWANIE PO GRUPACH)
+// 5. ZARZĄDZANIE MECZAMI
 // ===================================================================
 
 window.addMatch = async () => {
@@ -208,15 +243,14 @@ window.addMatch = async () => {
     if (t1 === t2) return alert("Drużyny muszą być różne.");
 
     try {
-        // Zapisujemy używając kluczy zgodnych z Twoją bazą (teamA, goalsA, scheduled)
         await db.collection('matches').add({
             team1Id: t1, team2Id: t2,
-            teamA: t1Name, teamB: t2Name, // Format bazy
-            goalsA: 0, goalsB: 0,         // Format bazy
+            teamA: t1Name, teamB: t2Name,
+            goalsA: 0, goalsB: 0,
             group: group,
             date: date,
             time: time,
-            status: "scheduled",          // Format bazy (angielski)
+            status: "scheduled",
             timestamp: new Date(date + 'T' + time).getTime()
         });
         alert("Utworzono mecz.");
@@ -233,13 +267,8 @@ window.loadMatches = async () => {
     
     container.innerHTML = "Ładowanie i sortowanie...";
 
-    // 1. Pobieramy WSZYSTKIE mecze (bez filtrowania w bazie, by uniknąć błędów indeksów)
     let query = db.collection('matches');
-    
-    // Próbujemy sortować, ale łapiemy błąd jeśli brak indeksu
-    try {
-        query = query.orderBy('date', 'asc'); 
-    } catch (e) {}
+    try { query = query.orderBy('date', 'asc'); } catch (e) {}
 
     try {
         const snapshot = await query.get();
@@ -254,16 +283,11 @@ window.loadMatches = async () => {
 
         snapshot.forEach(doc => {
             const m = doc.data();
-            
-            // --- CZYTANIE PÓL (twoje "scheduled" i "teamA") ---
-            
             const t1Name = m.teamA || m.team1Name || "Drużyna A";
             const t2Name = m.teamB || m.team2Name || "Drużyna B";
-
             let s1 = (m.goalsA !== undefined) ? m.goalsA : (m.score1 || 0);
             let s2 = (m.goalsB !== undefined) ? m.goalsB : (m.score2 || 0);
 
-            // Tłumaczenie statusu (scheduled -> planowany)
             let rawStatus = m.status || 'planowany';
             let displayStatus = 'planowany';
             
@@ -273,21 +297,16 @@ window.loadMatches = async () => {
 
             const dateStr = m.date || '---';
             const timeStr = m.time || '--:--';
-            // Ważne: Jeśli brak grupy, wpisujemy 'Bez Grupy', żeby sortowanie działało
             const groupName = m.group ? m.group.toString().toUpperCase() : 'INNE';
 
             matchesData.push({
                 id: doc.id,
-                t1Name, t2Name,
-                s1, s2,
-                displayStatus,
-                rawStatus, // potrzebne do togglowania statusu w bazie
-                dateStr, timeStr,
-                group: groupName
+                t1Name, t2Name, s1, s2,
+                displayStatus, rawStatus,
+                dateStr, timeStr, group: groupName
             });
         });
 
-        // 2. Filtrowanie w przeglądarce
         if (filter !== "wszyscy") {
             matchesData = matchesData.filter(m => m.displayStatus === filter);
         }
@@ -297,28 +316,22 @@ window.loadMatches = async () => {
             return;
         }
 
-        // 3. SORTOWANIE (Grupa -> Data -> Godzina)
         matchesData.sort((a, b) => {
             if (a.group < b.group) return -1;
             if (a.group > b.group) return 1;
             if (a.dateStr < b.dateStr) return -1;
             if (a.dateStr > b.dateStr) return 1;
-            if (a.timeStr < b.timeStr) return -1;
-            if (a.timeStr > b.timeStr) return 1;
             return 0;
         });
 
-        // 4. WYŚWIETLANIE Z NAGŁÓWKAMI GRUP
         let lastGroup = null;
 
         matchesData.forEach(match => {
-            // Nagłówek grupy
             if (match.group !== lastGroup) {
                 container.innerHTML += `<h3 style="border-bottom: 2px solid #2196f3; padding-bottom: 5px; margin-top: 25px; color: #2196f3;">GRUPA ${match.group}</h3>`;
                 lastGroup = match.group;
             }
 
-            // Kolory
             let statusColor = '#888'; 
             if (match.displayStatus === 'trwa') statusColor = '#4caf50'; 
             if (match.displayStatus === 'zakończony') statusColor = '#f44336'; 
@@ -370,7 +383,6 @@ window.deleteMatch = async (id) => {
 };
 
 window.toggleMatchStatus = async (id, currentRaw) => {
-    // Cykl statusów (na podstawie angielskich nazw w bazie)
     let newStatus = 'scheduled';
     if (currentRaw === 'scheduled' || currentRaw === 'planowany') newStatus = 'live';
     else if (currentRaw === 'live' || currentRaw === 'trwa') newStatus = 'finished';
@@ -426,7 +438,6 @@ window.saveMatchResult = async () => {
     const s1 = parseInt(document.getElementById('edit-score1').value);
     const s2 = parseInt(document.getElementById('edit-score2').value);
 
-    // Zapisujemy w obu formatach dla pewności
     await db.collection('matches').doc(currentMatchId).update({
         goalsA: s1, goalsB: s2,
         score1: s1, score2: s2
@@ -434,7 +445,7 @@ window.saveMatchResult = async () => {
     alert("Zapisano wynik.");
 };
 
-async function loadScorerSelects(t1Id, t2Id, t1Name, t2Name) {
+window.loadScorerSelects = async (t1Id, t2Id, t1Name, t2Name) => {
     const teamSelect = document.getElementById('scorer-team-select');
     const playerSelect = document.getElementById('scorer-player-select');
     
@@ -465,7 +476,7 @@ async function loadScorerSelects(t1Id, t2Id, t1Name, t2Name) {
 
     loadPlayers(teamSelect.value);
     teamSelect.onchange = () => loadPlayers(teamSelect.value);
-}
+};
 
 window.addScorer = async () => {
     if (!currentMatchId) return;
@@ -483,13 +494,11 @@ window.addScorer = async () => {
     const playerName = playerSelect.options[playerSelect.selectedIndex].getAttribute('data-fullname');
 
     try {
-        // 1. Zapis gola w historii meczu
         await db.collection('matches').doc(currentMatchId).collection('goals').add({
             teamId, teamName, playerId, playerName, minute,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 2. Aktualizacja wyniku meczu
         const matchDoc = await db.collection('matches').doc(currentMatchId).get();
         const mData = matchDoc.data();
         
@@ -511,7 +520,6 @@ window.addScorer = async () => {
             document.getElementById('edit-score2').value = currentVal + 1;
         }
 
-        // 3. AKTUALIZACJA GLOBALNEJ TABELI STRZELCÓW
         const scorersRef = db.collection('scorers');
         const q = await scorersRef.where('playerId', '==', playerId).get();
 
@@ -539,7 +547,7 @@ window.addScorer = async () => {
     }
 };
 
-async function loadMatchScorersList(matchId) {
+window.loadMatchScorersList = async (matchId) => {
     const div = document.getElementById('scorers-edit-list');
     div.innerHTML = "Ładowanie...";
     const snap = await db.collection('matches').doc(matchId).collection('goals').orderBy('createdAt').get();
@@ -549,10 +557,10 @@ async function loadMatchScorersList(matchId) {
         const g = d.data();
         div.innerHTML += `<div style="border-bottom:1px solid #333; padding:5px;">${g.minute}' <b>${g.playerName}</b> (${g.teamName})</div>`;
     });
-}
+};
 
 // ===================================================================
-// 7. GLOBALNA TABELA STRZELCÓW (ZAKŁADKA USTAWIENIA)
+// 7. GLOBALNA TABELA STRZELCÓW
 // ===================================================================
 
 window.loadScorersTable = async () => {
@@ -603,13 +611,18 @@ window.deleteScorer = async (docId) => {
 };
 
 // ===================================================================
-// 8. ADMIN UPRAWNIENIA
+// 8. ADMIN UPRAWNIENIA (POZOSTAWIONE, ALE NIE WYMAGANE PRZY WHITELIST)
 // ===================================================================
 
-document.getElementById('grant-admin-btn').addEventListener('click', async () => {
-    const email = document.getElementById('new-admin-email').value;
-    if(!email) return alert("Podaj email");
-    
-    await db.collection('admins').add({ email: email });
-    alert("Dodano uprawnienia (wymaga konfiguracji Security Rules).");
-});
+const grantBtn = document.getElementById('grant-admin-btn');
+if(grantBtn) {
+    grantBtn.addEventListener('click', async () => {
+        const email = document.getElementById('new-admin-email').value;
+        if(!email) return alert("Podaj email");
+        
+        // Ta funkcja tylko dodaje wpis do bazy dla informacji, 
+        // uprawnienia są teraz kontrolowane przez stałą ALLOWED_ADMINS na górze pliku.
+        await db.collection('admins').add({ email: email });
+        alert("Zapisano admina w bazie. Pamiętaj, aby dodać go również do listy ALLOWED_ADMINS w kodzie JS!");
+    });
+}
