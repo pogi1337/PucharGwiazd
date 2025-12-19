@@ -1,4 +1,4 @@
-// admin.js - WERSJA ZABEZPIECZONA (WHITELIST)
+// admin.js - WERSJA FINALNA (ZABEZPIECZONA + FIX PODWÓJNYCH GOLI)
 
 // ===================================================================
 // 1. KONFIGURACJA FIREBASE
@@ -26,7 +26,7 @@ const db = firebase.firestore();
 let currentMatchId = null;
 
 // ===================================================================
-// 2. LOGOWANIE I AUTORYZACJA (ZABEZPIECZENIE)
+// 2. LOGOWANIE I AUTORYZACJA (WHITELIST)
 // ===================================================================
 
 // LISTA DOZWOLONYCH ADMINÓW
@@ -35,7 +35,7 @@ const ALLOWED_ADMINS = [
     "krzysztof.lodzinski@interia.pl"
 ];
 
-// Czekamy na załadowanie HTML, żeby podpiąć przycisk logowania
+// Czekamy na załadowanie HTML
 document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('login-btn');
     if (loginBtn) {
@@ -69,18 +69,18 @@ auth.onAuthStateChanged(user => {
             if(loginBox) loginBox.style.display = 'none';
             if(adminWrapper) adminWrapper.style.display = 'block';
             
-            // Ładowanie danych (z małym opóźnieniem dla pewności)
+            // Ładowanie danych z opóźnieniem dla pewności
             setTimeout(() => {
                 if(window.loadTeamsForSelects) loadTeamsForSelects();
                 if(window.loadMatches) loadMatches();
                 if(window.loadScorersTable) loadScorersTable();
-            }, 100);
+            }, 200);
 
         } else {
-            // Zalogowany, ale nie ma go na liście -> WYRZUĆ
+            // Zalogowany, ale brak uprawnień
             console.warn("Próba nieautoryzowanego wejścia:", user.email);
             alert("Brak uprawnień administratora dla konta: " + user.email);
-            auth.signOut(); // Wyloguj natychmiast
+            auth.signOut();
             
             if(loginBox) loginBox.style.display = 'block';
             if(adminWrapper) adminWrapper.style.display = 'none';
@@ -393,7 +393,7 @@ window.toggleMatchStatus = async (id, currentRaw) => {
 };
 
 // ===================================================================
-// 6. EDYCJA I STRZELCY (GOLE)
+// 6. EDYCJA I STRZELCY (GOLE) - Z POPRAWKĄ DUPLIKOWANIA
 // ===================================================================
 
 window.openEditModal = async (matchId) => {
@@ -478,27 +478,51 @@ window.loadScorerSelects = async (t1Id, t2Id, t1Name, t2Name) => {
     teamSelect.onchange = () => loadPlayers(teamSelect.value);
 };
 
+// NOWA FUNKCJA - Z BLOKADĄ PRZYCISKU
 window.addScorer = async () => {
     if (!currentMatchId) return;
+
+    const btn = document.getElementById('btn-add-goal'); // Pobieramy przycisk (wymaga id="btn-add-goal" w HTML)
+    
+    // 1. BLOKUJEMY PRZYCISK
+    if (btn) {
+        btn.disabled = true; 
+        btn.innerText = "..."; 
+        btn.style.opacity = "0.5";
+    }
 
     const teamSelect = document.getElementById('scorer-team-select');
     const playerSelect = document.getElementById('scorer-player-select');
     const minute = document.getElementById('scorer-minute').value;
 
     const teamId = teamSelect.value;
-    const teamName = teamSelect.options[teamSelect.selectedIndex].getAttribute('data-name');
+    const teamOption = teamSelect.options[teamSelect.selectedIndex];
+    const teamName = teamOption ? teamOption.getAttribute('data-name') : "Nieznana";
+    
     const playerId = playerSelect.value;
     
-    if (!playerId) return alert("Wybierz zawodnika!");
+    if (!playerId) {
+        alert("Wybierz zawodnika!");
+        // Odblokuj w razie błędu walidacji
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "+";
+            btn.style.opacity = "1";
+        }
+        return;
+    }
     
-    const playerName = playerSelect.options[playerSelect.selectedIndex].getAttribute('data-fullname');
+    const playerOption = playerSelect.options[playerSelect.selectedIndex];
+    const playerName = playerOption ? playerOption.getAttribute('data-fullname') : "Nieznany";
 
     try {
+        // 2. Zapis gola w historii meczu
         await db.collection('matches').doc(currentMatchId).collection('goals').add({
             teamId, teamName, playerId, playerName, minute,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // 3. Aktualizacja wyniku meczu
         const matchDoc = await db.collection('matches').doc(currentMatchId).get();
         const mData = matchDoc.data();
         
@@ -520,10 +544,12 @@ window.addScorer = async () => {
             document.getElementById('edit-score2').value = currentVal + 1;
         }
 
+        // 4. AKTUALIZACJA GLOBALNEJ TABELI STRZELCÓW
         const scorersRef = db.collection('scorers');
         const q = await scorersRef.where('playerId', '==', playerId).get();
 
         if (q.empty) {
+            // Jeśli strzelec nie istnieje, utwórz go
             await scorersRef.add({
                 playerId: playerId,
                 playerName: playerName,
@@ -532,18 +558,25 @@ window.addScorer = async () => {
                 goals: 1
             });
         } else {
+            // Jeśli istnieje, zaktualizuj
             const docId = q.docs[0].id;
             await scorersRef.doc(docId).update({
                 goals: firebase.firestore.FieldValue.increment(1)
             });
         }
 
-        alert("Dodano gola!");
         loadMatchScorersList(currentMatchId);
 
     } catch (e) {
         console.error(e);
         alert("Błąd: " + e.message);
+    } finally {
+        // 5. ODBLOKUJEMY PRZYCISK (zawsze)
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "+";
+            btn.style.opacity = "1";
+        }
     }
 };
 
@@ -611,7 +644,7 @@ window.deleteScorer = async (docId) => {
 };
 
 // ===================================================================
-// 8. ADMIN UPRAWNIENIA (POZOSTAWIONE, ALE NIE WYMAGANE PRZY WHITELIST)
+// 8. ADMIN UPRAWNIENIA
 // ===================================================================
 
 const grantBtn = document.getElementById('grant-admin-btn');
@@ -620,9 +653,8 @@ if(grantBtn) {
         const email = document.getElementById('new-admin-email').value;
         if(!email) return alert("Podaj email");
         
-        // Ta funkcja tylko dodaje wpis do bazy dla informacji, 
-        // uprawnienia są teraz kontrolowane przez stałą ALLOWED_ADMINS na górze pliku.
+        // Zapis tylko informacyjny, bo uprawnienia są w ALLOWED_ADMINS na górze
         await db.collection('admins').add({ email: email });
-        alert("Zapisano admina w bazie. Pamiętaj, aby dodać go również do listy ALLOWED_ADMINS w kodzie JS!");
+        alert("Zapisano admina. Pamiętaj, aby dodać go również do listy ALLOWED_ADMINS w kodzie JS!");
     });
 }
