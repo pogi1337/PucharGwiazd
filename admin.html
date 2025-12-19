@@ -46,6 +46,7 @@
             font-weight: bold;
         }
         button:hover { opacity: 0.9; }
+        button:disabled { background-color: #555 !important; cursor: not-allowed; opacity: 0.7; }
 
         .form-row {
             display: flex;
@@ -97,7 +98,7 @@
             font-weight: 600;
             border-radius: 8px 8px 0 0;
             transition: all 0.2s;
-            flex-grow: 1; /* Przyciski rozciągają się */
+            flex-grow: 1;
         }
 
         .tab-button:hover { background: #152036; color: white; }
@@ -163,7 +164,7 @@
 
         /* --- STYL DLA PRZYCISKU USUWANIA STRZELCA --- */
         .btn-delete {
-            background-color: #cf2e2e; /* Czerwony */
+            background-color: #cf2e2e;
             color: white;
             border: none;
             padding: 6px 12px;
@@ -180,7 +181,6 @@
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
         th { color: #aaa; }
-        /* Wycentrowanie kolumny Akcja */
         th:last-child, td:last-child { text-align: center; }
     </style>
 </head>
@@ -311,15 +311,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
                 <p style="color: #888; font-size: 0.9em; margin-top: 10px;">
                     <i class="fas fa-info-circle"></i> Usunięcie strzelca tutaj usuwa tylko wpis z globalnej tabeli. Aby usunąć gola z meczu, edytuj konkretny mecz w zakładce "Mecze".
                 </p>
             </div>
-            </div>
-
+        </div>
     </div>
 
     <div id="editModal" class="modal">
@@ -345,7 +344,8 @@
                     <select id="scorer-team-select" style="flex: 2;"></select>
                     <select id="scorer-player-select" style="flex: 3;"></select>
                     <input type="number" id="scorer-minute" placeholder="Min" style="width:50px;">
-                    <button class="btn btn-small" onclick="window.addScorer()" style="background: #4caf50;">+</button>
+                    
+                    <button id="btn-add-goal" class="btn btn-small" onclick="window.addScorer()" style="background: #4caf50;">+</button>
                 </div>
                 
                 <h4>Lista bramek w tym meczu:</h4>
@@ -357,6 +357,8 @@
     <script src="admin.js"></script> 
 
     <script>
+        // Prosta obsługa zakładek w czystym HTML, 
+        // ale logika biznesowa jest w admin.js
         function openTab(tabId, event) {
             var contents = document.getElementsByClassName('tab-content');
             for (var i = 0; i < contents.length; i++) {
@@ -377,6 +379,7 @@
             }
         }
 
+        // Domyślne otwarcie pierwszej zakładki
         document.addEventListener('DOMContentLoaded', function() {
              var firstTab = document.getElementById('teams-tab');
              if(firstTab) {
