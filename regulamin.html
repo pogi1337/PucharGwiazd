@@ -13,39 +13,70 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
 
     <style>
-        /* Lokalne style dla czytelności tekstu */
+        /* --- NAVBAR FIX (Menu Mobilne) --- */
+        .navbar {
+            position: sticky; top: 0; z-index: 999999;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; background: rgba(15, 23, 42, 0.98);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-weight: 800; }
+        .logo-img { height: 40px; }
+        .menu-toggle { display: none; font-size: 2rem; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        
+        @media (max-width: 900px) {
+            .menu-toggle { display: block; }
+            .nav-links { 
+                display: none; 
+                position: absolute; top: 100%; left: 0; width: 100%; 
+                background: #0f172a; flex-direction: column; padding: 20px 0; 
+                border-bottom: 1px solid rgba(255,255,255,0.2); 
+                box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            }
+            .nav-links.active { display: flex !important; }
+            .nav-links a { 
+                padding: 15px; width: 100%; text-align: center; 
+                border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 1.2rem; 
+            }
+        }
+
+        /* --- STYLE REGULAMINU --- */
         .reg-section {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 40px;
             margin-bottom: 30px;
         }
         .reg-section h2 {
-            color: var(--accent);
-            border-bottom: 1px solid var(--border);
+            color: #00d4ff;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
             padding-bottom: 15px;
-            margin-top: 0;
-            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
         }
         .reg-content h3 {
             color: #fff;
             margin-top: 30px;
-            font-size: 1.1rem;
             display: flex; align-items: center; gap: 10px;
         }
-        .reg-content p, .reg-content li {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 10px;
-        }
+        .reg-content i { color: #00d4ff; }
+        
         .reg-content ul {
+            list-style: none; padding-left: 10px;
+        }
+        .reg-content li {
+            margin-bottom: 12px;
+            color: rgba(255,255,255,0.8);
+            position: relative;
             padding-left: 20px;
-            list-style-type: disc;
         }
-        .reg-content strong {
-            color: #fff;
+        .reg-content li::before {
+            content: "•"; color: #00d4ff; font-weight: bold;
+            position: absolute; left: 0;
         }
+        strong { color: #fff; }
     </style>
 </head>
 <body>
@@ -55,66 +86,68 @@
             <img src="logo.png" alt="Logo" class="logo-img">
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
-        <div class="nav-links">
+
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="nav-links" id="navLinks">
             <a href="index.html">STRONA GŁÓWNA</a>
             <a href="druzyny.html">DRUŻYNY</a>
             <a href="terminarz.html">TERMINARZ</a>
             <a href="tabela.html">TABELE</a>
-            <a href="regulamin.html" class="active-link">REGULAMIN</a>
+            <a href="regulamin.html" class="active-link" style="color:#00d4ff;">REGULAMIN</a>
             <a href="onas.html">O NAS</a>
             <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
             <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
         </div>
     </nav>
 
+    <script>
+        function toggleMenu() {
+            var nav = document.getElementById("navLinks");
+            if (nav.style.display === "flex") {
+                nav.style.display = "";
+                nav.classList.remove("active");
+            } else {
+                nav.classList.toggle("active");
+            }
+        }
+    </script>
+
     <main class="container">
-        <header class="page-header" data-aos="fade-down">
-            <p>Zasady i Postanowienia</p>
-            <h2>DOKUMENTACJA TURNIEJU</h2>
+        <header class="page-header" data-aos="fade-down" style="text-align:center; margin: 50px 0 30px;">
+            <p style="color:#00d4ff; letter-spacing:2px; font-size:0.9rem; font-weight:700;">ZASADY TURNIEJU</p>
+            <h2 style="font-size:2rem; font-weight:800; margin:0;">REGULAMIN ROZGRYWEK</h2>
         </header>
 
         <section class="reg-section" data-aos="fade-up">
-            <h2><i class="fas fa-file-contract"></i> Regulamin Ogólny</h2>
             <div class="reg-content">
-                <h3>1. Postanowienia Ogólne</h3>
-                <p>Turniej "Puchar Gwiazd" ma na celu promocję sportu, integrację lokalnej społeczności oraz wyłonienie najlepszej drużyny w duchu Fair Play.</p>
-
-                <h3>2. Uczestnictwo</h3>
-                <p>W turnieju mogą brać udział drużyny, które dokonały pełnej rejestracji i uiściły opłatę wpisową. Każdy zawodnik musi posiadać dokument tożsamości.</p>
-
-                <h3>3. System Rozgrywek</h3>
-                <p>Mecze rozgrywane są w dwóch fazach: grupowej (każdy z każdym) oraz pucharowej (przegrany odpada). Szczegółowy harmonogram dostępny jest w zakładce Terminarz.</p>
-
-                <h3>4. Zasady Fair Play</h3>
-                <p>Organizatorzy kładą duży nacisk na kulturę gry. Wszelkie przejawy agresji, niesportowego zachowania lub celowego zakłócania przebiegu meczu będą skutkować dyskwalifikacją.</p>
-
-                <h3>5. Nagrody</h3>
+                <h3><i class="fas fa-info-circle"></i> 1. Postanowienia Ogólne</h3>
                 <ul>
-                    <li>Puchary dla miejsc 1-3.</li>
-                    <li>Statuetki dla Króla Strzelców i Najlepszego Bramkarza.</li>
-                    <li>Dyplomy dla wszystkich uczestników.</li>
+                    <li>Turniej <strong>Puchar Gwiazd</strong> jest amatorskim turniejem piłki nożnej.</li>
+                    <li>Udział w turnieju jest dobrowolny i na własną odpowiedzialność zawodników.</li>
+                    <li>Każda drużyna musi posiadać Kapitana, który reprezentuje zespół w kontaktach z Organizatorem.</li>
                 </ul>
-            </div>
-        </section>
 
-        <section class="reg-section" data-aos="fade-up" data-aos-delay="100">
-            <h2><i class="fas fa-futbol"></i> Zasady Gry</h2>
-            <div class="reg-content">
-                
-                <h3><i class="fas fa-clock"></i> 1. Czas Gry</h3>
-                <p>Mecze w fazie grupowej trwają <strong>2 x 10 minut</strong>. W fazie pucharowej czas gry wynosi <strong>2 x 15 minut</strong>. Przerwa między połowami trwa 2 minuty.</p>
-
-                <h3><i class="fas fa-users"></i> 2. Skład Drużyny</h3>
-                <p>Na boisku przebywa <strong>5 zawodników w polu + bramkarz (5+1)</strong>. Minimalna liczba zawodników do rozpoczęcia meczu to 4.</p>
-
-                <h3><i class="fas fa-sync-alt"></i> 3. Zmiany</h3>
-                <p>Obowiązują tzw. <strong>zmiany lotne</strong> (hokejowe). Zmiana może nastąpić w dowolnym momencie meczu, pod warunkiem, że zawodnik schodzący opuścił już plac gry w strefie zmian.</p>
-
-                <h3><i class="far fa-flag"></i> 4. Przepisy Boiskowe</h3>
+                <h3><i class="fas fa-users"></i> 2. Składy Drużyn</h3>
                 <ul>
-                    <li><strong>Auty:</strong> Wykonywane są nogą z linii bocznej (piłka musi stać nieruchomo). Bramka zdobyta bezpośrednio z autu nie jest uznawana.</li>
-                    <li><strong>Bramkarz:</strong> Wznawia grę ręką z pola karnego. Nie może łapać piłki w ręce po celowym podaniu nogą od własnego zawodnika.</li>
-                    <li><strong>Wślizgi:</strong> Wślizgi kontaktowe (atak na nogi przeciwnika) są zabronione i traktowane jako faul. Dozwolone są tylko wślizgi ratunkowe (blokowanie piłki bez kontaktu z rywalem).</li>
+                    <li>Maksymalna liczba zawodników w drużynie wynosi <strong>12 osób</strong>.</li>
+                    <li>Na boisku przebywa <strong>6 zawodników</strong> (5 w polu + bramkarz).</li>
+                    <li>Zmiany są lotne i nieograniczone.</li>
+                </ul>
+
+                <h3><i class="fas fa-stopwatch"></i> 3. Czas Gry</h3>
+                <ul>
+                    <li>Mecz trwa <strong>2 x 15 minut</strong>.</li>
+                    <li>Przerwa między połowami wynosi 5 minut.</li>
+                    <li>Organizator zastrzega sobie prawo do zmiany czasu gry w zależności od warunków.</li>
+                </ul>
+
+                <h3><i class="fas fa-futbol"></i> 4. Zasady Gry</h3>
+                <ul>
+                    <li>Gra toczy się bez spalonego.</li>
+                    <li>Wślizgi kontaktowe (atak na nogi przeciwnika) są zabronione i traktowane jako faul. Dozwolone są tylko wślizgi ratunkowe (blokowanie piłki bez kontaktu z rywalem).</li>
                     <li><strong>Spalony:</strong> Przepis o spalonym nie obowiązuje.</li>
                 </ul>
 
@@ -130,12 +163,12 @@
         </section>
     </main>
 
-    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid var(--border);">
-        &copy; 2025 PUCHAR GWIAZD | TOURNAMENT RULES & REGULATIONS
+    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid rgba(255,255,255,0.1);">
+        &copy; 2025 PUCHAR GWIAZD
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script>AOS.init({ duration: 800, once: true });</script>
+    <script> AOS.init({ duration: 600, once: true }); </script>
 
 </body>
 </html>
