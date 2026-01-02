@@ -11,7 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     
     <style>
-        /* TŁO I STYLE LOKALNE */
+        /* --- STYLE KRYTYCZNE DLA MENU I TŁA --- */
+        
+        /* Tło strony */
         body {
             background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('1.jpg');
             background-size: cover;
@@ -19,24 +21,104 @@
             background-attachment: fixed;
             min-height: 100vh;
             color: #fff;
-            overflow-x: hidden; /* Zapobiega przewijaniu na boki */
+            overflow-x: hidden;
+            margin: 0;
         }
 
-        /* POPRAWKA DLA PRZYCISKU MENU - Musi być na wierzchu */
+        /* --- NAPRAWA NAVBARA (Na Wierzchu) --- */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 999999; /* Musi być najwyżej */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            background: rgba(15, 23, 42, 0.98);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 800;
+        }
+        .logo-img { height: 40px; }
+
+        /* Przycisk Menu (Domyślnie ukryty) */
         .menu-toggle {
-            z-index: 10001; /* Bardzo wysoki indeks */
-            position: relative;
+            display: none;
+            font-size: 2rem;
+            color: #fff;
             cursor: pointer;
-            padding: 10px; /* Większe pole kliknięcia */
+            padding: 10px;
+            user-select: none;
         }
 
+        /* Linki (Desktop) */
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active-link { color: #00d4ff; }
+        
+        .admin-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+        }
+
+        /* --- MENU MOBILNE (Max 900px) --- */
+        @media (max-width: 900px) {
+            .menu-toggle {
+                display: block; /* Pokaż przycisk */
+            }
+
+            .nav-links {
+                display: none; /* Domyślnie ukryte */
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: #0f172a;
+                flex-direction: column;
+                padding: 20px 0;
+                border-bottom: 1px solid rgba(255,255,255,0.2);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            }
+
+            /* Ta klasa jest dodawana przez JS po kliknięciu */
+            .nav-links.active {
+                display: flex !important;
+            }
+
+            .nav-links a {
+                padding: 15px;
+                width: 100%;
+                text-align: center;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                font-size: 1.2rem;
+            }
+        }
+
+        /* RESZTA STYLÓW */
         .cta-section { text-align: center; margin: 40px auto 60px; padding: 0 20px; max-width: 800px; }
         .cta-box {
             background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 40px; border-radius: 24px; backdrop-filter: blur(10px); position: relative; overflow: hidden;
         }
-
         .hero-logo { width: 120px; margin-bottom: 25px; filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4)); animation: float 6s ease-in-out infinite; }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 
@@ -70,60 +152,6 @@
         
         .section-title { text-align: center; font-size: 2rem; margin-bottom: 30px; font-weight: 800; }
     </style>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:75e8df76127397b913612d"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // --- NEWSY ---
-        onSnapshot(query(collection(db, "news"), orderBy("timestamp", "desc"), limit(3)), (snap) => {
-            const container = document.getElementById('news-container');
-            if (container) {
-                container.innerHTML = '';
-                snap.forEach(doc => {
-                    const n = doc.data();
-                    container.innerHTML += `
-                        <div class="news-card" data-aos="fade-up">
-                            <span class="news-date">${n.date || ''}</span>
-                            <h4 class="news-title">${n.title || ''}</h4>
-                            <p class="news-content">${n.content || ''}</p>
-                        </div>`;
-                });
-            }
-        });
-
-        // --- WYNIKI ---
-        onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc"), limit(4)), (snap) => {
-            const container = document.getElementById('matches-container');
-            if(container) {
-                container.innerHTML = '';
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    container.innerHTML += `
-                        <div class="match-card" data-aos="zoom-in">
-                            <div class="match-info">${m.date} | ${m.time}</div>
-                            <div class="match-teams">
-                                <div class="team"><img src="${m.team1Logo}" alt="${m.team1}"><span>${m.team1}</span></div>
-                                <div class="score">${m.score1} : ${m.score2}</div>
-                                <div class="team"><img src="${m.team2Logo}" alt="${m.team2}"><span>${m.team2}</span></div>
-                            </div>
-                        </div>`;
-                });
-            }
-        });
-    </script>
 </head>
 <body>
 
@@ -133,7 +161,7 @@
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
 
-        <div class="menu-toggle" id="menuBtn">
+        <div class="menu-toggle" onclick="toggleMenu()">
             <i class="fas fa-bars"></i>
         </div>
 
@@ -148,6 +176,18 @@
             <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
         </div>
     </nav>
+
+    <script>
+        function toggleMenu() {
+            var nav = document.getElementById("navLinks");
+            if (nav.style.display === "flex") {
+                nav.style.display = ""; // Reset do CSS
+                nav.classList.remove("active");
+            } else {
+                nav.classList.toggle("active");
+            }
+        }
+    </script>
 
     <header class="cta-section" data-aos="fade-up">
         <div class="cta-box">
@@ -192,48 +232,85 @@
     <script>
         AOS.init({ duration: 1000, once: true });
 
-        // --- SKRYPT UI (MENU + TIMER) ---
-        // Uruchamia się dopiero gdy strona jest załadowana
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            // 1. OBSŁUGA MENU NA TELEFONIE
-            const menuBtn = document.getElementById('menuBtn');
-            const navLinks = document.getElementById('navLinks');
+        // TIMER: 18 Stycznia 2026, 12:00
+        const targetDate = new Date("Jan 18, 2026 12:00:00").getTime();
+        const timerInterval = setInterval(() => {
+            const now = new Date().getTime();
+            const diff = targetDate - now;
 
-            if(menuBtn && navLinks) {
-                menuBtn.addEventListener('click', () => {
-                    navLinks.classList.toggle('active');
-                    console.log("Kliknięto menu!"); // Do debugowania
+            if (diff < 0) {
+                clearInterval(timerInterval);
+                const t = document.getElementById("timer");
+                if(t) t.innerHTML = "<h2 style='color:#00d4ff'>TURNIEJ ROZPOCZĘTY!</h2>";
+                return;
+            }
+            document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+            document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+            document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+        }, 1000);
+
+        // LICZNIK TURNIEJÓW
+        let count = 0;
+        const targetCount = 4;
+        const counterElement = document.getElementById('tournaments-count');
+        const counterInterval = setInterval(() => {
+            if(count >= targetCount) clearInterval(counterInterval);
+            else { count++; if(counterElement) counterElement.innerText = count; }
+        }, 400);
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:75e8df76127397b913612d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // NEWSY
+        onSnapshot(query(collection(db, "news"), orderBy("timestamp", "desc"), limit(3)), (snap) => {
+            const container = document.getElementById('news-container');
+            if (container) {
+                container.innerHTML = '';
+                snap.forEach(doc => {
+                    const n = doc.data();
+                    container.innerHTML += `
+                        <div class="news-card" data-aos="fade-up">
+                            <span class="news-date">${n.date || ''}</span>
+                            <h4 class="news-title">${n.title || ''}</h4>
+                            <p class="news-content">${n.content || ''}</p>
+                        </div>`;
                 });
             }
+        });
 
-            // 2. TIMER (18 Stycznia 2026, 12:00)
-            const targetDate = new Date("Jan 18, 2026 12:00:00").getTime();
-            const timerInterval = setInterval(() => {
-                const now = new Date().getTime();
-                const diff = targetDate - now;
-
-                if (diff < 0) {
-                    clearInterval(timerInterval);
-                    const t = document.getElementById("timer");
-                    if(t) t.innerHTML = "<h2 style='color:#00d4ff'>TURNIEJ ROZPOCZĘTY!</h2>";
-                    return;
-                }
-                document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-                document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-                document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-                document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-            }, 1000);
-
-            // 3. LICZNIK TURNIEJÓW
-            let count = 0;
-            const targetCount = 4;
-            const counterElement = document.getElementById('tournaments-count');
-            const counterInterval = setInterval(() => {
-                if(count >= targetCount) clearInterval(counterInterval);
-                else { count++; if(counterElement) counterElement.innerText = count; }
-            }, 400);
-
+        // WYNIKI
+        onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc"), limit(4)), (snap) => {
+            const container = document.getElementById('matches-container');
+            if(container) {
+                container.innerHTML = '';
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    container.innerHTML += `
+                        <div class="match-card" data-aos="zoom-in">
+                            <div class="match-info">${m.date} | ${m.time}</div>
+                            <div class="match-teams">
+                                <div class="team"><img src="${m.team1Logo}" alt="${m.team1}"><span>${m.team1}</span></div>
+                                <div class="score">${m.score1} : ${m.score2}</div>
+                                <div class="team"><img src="${m.team2Logo}" alt="${m.team2}"><span>${m.team2}</span></div>
+                            </div>
+                        </div>`;
+                });
+            }
         });
     </script>
 </body>
