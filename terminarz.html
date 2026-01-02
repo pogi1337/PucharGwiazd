@@ -13,136 +13,72 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
 
     <style>
+        /* --- NAVBAR FIX (Menu Mobilne) --- */
+        .navbar {
+            position: sticky; top: 0; z-index: 999999;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; background: rgba(15, 23, 42, 0.98);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-weight: 800; }
+        .logo-img { height: 40px; }
+        .menu-toggle { display: none; font-size: 2rem; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        
+        @media (max-width: 900px) {
+            .menu-toggle { display: block; }
+            .nav-links { 
+                display: none; 
+                position: absolute; top: 100%; left: 0; width: 100%; 
+                background: #0f172a; flex-direction: column; padding: 20px 0; 
+                border-bottom: 1px solid rgba(255,255,255,0.2); 
+                box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            }
+            .nav-links.active { display: flex !important; }
+            .nav-links a { 
+                padding: 15px; width: 100%; text-align: center; 
+                border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 1.2rem; 
+            }
+        }
+
+        /* --- STYLE DLA TERMINARZA --- */
         .group-card {
-            background: var(--card-bg); border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px; margin-bottom: 20px; overflow: hidden;
             transition: 0.3s;
         }
         .group-header {
             padding: 20px; background: rgba(255,255,255,0.03);
             display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; font-weight: 800; color: var(--accent);
+            cursor: pointer; font-weight: 800; font-size: 1.1rem;
         }
-        .group-header:hover { background: rgba(255,255,255,0.05); }
-        .group-content {
-            display: none; padding: 20px; border-top: 1px solid var(--border);
-        }
-        .group-content.show { display: block; animation: fadeIn 0.3s; }
+        .group-header:hover { background: rgba(255,255,255,0.06); color: #00d4ff; }
         
-        @keyframes fadeIn { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+        .group-content { display: none; padding: 0; animation: fadeIn 0.3s; }
+        .group-content.active { display: block; }
 
-        .phase-btn {
-            background: transparent; border: 1px solid var(--border); color: var(--text-muted);
-            padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: 700; margin: 0 5px;
-            transition: 0.3s;
+        .match-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .phase-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .phase-controls { text-align: center; margin-bottom: 40px; }
+        .match-row:last-child { border-bottom: none; }
+        
+        .match-date { font-size: 0.8rem; color: #888; width: 80px; }
+        .match-teams { flex: 1; text-align: center; font-weight: 600; display: flex; justify-content: center; gap: 15px; }
+        .match-score { color: #00d4ff; font-weight: 800; min-width: 40px; text-align: center; }
+
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 40px; }
+        .tab-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc; padding: 10px 25px; border-radius: 30px; cursor: pointer;
+            font-weight: 700; transition: 0.3s;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            background: #00d4ff; color: #000; border-color: #00d4ff;
+        }
     </style>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        
-        const CONFIG = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:75e8df76127397b913612d"
-        };
-
-        const app = initializeApp(CONFIG);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        signInAnonymously(auth);
-
-        // Funkcja renderująca mecze
-        function renderMatch(m) {
-            // Używamy klas z style.css (.match-item)
-            return `
-                <div class="match-item">
-                    <div style="font-size:0.8rem; color:var(--text-muted); min-width:80px;">
-                        ${m.date}<br>${m.time}
-                    </div>
-                    <div style="flex:1; text-align:center; font-weight:700; padding:0 10px;">
-                        ${m.team1} vs ${m.team2}
-                    </div>
-                    <div class="match-score">
-                        ${m.score1 !== undefined ? m.score1 : '-'} : ${m.score2 !== undefined ? m.score2 : '-'}
-                    </div>
-                </div>`;
-        }
-
-        onSnapshot(query(collection(db, "matches"), orderBy("date"), orderBy("time")), (snap) => {
-            // Kontenery grup
-            const groups = {
-                'a': document.getElementById('list-group-a'),
-                'b': document.getElementById('list-group-b'),
-                'c': document.getElementById('list-group-c'),
-                'd': document.getElementById('list-group-d'),
-                'ko': document.getElementById('knockout-list')
-            };
-
-            // Wyczyszczenie list
-            Object.values(groups).forEach(el => { if(el) el.innerHTML = ''; });
-
-            snap.docs.forEach(doc => {
-                const m = doc.data();
-                const g = m.group ? m.group.toLowerCase() : '';
-                
-                // Sprawdzamy czy to faza pucharowa (1/8, 1/4, 1/2, Finał)
-                if (['1/8', '1/4', '1/2', 'finał', 'final'].includes(g)) {
-                    if (groups['ko']) groups['ko'].innerHTML += renderMatch(m);
-                } 
-                // Sprawdzamy czy to grupa A, B, C, D
-                else if (groups[g]) {
-                    groups[g].innerHTML += renderMatch(m);
-                }
-            });
-
-            // Komunikaty o braku meczów
-            Object.values(groups).forEach(el => {
-                if(el && el.innerHTML === '') el.innerHTML = '<p style="text-align:center; opacity:0.4;">Brak zaplanowanych meczów.</p>';
-            });
-        });
-
-        // Obsługa przełączania widoków (Grupy / Puchar)
-        window.showPhase = function(phase) {
-            const groupView = document.getElementById('group-stage-view');
-            const koView = document.getElementById('knockout-stage-view');
-            const btnG = document.getElementById('btn-group');
-            const btnK = document.getElementById('btn-ko');
-
-            if(phase === 'group') {
-                groupView.style.display = 'block';
-                koView.style.display = 'none';
-                btnG.classList.add('active');
-                btnK.classList.remove('active');
-            } else {
-                groupView.style.display = 'none';
-                koView.style.display = 'block';
-                btnG.classList.remove('active');
-                btnK.classList.add('active');
-            }
-        }
-
-        // Obsługa zwijania grup
-        window.toggleGroup = function(groupId) {
-            const content = document.getElementById('list-group-' + groupId);
-            const icon = document.querySelector(`#card-${groupId} .fa-chevron-down`);
-            
-            if(content.classList.contains('show')) {
-                content.classList.remove('show');
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                content.classList.add('show');
-                icon.style.transform = 'rotate(180deg)';
-            }
-        }
-    </script>
 </head>
 <body>
 
@@ -151,10 +87,15 @@
             <img src="logo.png" alt="Logo" class="logo-img">
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
-        <div class="nav-links">
+
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="nav-links" id="navLinks">
             <a href="index.html">STRONA GŁÓWNA</a>
             <a href="druzyny.html">DRUŻYNY</a>
-            <a href="terminarz.html" class="active-link">TERMINARZ</a>
+            <a href="terminarz.html" class="active-link" style="color:#00d4ff;">TERMINARZ</a>
             <a href="tabela.html">TABELE</a>
             <a href="regulamin.html">REGULAMIN</a>
             <a href="onas.html">O NAS</a>
@@ -163,25 +104,36 @@
         </div>
     </nav>
 
+    <script>
+        function toggleMenu() {
+            var nav = document.getElementById("navLinks");
+            if (nav.style.display === "flex") {
+                nav.style.display = "";
+                nav.classList.remove("active");
+            } else {
+                nav.classList.toggle("active");
+            }
+        }
+    </script>
+
     <main class="container">
-        <header class="page-header" data-aos="fade-down">
-            <p>Harmonogram Rozgrywek</p>
-            <h2>TERMINARZ MECZÓW</h2>
+        <header class="page-header" data-aos="fade-down" style="text-align:center; margin: 50px 0 30px;">
+            <h2 style="font-size:2rem; font-weight:800; margin:0;">TERMINARZ</h2>
+            <p style="color:#00d4ff; letter-spacing:2px; font-size:0.9rem; font-weight:700;">HARMONOGRAM GRY</p>
         </header>
 
-        <div class="phase-controls" data-aos="fade-up">
-            <button id="btn-group" class="phase-btn active" onclick="showPhase('group')">FAZA GRUPOWA</button>
-            <button id="btn-ko" class="phase-btn" onclick="showPhase('ko')">FAZA PUCHAROWA</button>
+        <div class="tabs" data-aos="fade-up">
+            <button class="tab-btn active" onclick="showStage('group')">FAZA GRUPOWA</button>
+            <button class="tab-btn" onclick="showStage('knockout')">FAZA PUCHAROWA</button>
         </div>
 
         <div id="group-stage-view">
-            
             <div class="group-card" id="card-a" data-aos="fade-up">
                 <div class="group-header" onclick="toggleGroup('a')">
                     <span>GRUPA A</span>
                     <i class="fas fa-chevron-down" style="transition:0.3s"></i>
                 </div>
-                <div id="list-group-a" class="group-content show">Wczytywanie...</div>
+                <div id="list-group-a" class="group-content">Wczytywanie...</div>
             </div>
 
             <div class="group-card" id="card-b" data-aos="fade-up" data-aos-delay="100">
@@ -207,7 +159,6 @@
                 </div>
                 <div id="list-group-d" class="group-content">Wczytywanie...</div>
             </div>
-
         </div>
 
         <div id="knockout-stage-view" style="display: none;">
@@ -222,12 +173,117 @@
 
     </main>
 
-    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid var(--border);">
-        &copy; 2025 PUCHAR GWIAZD | LEAGUE SYSTEM
+    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid rgba(255,255,255,0.1);">
+        &copy; 2025 PUCHAR GWIAZD
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script>AOS.init({ duration: 800, once: true });</script>
+    <script> AOS.init({ duration: 600, once: true }); </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const CONFIG = { apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo", authDomain: "puchargwiazd-bdaa4.firebaseapp.com", projectId: "puchargwiazd-bdaa4", storageBucket: "puchargwiazd-bdaa4.firebasestorage.app", messagingSenderId: "890734185883", appId: "1:890734185883:web:75e8df76127397b913612d" };
+        const app = initializeApp(CONFIG);
+        const db = getFirestore(app);
+
+        // --- POBIERANIE MECZÓW ---
+        const q = query(collection(db, "matches"), orderBy("date"), orderBy("time"));
+
+        onSnapshot(q, (snap) => {
+            const groups = { a: [], b: [], c: [], d: [], knockout: [] };
+
+            snap.forEach(doc => {
+                const m = doc.data();
+                const type = m.group ? m.group.toLowerCase() : 'knockout';
+                
+                if(['a','b','c','d'].includes(type)) {
+                    groups[type].push(m);
+                } else {
+                    groups.knockout.push(m);
+                }
+            });
+
+            // Renderuj Grupy
+            ['a','b','c','d'].forEach(g => {
+                const container = document.getElementById(`list-group-${g}`);
+                if(!container) return;
+                
+                if(groups[g].length === 0) {
+                    container.innerHTML = '<div style="padding:15px; text-align:center; color:#666;">Brak meczów.</div>';
+                } else {
+                    let html = '';
+                    groups[g].forEach(m => {
+                        html += `
+                            <div class="match-row">
+                                <div class="match-date">
+                                    ${m.date}<br><span style="color:#555">${m.time}</span>
+                                </div>
+                                <div class="match-teams">
+                                    <span>${m.team1}</span>
+                                    <span class="match-score">${m.score1} : ${m.score2}</span>
+                                    <span>${m.team2}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                }
+            });
+
+            // Renderuj Pucharową
+            const kContainer = document.getElementById('knockout-list');
+            if(groups.knockout.length === 0) {
+                kContainer.innerHTML = '<p style="text-align:center; opacity:0.5;">Faza pucharowa jeszcze się nie rozpoczęła.</p>';
+            } else {
+                let html = '';
+                groups.knockout.forEach(m => {
+                    html += `
+                        <div class="match-row">
+                            <div class="match-date">
+                                <b>${m.group || 'Mecz'}</b><br>${m.date} | ${m.time}
+                            </div>
+                            <div class="match-teams">
+                                <span>${m.team1}</span>
+                                <span class="match-score">${m.score1} : ${m.score2}</span>
+                                <span>${m.team2}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                kContainer.innerHTML = html;
+            }
+        });
+
+        // --- FUNKCJE WIDOKU ---
+        window.toggleGroup = function(group) {
+            const content = document.getElementById(`list-group-${group}`);
+            const icon = document.querySelector(`#card-${group} .fa-chevron-down`);
+            
+            if(content.classList.contains('active')) {
+                content.classList.remove('active');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('active');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        };
+
+        window.showStage = function(stage) {
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if(stage === 'group') {
+                document.getElementById('group-stage-view').style.display = 'block';
+                document.getElementById('knockout-stage-view').style.display = 'none';
+            } else {
+                document.getElementById('group-stage-view').style.display = 'none';
+                document.getElementById('knockout-stage-view').style.display = 'block';
+            }
+        };
+    </script>
 
 </body>
 </html>
