@@ -11,9 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     
     <style>
-        /* --- TŁO STRONY (1.jpg + przyciemnienie) --- */
+        /* TŁO I STYLE LOKALNE (Reszta jest w style.css) */
         body {
-            /* Zmienia tło na 1.jpg i nakłada ciemną warstwę (rgba 0.9) */
             background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('1.jpg');
             background-size: cover;
             background-position: center;
@@ -22,136 +21,37 @@
             color: #fff;
         }
 
-        /* ORYGINALNE STYLE */
-        .cta-section {
-            text-align: center;
-            margin: 40px auto 60px;
-            padding: 0 20px;
-            max-width: 800px;
-        }
-        
+        .cta-section { text-align: center; margin: 40px auto 60px; padding: 0 20px; max-width: 800px; }
         .cta-box {
             background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 24px;
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
+            padding: 40px; border-radius: 24px; backdrop-filter: blur(10px); position: relative; overflow: hidden;
         }
 
-        /* --- NOWE LOGO W NAGŁÓWKU --- */
-        .hero-logo {
-            width: 120px;
-            margin-bottom: 25px;
-            filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4));
-            animation: float 6s ease-in-out infinite;
-        }
+        .hero-logo { width: 120px; margin-bottom: 25px; filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4)); animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
+        .cta-box h1 { font-size: 3rem; font-weight: 800; margin-bottom: 10px; letter-spacing: -1px; line-height: 1.1; }
+        .highlight { color: #00d4ff; text-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
 
-        .cta-box h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            letter-spacing: -1px;
-            line-height: 1.1;
-        }
+        .stats-counter-box { margin: 25px 0; padding: 15px; background: rgba(0, 212, 255, 0.05); border-radius: 12px; display: inline-block; border: 1px solid rgba(0, 212, 255, 0.1); }
+        .stats-number { font-size: 2.5rem; font-weight: 800; color: #fff; display: block; line-height: 1; }
+        .stats-label { font-size: 0.8rem; color: #00d4ff; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
 
-        .highlight {
-            color: #00d4ff;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-        }
+        .timer-container { display: flex; justify-content: center; gap: 15px; margin-top: 30px; }
+        .timer-segment { background: rgba(0, 0, 0, 0.3); padding: 10px 15px; border-radius: 8px; min-width: 70px; border: 1px solid rgba(255,255,255,0.05); }
+        .timer-segment span { font-size: 1.8rem; font-weight: 700; display: block; color: #fff; }
+        .timer-segment label { font-size: 0.7rem; text-transform: uppercase; color: #888; }
 
-        /* --- LICZNIK TURNIEJÓW --- */
-        .stats-counter-box {
-            margin: 25px 0;
-            padding: 15px;
-            background: rgba(0, 212, 255, 0.05);
-            border-radius: 12px;
-            display: inline-block;
-            border: 1px solid rgba(0, 212, 255, 0.1);
-        }
-        .stats-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #fff;
-            display: block;
-            line-height: 1;
-        }
-        .stats-label {
-            font-size: 0.8rem;
-            color: #00d4ff;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-
-        /* TIMER */
-        .timer-container {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-        }
-        .timer-segment {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px 15px;
-            border-radius: 8px;
-            min-width: 70px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .timer-segment span {
-            font-size: 1.8rem;
-            font-weight: 700;
-            display: block;
-            color: #fff;
-        }
-        .timer-segment label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #888;
-        }
-
-        /* STYLE DLA NEWSÓW (ZACHOWANE) */
-        .news-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        .news-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 15px;
-        }
+        .news-grid, .matches-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .news-card, .match-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; transition:0.3s; }
+        .news-card:hover, .match-card:hover { border-color: #00d4ff; transform: translateY(-5px); }
+        
         .news-date { color: #00d4ff; font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 5px; }
         .news-title { font-size: 1.2rem; margin-bottom: 10px; color: #fff; }
         .news-content { color: rgba(255,255,255,0.6); font-size: 0.9rem; }
 
-        /* STYLE MECZÓW */
-        .matches-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            max-width: 1200px;
-            margin: 0 auto 60px;
-            padding: 0 20px;
-        }
-        .match-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            transition: 0.3s;
-        }
-        .match-card:hover { border-color: #00d4ff; transform: translateY(-5px); }
+        .match-card { text-align: center; padding: 25px; }
         .match-info { font-size: 0.8rem; color: #888; margin-bottom: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         .match-teams { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px; }
         .team { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -159,12 +59,7 @@
         .team span { font-weight: 700; font-size: 1rem; }
         .score { font-size: 2.5rem; font-weight: 800; color: #fff; padding: 0 10px; }
         
-        .section-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 30px;
-            font-weight: 800;
-        }
+        .section-title { text-align: center; font-size: 2rem; margin-bottom: 30px; font-weight: 800; }
     </style>
 
     <script type="module">
@@ -183,7 +78,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- POBIERANIE NEWSÓW ---
+        // --- NEWSY ---
         onSnapshot(query(collection(db, "news"), orderBy("timestamp", "desc"), limit(3)), (snap) => {
             const container = document.getElementById('news-container');
             if (container) {
@@ -200,31 +95,24 @@
             }
         });
 
-        // --- POBIERANIE MECZÓW ---
-        const q = query(collection(db, "matches"), orderBy("timestamp", "desc"), limit(4));
-        onSnapshot(q, (snap) => {
+        // --- WYNIKI ---
+        onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc"), limit(4)), (snap) => {
             const container = document.getElementById('matches-container');
-            container.innerHTML = '';
-            snap.forEach(doc => {
-                const m = doc.data();
-                const card = `
-                    <div class="match-card" data-aos="zoom-in">
-                        <div class="match-info">${m.date} | ${m.time}</div>
-                        <div class="match-teams">
-                            <div class="team">
-                                <img src="${m.team1Logo}" alt="${m.team1}">
-                                <span>${m.team1}</span>
+            if(container) {
+                container.innerHTML = '';
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    container.innerHTML += `
+                        <div class="match-card" data-aos="zoom-in">
+                            <div class="match-info">${m.date} | ${m.time}</div>
+                            <div class="match-teams">
+                                <div class="team"><img src="${m.team1Logo}" alt="${m.team1}"><span>${m.team1}</span></div>
+                                <div class="score">${m.score1} : ${m.score2}</div>
+                                <div class="team"><img src="${m.team2Logo}" alt="${m.team2}"><span>${m.team2}</span></div>
                             </div>
-                            <div class="score">${m.score1} : ${m.score2}</div>
-                            <div class="team">
-                                <img src="${m.team2Logo}" alt="${m.team2}">
-                                <span>${m.team2}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += card;
-            });
+                        </div>`;
+                });
+            }
         });
     </script>
 </head>
@@ -235,7 +123,12 @@
             <img src="logo.png" alt="Logo" class="logo-img">
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
-        <div class="nav-links">
+
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="nav-links" id="navLinks">
             <a href="index.html" class="active-link">STRONA GŁÓWNA</a>
             <a href="druzyny.html">DRUŻYNY</a>
             <a href="terminarz.html">TERMINARZ</a>
@@ -250,7 +143,6 @@
     <header class="cta-section" data-aos="fade-up">
         <div class="cta-box">
             <img src="logo.png" alt="Puchar Gwiazd" class="hero-logo">
-            
             <h1>WITAMY W <span class="highlight">PUCHARZE GWIAZD</span></h1>
             
             <div class="stats-counter-box">
@@ -291,10 +183,14 @@
     <script>
         AOS.init({ duration: 1000, once: true });
 
-        // --- SKRYPT ODLICZANIA (18 Stycznia, 12:00) ---
-        // Ustawiam rok 2026 zgodnie z poprzednim kontekstem. Jeśli to ma być ten rok, zmień 2026 na 2025.
+        // --- SKRYPT DO OTWIERANIA MENU NA TELEFONIE ---
+        function toggleMenu() {
+            const nav = document.getElementById('navLinks');
+            nav.classList.toggle('active');
+        }
+
+        // TIMER: 18 Stycznia 2026, 12:00
         const targetDate = new Date("Jan 18, 2026 12:00:00").getTime();
-        
         const timerInterval = setInterval(() => {
             const now = new Date().getTime();
             const diff = targetDate - now;
@@ -304,26 +200,20 @@
                 document.getElementById("timer").innerHTML = "<h2 style='color:#00d4ff'>TURNIEJ ROZPOCZĘTY!</h2>";
                 return;
             }
-
             document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
             document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
             document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
             document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
         }, 1000);
 
-        // --- ANIMACJA LICZNIKA TURNIEJÓW (do 4) ---
+        // Animacja cyfry 4
         let count = 0;
         const targetCount = 4;
         const counterElement = document.getElementById('tournaments-count');
-        
         const counterInterval = setInterval(() => {
-            if(count >= targetCount) {
-                clearInterval(counterInterval);
-            } else {
-                count++;
-                counterElement.innerText = count;
-            }
-        }, 400); // Szybkość animacji
+            if(count >= targetCount) clearInterval(counterInterval);
+            else { count++; counterElement.innerText = count; }
+        }, 400);
     </script>
 </body>
 </html>
