@@ -3,239 +3,415 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O NAS - Puchar Gwiazd</title>
+    <title>Puchar Gwiazd | O Nas</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <meta name="description" content="Dowiedz się więcej o organizatorach Pucharu Gwiazd. Nasza misja, historia i zespół.">
-    
-    <!-- Fonty i Ikony -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+
     <style>
-        /* =========================================
-           NOWOCZESNY STYL - NEONOWY GRANAT
-           ========================================= */
         :root {
-            --bg-dark: #0a0e17;
-            --bg-card: #131a2a;
+            --primary: #0055ff;
             --accent: #00d4ff;
-            --accent-glow: rgba(0, 212, 255, 0.4);
-            --text-main: #ffffff;
-            --text-sec: #a0aec0;
-            --border: #1f2a40;
+            --bg: #050a18;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --text: #ffffff;
+            --admin-color: #ff4d4d;
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
-            margin: 0; padding: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
             overflow-x: hidden;
-            line-height: 1.6;
         }
 
-        /* HEADER */
-        .header {
-            width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
-            display: flex; justify-content: center; align-items: center;
-            background: rgba(19, 26, 42, 0.8);
+        /* --- NAVBAR --- */
+        .navbar {
+            padding: 15px 3%;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            background: rgba(5, 10, 24, 0.95);
+            position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 10;
         }
-        .header h1 {
-            font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 0;
-            background: linear-gradient(90deg, #fff, var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px var(--accent-glow);
+
+        .nav-left { display: flex; align-items: center; gap: 40px; }
+        
+        .brand { 
+            display: flex; align-items: center; gap: 12px; text-decoration: none; 
+            margin-right: 20px;
+        }
+        .logo-img { height: 40px; }
+        
+        /* Linki tekstowe */
+        .nav-links { display: flex; gap: 25px; }
+        .nav-links a { 
+            color: #fff; 
+            text-decoration: none; 
+            font-size: 0.85rem; 
+            font-weight: 700; 
             text-transform: uppercase;
+            opacity: 0.7; 
+            transition: 0.3s; 
+            letter-spacing: 0.5px;
+        }
+        .nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--accent); }
+
+        /* Prawa strona (Przyciski) */
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+
+        .nav-btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: 0.3s;
+            letter-spacing: 1px;
         }
 
-        /* NAV */
-        #main-nav {
-            margin: 20px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+        /* Przycisk KAPITAN (Obrys) */
+        .btn-kapitan {
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            background: transparent;
         }
-        #main-nav a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            padding: 10px 20px; border-radius: 30px; border: 1px solid transparent;
-            transition: 0.3s; background: var(--bg-card);
-        }
-        #main-nav a:hover {
-            border-color: var(--accent); color: #fff;
-            box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px);
+        .btn-kapitan:hover {
+            border-color: #fff;
+            background: rgba(255,255,255,0.05);
         }
 
-        /* CONTENT */
-        .content-section { width: 100%; max-width: 1000px; padding: 0 20px; box-sizing: border-box; }
+        /* Przycisk ADMIN (Czerwony styl) */
+        .btn-admin {
+            border: 1px solid rgba(255, 77, 77, 0.4);
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--admin-color);
+        }
+        .btn-admin:hover {
+            background: rgba(255, 77, 77, 0.2);
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.2);
+        }
+
+        /* --- CONTENT --- */
+        .container { max-width: 1100px; margin: 60px auto; padding: 0 20px; }
         
-        .info-card {
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: 16px; padding: 40px; margin-bottom: 50px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .page-header { text-align: center; margin-bottom: 60px; }
+        .page-header h2 { font-size: 2.5rem; font-weight: 800; margin: 0; }
+        .page-header p { color: var(--accent); text-transform: uppercase; letter-spacing: 4px; font-size: 0.85rem; font-weight: 700; }
+
+        /* Grid Organizatorów */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .member-box {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 40px 20px;
             text-align: center;
+            border: 1px solid rgba(255,255,255,0.06);
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
         }
-        
-        h2 { 
-            font-size: 2rem; margin: 0 0 20px; color: #fff; 
-            text-shadow: 0 0 20px rgba(255,255,255,0.1);
-            border-bottom: 2px solid var(--accent); display: inline-block; padding-bottom: 10px;
-        }
-        p { color: var(--text-sec); font-size: 1.1rem; max-width: 800px; margin: 0 auto; }
-
-        /* ZESPÓŁ */
-        .team-members {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px; margin-top: 30px;
-        }
-
-        .team-member {
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-            border-radius: 16px; padding: 30px; text-align: center;
-            transition: 0.4s; position: relative; overflow: hidden;
-        }
-        .team-member:hover {
+        .member-box:hover {
             transform: translateY(-10px);
             border-color: var(--accent);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.15);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.1);
+        }
+        .member-box img {
+            width: 120px; height: 120px; border-radius: 50%;
+            object-fit: cover; border: 3px solid var(--accent);
+            margin-bottom: 15px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+        .member-box h3 { margin: 15px 0 5px; font-size: 1.4rem; font-weight: 800; color: #fff; }
+        .member-box span { color: var(--accent); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- SEKCJA KIM JESTEŚMY --- */
+        .story-section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto 50px;
+        }
+        .story-section h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .story-text {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.8;
+            font-size: 1.05rem;
+            font-weight: 300;
+        }
+        .highlight { color: var(--accent); font-weight: 600; }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 10, 24, 0.9);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000; backdrop-filter: blur(10px);
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        
+        .modal-card {
+            background: #0f172a;
+            width: 90%; max-width: 450px;
+            max-height: 90vh;
+            border-radius: 30px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            text-align: center;
+            transform: translateY(50px) scale(0.9);
+            transition: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        .team-member img {
-            width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
-            border: 3px solid var(--accent); margin-bottom: 20px;
-            box-shadow: 0 0 20px var(--accent-glow);
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-overlay.active .modal-card { transform: translateY(0) scale(1); }
+
+        .close-modal {
+            position: absolute; top: 15px; right: 20px;
+            color: #fff; font-size: 1.8rem; cursor: pointer; z-index: 50;
+            transition: 0.3s;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+        .close-modal:hover { color: var(--accent); transform: rotate(90deg); }
+
+        /* Strzałki nawigacji */
+        .modal-nav-btn {
+            position: absolute; top: 40%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.6); color: #fff; border: none;
+            width: 45px; height: 45px; border-radius: 50%;
+            font-size: 1.2rem; cursor: pointer; z-index: 40;
+            transition: 0.3s;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-nav-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+        .modal-nav-btn.prev { left: 15px; }
+        .modal-nav-btn.next { right: 15px; }
+
+        .modal-img {
+            width: 100%; height: auto; max-height: 350px;
+            object-fit: contain; background: linear-gradient(to bottom, #1a233a, #0f172a);
+            display: block; border-bottom: 2px solid var(--accent);
+        }
+        
+        .modal-content-padding { padding: 30px 40px 40px; }
+
+        .modal-bio { 
+            color: rgba(255,255,255,0.7); margin: 20px 0; 
+            line-height: 1.7; font-size: 0.95rem;
         }
 
-        .team-member h3 { margin: 0 0 5px; color: #fff; font-size: 1.3rem; }
-        .role { color: var(--accent); font-weight: 700; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; display: block; }
-        .desc { font-size: 0.9rem; margin-bottom: 20px; font-style: italic; }
-
-        .contact-btn {
-            display: inline-block; padding: 10px 25px;
-            border: 1px solid var(--accent); color: var(--accent);
-            border-radius: 30px; text-decoration: none; font-weight: 600;
-            transition: 0.3s; font-size: 0.9rem;
+        .social-row { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
+        .social-btn {
+            width: 50px; height: 50px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.05); color: #fff;
+            transition: 0.3s; text-decoration: none; font-size: 1.2rem;
         }
-        .contact-btn:hover {
-            background: var(--accent); color: var(--bg-dark);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
+        .social-btn:hover { transform: translateY(-3px); }
+        .social-btn.fb:hover { background: #1877F2; }
+        .social-btn.ig:hover { background: #E4405F; }
 
-        /* FOOTER */
-        .footer {
-            margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
-            border-top: 1px solid var(--border); width: 100%; background: #070a11; margin-top: 60px;
-        }
-        .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
-        .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
-
-        #theme-toggle {
-            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
-            border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
-            font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: 0.3s; display: flex; justify-content: center; align-items: center;
-        }
-        #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
-
-        @media (max-width: 600px) {
-            .header { border-radius: 0 0 20px 20px; margin-top: 0; border: none; border-bottom: 1px solid var(--border); }
-            .header h1 { font-size: 1.4rem; }
-            .team-members { grid-template-columns: 1fr; }
+        /* Responsywność */
+        @media (max-width: 1024px) {
+            .navbar { flex-direction: column; gap: 20px; padding: 20px; }
+            .nav-left { flex-direction: column; gap: 20px; width: 100%; }
+            .nav-links { flex-wrap: wrap; justify-content: center; width: 100%; }
+            .nav-right { width: 100%; justify-content: center; }
+            .brand { margin-right: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>O NAS - PUCHAR GWIAZD</h1>
-    </div>
-
-    <nav id="main-nav">
-        <a href="index.html">Strona Główna</a>
-        <a href="druzyny.html">Drużyny</a>
-        <a href="terminarz.html">Terminarz</a>
-        <a href="regulamin.html">Regulamin</a>
-        <a href="tabela.html">Tabele</a>
-        <a href="onas.html" style="background: var(--accent); color: var(--bg-dark);">O Nas</a>
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="index.html" class="brand">
+                <img src="logo.png" alt="Logo" class="logo-img">
+            </a>
+            <div class="nav-links">
+                <a href="index.html">STRONA GŁÓWNA</a>
+                <a href="druzyny.html">DRUŻYNY</a>
+                <a href="terminarz.html">TERMINARZ</a>
+                <a href="tabela.html">TABELE</a>
+                <a href="regulamin.html">REGULAMIN</a>
+                <a href="onas.html" class="active">O NAS</a>
+            </div>
+        </div>
+        
+        <div class="nav-right">
+            <a href="kapitan.html" class="nav-btn btn-kapitan">KAPITAN</a>
+            <a href="admin.html" class="nav-btn btn-admin">ADMIN</a>
+        </div>
     </nav>
 
-    <section class="content-section">
-        
-        <!-- Sekcja Historii -->
-        <div class="info-card">
-            <h2>Nasza Historia</h2>
-            <p>
-                Puchar Gwiazd na początku prowadził sam Krzysztof Łodziński. 
-                W 2024 roku powstała nieoficjalna edycja Pucharu Gwiazd 0,5. 
-                Później 3 przyjaciół połączyło siły, aby stworzyć pełną edycję Pucharu Gwiazd, 
-                która jest kontynuowana do teraz.
-            </p>
-        </div>
+    <main class="container">
+        <header class="page-header" data-aos="fade-down">
+            <p>Zespół Organizacyjny</p>
+            <h2>POZNAJ NAS</h2>
+        </header>
 
-        <!-- Sekcja Zespołu -->
-        <h2 style="text-align: center; width: 100%; border: none; margin-bottom: 10px;">NASZ ZESPÓŁ</h2>
-        <div class="team-members">
-            
-            <!-- Członek 1 -->
-            <div class="team-member">
+        <div class="team-grid">
+            <div class="member-box" data-aos="fade-up" onclick="openModal(0)">
                 <img src="lodzio.jpg" alt="Krzysztof Łodziński">
-                <h3>Krzysztof Łodziński</h3>
-                <span class="role">Organizator Główny</span>
-                <p class="desc">Pasjonat piłki nożnej grający w Iskrze Pilawa.</p>
-                <a href="https://www.facebook.com/profile.php?id=100079660903476" class="contact-btn" target="_blank">
-                    <i class="fab fa-facebook"></i> Kontakt
-                </a>
+                <h3>Krzysztof "Łodzio" Łodziński</h3>
+                <span>Właściciel</span>
             </div>
 
-            <!-- Członek 2 -->
-            <div class="team-member">
+            <div class="member-box" data-aos="fade-up" data-aos-delay="100" onclick="openModal(1)">
                 <img src="socha.jpg" alt="Piotr Soszka">
-                <h3>Piotr Soszka</h3>
-                <span class="role">Współ-organizator</span>
-                <p class="desc">Pasjonat siatkówki, ale również były zawodnik Iskry.</p>
-                <a href="https://www.facebook.com/profile.php?id=100069876260867" class="contact-btn" target="_blank">
-                    <i class="fab fa-facebook"></i> Kontakt
-                </a>
+                <h3>Piotr "Socha" Soszka</h3>
+                <span>Dyrektor Operacyjny</span>
             </div>
 
-            <!-- Członek 3 -->
-            <div class="team-member">
+            <div class="member-box" data-aos="fade-up" data-aos-delay="200" onclick="openModal(2)">
                 <img src="ja.jpg" alt="Kacper Kowalski">
-                <h3>Kacper Kowalski</h3>
-                <span class="role">Techniczny (IT)</span>
-                <p class="desc">Pasjonat piłki nożnej, były zawodnik Iskry. Ogarnia wszystko po trochu.</p>
-                <a href="https://www.facebook.com/kacper.kowalski.75098/" class="contact-btn" target="_blank">
-                    <i class="fab fa-facebook"></i> Kontakt
-                </a>
+                <h3>Kacper "Lechu" Kowalski</h3>
+                <span>Head of IT & Social Media</span>
             </div>
-
         </div>
-    </section>
 
-    <div class="footer">
-        <div class="social-media-links">
-            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/puchargwiazd/" target="_blank"><i class="fab fa-instagram"></i></a>
+        <section class="story-section" data-aos="fade-up">
+            <h3>Kim jesteśmy?</h3>
+            <div class="story-text">
+                <p>
+                    Nasza historia zaczęła się znacznie wcześniej niż pierwszy gwizdek na boisku – jesteśmy grupą przyjaciół ze szkolnej ławki, których od zawsze łączyła wspólna pasja do futbolu. Chcieliśmy stworzyć coś więcej niż kolejną ligę. Naszym celem był turniej <span class="highlight">"od ludzi dla ludzi"</span> – bez cen z kosmosu, ale z organizacją na najwyższym poziomie.
+                </p>
+                <p>
+                    Pierwsza edycja, stworzona z czystej pasji, przyjęła się znakomicie i dała nam impuls do działania. Wiedzieliśmy, że chcemy to ciągnąć dalej. Dziś Puchar Gwiazd to projekt budowany w 100% z <span class="highlight">zajawki</span>, który jednocześnie posiada otoczkę ekskluzywnego, profesjonalnego turnieju. Tutaj każdy może poczuć się jak gwiazda.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <i class="fas fa-times close-modal" onclick="closeModal()"></i>
+            
+            <button class="modal-nav-btn prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="modal-nav-btn next" onclick="changeSlide(1)"><i class="fas fa-chevron-right"></i></button>
+
+            <img src="" id="m-img" class="modal-img">
+            
+            <div class="modal-content-padding">
+                <h2 id="m-name" style="margin:0; font-size: 1.7rem; font-weight: 800;"></h2>
+                <span id="m-role" style="color:var(--accent); font-weight:800; font-size:0.85rem; text-transform:uppercase; letter-spacing: 2px;"></span>
+                <p id="m-bio" class="modal-bio"></p>
+                <div class="social-row">
+                    <a href="#" id="m-fb" class="social-btn fb" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" id="m-ig" class="social-btn ig" target="_blank"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
         </div>
-        <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
     </div>
 
-    <button id="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
-        // Prosta obsługa Theme Toggle
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-           // Tutaj można dodać logikę JS, jeśli chcesz mieć przełączanie light/dark
-           alert("Motyw nocny jest aktywny domyślnie!");
+        AOS.init({ duration: 800, once: true });
+
+        // Dane członków zespołu
+        const teamData = [
+            {
+                name: 'Krzysztof "Łodzio" Łodziński',
+                role: 'Właściciel',
+                img: 'lodzio.jpg',
+                bio: 'Pomysłodawca i główny organizator. To dzięki jego wizji Puchar Gwiazd stał się rzeczywistością. Czuwa nad całością projektu.',
+                fb: 'https://www.facebook.com/profile.php?id=100079660903476',
+                ig: 'https://www.instagram.com/lodzinskikrzysztof/'
+            },
+            {
+                name: 'Piotr "Socha" Soszka',
+                role: 'Dyrektor Operacyjny',
+                img: 'socha.jpg',
+                bio: 'Prawa ręka właściciela. Odpowiada za kluczowe decyzje organizacyjne i logistykę, dbając o to, by wszystko działało jak w zegarku.',
+                fb: 'https://www.facebook.com/profile.php?id=100069876260867',
+                ig: 'https://www.instagram.com/soszka.piotr/'
+            },
+            {
+                name: 'Kacper "Lechu" Kowalski',
+                role: 'Head of IT & Social Media',
+                img: 'ja.jpg',
+                bio: 'Odpowiedzialny za zaplecze technologiczne, prowadzenie mediów społecznościowych oraz wdrażanie kreatywnych rozwiązań dla kibiców.',
+                fb: 'https://www.facebook.com/kacper.kowalski.75098/',
+                ig: 'https://www.instagram.com/am_kacper/'
+            }
+        ];
+
+        let currentIdx = 0;
+
+        function openModal(index) {
+            currentIdx = index;
+            updateModalContent();
+            
+            const overlay = document.getElementById('modalOverlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.classList.add('active'); }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function updateModalContent() {
+            const person = teamData[currentIdx];
+            document.getElementById('m-name').innerText = person.name;
+            document.getElementById('m-role').innerText = person.role;
+            document.getElementById('m-img').src = person.img;
+            document.getElementById('m-bio').innerText = person.bio;
+            document.getElementById('m-fb').href = person.fb;
+            document.getElementById('m-ig').href = person.ig;
+        }
+
+        function changeSlide(direction) {
+            currentIdx += direction;
+            if (currentIdx < 0) {
+                currentIdx = teamData.length - 1;
+            } else if (currentIdx >= teamData.length) {
+                currentIdx = 0;
+            }
+            updateModalContent();
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modalOverlay');
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 500);
+        }
+
+        // Obsługa klawiatury
+        document.addEventListener('keydown', (e) => { 
+            if (document.getElementById('modalOverlay').style.display === 'flex') {
+                if (e.key === 'Escape') closeModal();
+                if (e.key === 'ArrowLeft') changeSlide(-1);
+                if (e.key === 'ArrowRight') changeSlide(1);
+            }
         });
     </script>
 </body>
 </html>
-
-
-

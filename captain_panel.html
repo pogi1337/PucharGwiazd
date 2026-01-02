@@ -3,325 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Kapitana - Puchar Gwiazd</title>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <!-- Importy Firebase V11 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, collection, query, onSnapshot, getDoc, doc, 
-            addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // 1. KONFIGURACJA (Twoja własna)
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        
-        // Ścieżki do głównych kolekcji
-        const PATH_USERS = 'users';     
-        const PATH_TEAMS = 'teams';
-
-        let currentTeamId = "";
-
-        // 2. LOGIKA UI
-        function showMessage(text, type = 'success') {
-            const msgDiv = document.getElementById('custom-message');
-            if (!msgDiv) return;
-            msgDiv.textContent = text;
-            msgDiv.className = type === 'success' ? 'msg-success' : 'msg-error';
-            msgDiv.style.display = 'block';
-            setTimeout(() => msgDiv.style.display = 'none', 4000);
-        }
-
-        window.openModal = () => document.getElementById("addModal").style.display = "flex";
-        window.closeModal = () => {
-            document.getElementById("addModal").style.display = "none";
-            document.getElementById("new-name").value = "";
-            document.getElementById("new-surname").value = "";
-            document.getElementById("new-number").value = "";
-            document.getElementById("new-position").value = "";
-        };
-        
-        window.logout = async () => {
-            await signOut(auth);
-        };
-
-        // 3. LOGIKA APLIKACJI
-        
-        // A. Logowanie
-        const loginForm = document.getElementById("login-form");
-        if (loginForm) {
-            loginForm.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-                const msgArea = document.getElementById("login-msg");
-
-                msgArea.textContent = "Logowanie...";
-                msgArea.className = "message-area";
-
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    msgArea.textContent = "";
-                } catch (error) {
-                    msgArea.textContent = "Błąd logowania: " + error.message;
-                    msgArea.className = "message-area error-msg";
-                }
-            });
-        }
-
-        // B. Obsługa stanu (Weryfikacja)
-        onAuthStateChanged(auth, async (user) => {
-            const loading = document.getElementById("loading-screen");
-            const loginView = document.getElementById("login-view");
-            const panelView = document.getElementById("panel-view");
-
-            if (user) {
-                try {
-                    // Pobieramy dokument użytkownika, aby sprawdzić rolę i teamId
-                    const userDocRef = doc(db, PATH_USERS, user.uid);
-                    const docSnap = await getDoc(userDocRef);
-                    
-                    if (docSnap.exists()) {
-                         const userData = docSnap.data();
-                         
-                         // Wpuszczamy Kapitana LUB Admina
-                         if (userData.role === "teamManager" || userData.role === "admin" || userData.admin === true) {
-                            currentTeamId = userData.teamId;
-                            
-                            if (!currentTeamId) {
-                                showMessage("Błąd: Twoje konto nie ma przypisanej drużyny.", 'error');
-                                loading.style.display = "none";
-                                return; 
-                            }
-
-                            setupTeamListeners(currentTeamId);
-                            
-                            loading.style.display = "none";
-                            loginView.style.display = "none";
-                            panelView.style.display = "block";
-                         } else {
-                            showMessage("To konto nie ma uprawnień kapitana.", 'error');
-                            await signOut(auth);
-                         }
-                    } else {
-                        showMessage("Błąd: Brak profilu użytkownika w bazie.", 'error');
-                        await signOut(auth);
-                    }
-                } catch (error) {
-                    console.error("Błąd weryfikacji:", error);
-                    if (error.code === 'permission-denied') {
-                        showMessage("Błąd uprawnień. Sprawdź Reguły Firestore.", 'error');
-                    } else {
-                        showMessage(`Błąd: ${error.message}`, 'error');
-                    }
-                    await signOut(auth);
-                }
-            } else {
-                loading.style.display = "none";
-                panelView.style.display = "none";
-                loginView.style.display = "block";
-            }
-        });
-
-        // C. Pobieranie danych drużyny
-        function setupTeamListeners(tid) {
-            const teamRef = doc(db, PATH_TEAMS, tid);
-            
-            // Dane o drużynie
-            onSnapshot(teamRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    document.getElementById("team-name").textContent = "Zarządzasz drużyną: " + docSnap.data().name;
-                } else {
-                    document.getElementById("team-name").textContent = "Nie znaleziono drużyny (ID: " + tid + ")";
-                }
-            });
-
-            // Lista zawodników
-            const playersRef = collection(db, PATH_TEAMS, tid, "players");
-            const q = query(playersRef, orderBy("number"));
-            
-            onSnapshot(q, (snapshot) => {
-                const list = document.getElementById("players-list");
-                list.innerHTML = "";
-
-                if (snapshot.empty) {
-                    list.innerHTML = "<p style='text-align:center;color:#666;'>Brak zawodników. Dodaj pierwszego!</p>";
-                    return;
-                }
-
-                snapshot.forEach(docSnap => {
-                    const p = docSnap.data();
-                    const div = document.createElement("div");
-                    div.className = "player-card";
-                    div.innerHTML = `
-                        <label>Imię</label>
-                        <input id="name-${docSnap.id}" value="${p.name || ''}" onchange="window.savePlayer('${docSnap.id}')">
-                        
-                        <label>Nazwisko</label>
-                        <input id="surname-${docSnap.id}" value="${p.surname || ''}" onchange="window.savePlayer('${docSnap.id}')">
-                        
-                        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
-                            <div><label>Nr</label><input type="number" id="number-${docSnap.id}" value="${p.number || ''}" onchange="window.savePlayer('${docSnap.id}')"></div>
-                            <div><label>Pozycja</label><input id="position-${docSnap.id}" value="${p.position || ''}" onchange="window.savePlayer('${docSnap.id}')"></div>
-                        </div>
-                        <div style="text-align:right; margin-top:10px;">
-                            <button class="btn btn-delete" onclick="window.deletePlayer('${docSnap.id}')">🗑 Usuń</button>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-            });
-        }
-        
-        // D. Operacje na zawodnikach
-        window.addPlayer = async () => {
-            const name = document.getElementById("new-name").value.trim();
-            const surname = document.getElementById("new-surname").value.trim();
-            const number = parseInt(document.getElementById("new-number").value.trim());
-            const position = document.getElementById("new-position").value.trim();
-
-            if (!name || !surname) return showMessage("Uzupełnij dane!", 'error');
-
-            try {
-                await addDoc(collection(db, PATH_TEAMS, currentTeamId, "players"), {
-                    name, surname, number, position, createdAt: serverTimestamp()
-                });
-                window.closeModal();
-                showMessage("Dodano zawodnika!", 'success');
-            } catch (e) {
-                console.error(e);
-                showMessage("Błąd dodawania.", 'error');
-            }
-        };
-
-        window.savePlayer = async (pid) => {
-            const name = document.getElementById(`name-${pid}`).value;
-            const surname = document.getElementById(`surname-${pid}`).value;
-            const number = parseInt(document.getElementById(`number-${pid}`).value);
-            const position = document.getElementById(`position-${pid}`).value;
-
-            try {
-                await updateDoc(doc(db, PATH_TEAMS, currentTeamId, "players", pid), { name, surname, number, position });
-            } catch (e) { showMessage("Błąd zapisu.", 'error'); }
-        };
-
-        window.deletePlayer = async (pid) => {
-            if (!confirm("Usunąć zawodnika?")) return;
-            try {
-                await deleteDoc(doc(db, PATH_TEAMS, currentTeamId, "players", pid));
-                showMessage("Usunięto.", 'success');
-            } catch (e) { showMessage("Błąd usuwania.", 'error'); }
-        };
-        
-        window.onclick = function(event) {
-            const modal = document.getElementById("addModal");
-            if (event.target == modal) window.closeModal();
-        };
-    </script>
-
+    <title>Zarządzaj Drużyną | Puchar Gwiazd</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-        
-        :root { --blue: #2196f3; --dark: #0a0a0a; --card: #111; --text: #e0e0e0; --border: #1e1e1e; --error: #ff4444; --success: #00C851; }
-        body { font-family: 'Poppins', sans-serif; background: var(--dark); color: var(--text); padding: 20px; margin: 0; }
-        h2, h3 { color: var(--blue); text-align: center; margin-top: 0; }
-        
-        /* Widoki */
-        #login-view, #panel-view { max-width: 700px; margin: 0 auto; display: none; }
-        
-        /* Logowanie */
-        .login-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; margin-top: 50px; box-shadow: 0 0 20px rgba(33,150,243,0.15); }
-        .login-box input { width: 100%; background: #0d0d0d; border: 1px solid #333; color: white; padding: 12px; margin: 10px 0; border-radius: 6px; box-sizing: border-box; }
-        
-        /* Karty Graczy */
-        #team-name { text-align: center; font-size: 1.2rem; margin-bottom: 20px; color: #aaa; }
-        .player-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 0 10px rgba(33,150,243,0.1); transition: all 0.3s ease; }
-        .player-card:hover { box-shadow: 0 0 20px rgba(33,150,243,0.3); border-color: var(--blue); }
-        .player-card label { font-size: 0.85rem; color: #888; margin-top: 5px; display: block; }
-        .player-card input { width: 100%; background: #0d0d0d; border: 1px solid #222; color: var(--text); padding: 8px; margin: 4px 0 10px 0; border-radius: 6px; box-sizing: border-box; }
-        
-        /* Przyciski */
-        .btn { background: var(--blue); border: none; color: white; padding: 8px 14px; border-radius: 6px; cursor: pointer; margin-right: 8px; transition: 0.3s; font-weight: 600; }
-        .btn:hover { background: #1976d2; }
-        .btn-full { width: 100%; padding: 12px; font-size: 16px; margin-top: 10px; }
-        .btn-delete { background: #e53935; }
-        .btn-delete:hover { background: #c62828; }
-        .logout { margin-top: 30px; text-align: center; color: #888; cursor: pointer; text-decoration: underline; }
-        
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; }
-        .modal-content { background: var(--card); padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; border: 1px solid var(--border); }
-        .modal-content input { width: 100%; padding: 10px; margin: 8px 0; background: #0d0d0d; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box; }
-        .close { color: #aaa; float: right; font-size: 28px; cursor: pointer; margin-top: -10px; }
-        .close:hover { color: white; }
-        
-        /* Inne */
-        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark); display: flex; justify-content: center; align-items: center; z-index: 999; }
-        #custom-message { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 8px; color: white; font-weight: bold; display: none; z-index: 1000; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .msg-success { background: var(--success); }
-        .msg-error { background: var(--error); }
-        .message-area { text-align: center; margin-top: 15px; min-height: 20px; font-size: 14px; }
+        .player-row { display: flex; gap: 10px; margin-bottom: 8px; }
+        .player-row input { background: #0f172a; border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 5px; }
+        .btn-save { background: var(--success); color: #000; font-weight: 800; width: 100%; padding: 15px; border-radius: 10px; border:none; cursor:pointer; margin-top:20px; }
     </style>
 </head>
 <body>
+    <nav class="navbar">
+        <div class="brand"><span class="logo-text">PANEL ZARZĄDZANIA</span></div>
+        <button onclick="firebase.auth().signOut().then(()=>window.location.href='index.html')" class="admin-btn" style="background:var(--danger)">WYLOGUJ</button>
+    </nav>
 
-    <div id="custom-message"></div>
-
-    <div id="loading-screen">
-        <h3>🔄 Wczytywanie...</h3>
-    </div>
-
-    <!-- LOGOWANIE -->
-    <div id="login-view">
-        <div class="login-box">
-            <h2>🔐 Logowanie Kapitana</h2>
-            <form id="login-form">
-                <input type="email" id="email" placeholder="Email" required>
-                <input type="password" id="password" placeholder="Hasło" required>
-                <button type="submit" class="btn btn-full">Zaloguj</button>
+    <div class="container" style="max-width: 600px; margin-top: 50px;">
+        <div class="card-box">
+            <h2 id="team-name-display">Ładowanie...</h2>
+            <form id="team-form">
+                <div id="players-container"></div>
+                <button type="submit" class="btn-save">ZAPISZ SKŁAD</button>
             </form>
-            <div id="login-msg" class="message-area"></div>
+            <div id="message-area" style="margin-top:15px; text-align:center;"></div>
         </div>
     </div>
 
-    <!-- PANEL GŁÓWNY -->
-    <div id="panel-view">
-        <h2>⚽ Panel Kapitana</h2>
-        <p id="team-name">Ładowanie danych drużyny...</p>
-        
-        <button class="btn btn-full" onclick="openModal()">➕ Dodaj zawodnika</button>
-        
-        <h3 style="margin-top: 30px;">Skład Drużyny</h3>
-        <div id="players-list"></div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "puchargwiazd-bdaa4",
+            appId: "1:890734185883:web:75e8df76127397b913612d"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        <p class="logout" onclick="logout()">🚪 Wyloguj się</p>
-    </div>
+        firebase.auth().onAuthStateChanged(user => {
+            const teamId = localStorage.getItem('teamId');
+            if (user && teamId) {
+                db.ref('teams/' + teamId).on('value', snap => {
+                    const data = snap.val();
+                    document.getElementById('team-name-display').innerText = data.name;
+                    const container = document.getElementById('players-container');
+                    container.innerHTML = '';
+                    const players = data.players || {};
+                    for(let i=0; i<12; i++) {
+                        const p = Object.values(players)[i] || {name: '', number: ''};
+                        container.innerHTML += `
+                            <div class="player-row">
+                                <input type="number" placeholder="Nr" style="width:50px" class="p-num" value="${p.number}">
+                                <input type="text" placeholder="Imię i Nazwisko" style="flex:1" class="p-name" value="${p.name}">
+                            </div>`;
+                    }
+                });
+            } else { window.location.href = "login_kapitana.html"; }
+        });
 
-    <!-- MODAL DODAWANIA -->
-    <div id="addModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h3>Dodaj nowego gracza</h3>
-            <input id="new-name" placeholder="Imię" required>
-            <input id="new-surname" placeholder="Nazwisko" required>
-            <input id="new-number" placeholder="Numer" type="number" required min="1">
-            <input id="new-position" placeholder="Pozycja (np. Napastnik)" required>
-            <button class="btn btn-full" onclick="addPlayer()">Zapisz</button>
-        </div>
-    </div>
+        document.getElementById('team-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const teamId = localStorage.getItem('teamId');
+            const rows = document.querySelectorAll('.player-row');
+            let newPlayers = {};
+            rows.forEach((row, idx) => {
+                const n = row.querySelector('.p-name').value;
+                const num = row.querySelector('.p-num').value;
+                if(n) newPlayers['p'+idx] = { name: n, number: num };
+            });
+            db.ref('teams/'+teamId+'/players').set(newPlayers)
+                .then(() => alert("Zapisano pomyślnie!"));
+        });
+    </script>
 </body>
 </html>

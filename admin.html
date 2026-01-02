@@ -1,392 +1,172 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Panel Administratora</title>
-
-    <link rel="stylesheet" href="admin.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchar Gwiazd | Admin Panel</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* --- STYLE PODSTAWOWE --- */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #050a14;
-            color: #fff;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container, .panel {
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        h2, h3, h4 { color: #f0f0f0; }
-
-        input, select, button {
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            border: 1px solid #333;
-            background-color: #1e2a3a;
-            color: white;
-        }
-
-        button {
-            cursor: pointer;
-            background-color: #2196f3;
-            border: none;
-            font-weight: bold;
-        }
-        button:hover { opacity: 0.9; }
-        button:disabled { background-color: #555 !important; cursor: not-allowed; opacity: 0.7; }
-
-        .form-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-
-        .message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
-        .message.success { background-color: #4caf50; color: white; }
-        .message.error { background-color: #f44336; color: white; }
-
-        /* --- ZAKŁADKI (TABS) --- */
-        #admin-wrapper { display: none; } /* Ukryty przed logowaniem */
+        .editing-mode input, .editing-mode select { border: 1px solid #ff9900 !important; background: rgba(255, 153, 0, 0.1) !important; }
+        .list-item { background: rgba(255,255,255,0.05); padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-edit { background: transparent; color: #ff9900; border: 1px solid #ff9900; padding: 5px 10px; cursor: pointer; border-radius: 4px; margin-right: 5px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         
-        .tab-content { 
-            display: none; 
-            padding: 20px;
-            background: #0e1628;
-            border: 1px solid #1e3a5f;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-        }
-        
-        .tab-content.active { 
-            display: block !important; 
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .tabs-header {
-            display: flex;
-            gap: 5px;
-            border-bottom: 1px solid #1e3a5f;
-        }
-
-        .tab-button {
-            background: #0a0a1f;
-            color: #888;
-            border: 1px solid #1e3a5f;
-            border-bottom: none;
-            padding: 12px 25px;
-            cursor: pointer;
-            font-weight: 600;
-            border-radius: 8px 8px 0 0;
-            transition: all 0.2s;
-            flex-grow: 1;
-        }
-
-        .tab-button:hover { background: #152036; color: white; }
-        
-        .tab-button.active {
-            background: #2196f3;
-            color: white;
-            border-color: #2196f3;
-        }
-
-        /* --- MODAL (OKNO EDYCJI) --- */
-        .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 10000; 
-            left: 0; top: 0; 
-            width: 100%; height: 100%; 
-            background-color: rgba(0, 0, 0, 0.85); 
-            justify-content: center; 
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #152036;
-            padding: 25px;
-            border: 1px solid #2196f3;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.7);
-        }
-
-        .modal-section {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #333;
-        }
-
-        .close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .close:hover { color: #fff; }
-
-        .result-inputs {
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 10px; 
-            font-size: 1.2em; 
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .btn-full { width: 100%; margin-top: 10px; }
-        .btn-small { width: auto; padding: 10px 20px; }
-
-        /* --- STYL DLA PRZYCISKU USUWANIA STRZELCA --- */
-        .btn-delete {
-            background-color: #cf2e2e;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background 0.2s;
-        }
-        .btn-delete:hover {
-            background-color: #b30000;
-        }
-
-        /* Tabela strzelców */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
-        th { color: #aaa; }
-        th:last-child, td:last-child { text-align: center; }
+        /* Styl dla szybkiej edycji goli */
+        .goal-controls { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 20px; border: 1px solid #333; }
+        .btn-goal { width: 30px; height: 30px; border-radius: 50%; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .btn-goal.plus { background: #28a745; color: white; }
+        .btn-goal.minus { background: #333; color: #aaa; }
+        .btn-goal.minus:hover { background: #ff4d4d; color: white; }
     </style>
 </head>
-
 <body>
 
-    <div class="container" id="login-box">
-        <h2 style="text-align: center;">🔐 Logowanie Administratora</h2>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <input id="login-email" type="email" placeholder="Email admina">
-            <input id="login-pass" type="password" placeholder="Hasło">
-            <button id="login-btn">Zaloguj</button>
-        </div>
-        <div id="login-msg" class="message"></div>
+    <div id="login-panel">
+        <h2 style="margin-top:0">PANEL ADMINA</h2>
+        <input type="email" id="login-email" placeholder="E-mail">
+        <input type="password" id="login-password" placeholder="Hasło">
+        <button id="login-btn">ZALOGUJ SIĘ</button>
+        <p id="login-error" style="color: #ff4d4d; margin-top: 15px; font-size: 0.9rem;"></p>
     </div>
 
-    <div class="panel" id="admin-wrapper" style="display: none;">
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; color: white;">Panel Zarządzania</h2>
-            <button id="logout-btn" onclick="window.logout()" style="background-color: #d32f2f; width: auto; padding: 8px 15px;">🚪 Wyloguj</button>
-        </div>
-
-        <div class="tabs-header">
-            <button class="tab-button active" onclick="openTab('teams-tab', event)">Drużyny</button>
-            <button class="tab-button" onclick="openTab('players-tab', event)">Zawodnicy</button>
-            <button class="tab-button" onclick="openTab('matches-tab', event)">Mecze</button>
-            <button class="tab-button" onclick="openTab('settings-tab', event)">Ustawienia</button>
-        </div>
-
-        <div id="teams-tab" class="tab-content active">
-            <div class="sub-section">
-                <h3>➕ Dodaj Nową Drużynę</h3>
-                <div class="form-row">
-                    <input id="new-team-name" placeholder="Nazwa drużyny (np. FC Barcelona)" style="flex: 2;">
-                    <input id="new-team-manager" placeholder="Manager (Opcjonalnie)" style="flex: 1;">
-                    <button onclick="window.addTeam()">Dodaj</button>
-                </div>
+    <div id="admin-wrapper" class="container" style="display:none;">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom:1px solid #333; padding-bottom:15px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-shield-alt" style="color: #00d4ff;"></i>
+                <h2 style="margin:0;">Admin Zone</h2>
             </div>
+            <button id="logout-btn" style="background: #333; color: #fff; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Wyloguj</button>
+        </header>
 
-            <div class="sub-section">
-                <h3>✏️ Edycja i Lista Drużyn</h3>
-                <div class="form-row">
-                    <select id="edit-team-select" style="flex: 1;"><option>Wczytywanie...</option></select>
-                    <input id="edit-team-name" placeholder="Nowa nazwa" style="flex: 1;">
-                    <button onclick="window.updateTeamName()" style="background-color: #ff9800;">Zmień Nazwę</button>
-                </div>
-                <div id="teams-list" style="margin-top: 15px;"></div>
-            </div>
+        <div class="admin-tabs" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
+            <button class="tab-btn active" onclick="showTab('matches')">MECZE</button>
+            <button class="tab-btn" onclick="showTab('players')">ZAWODNICY</button>
+            <button class="tab-btn" onclick="showTab('teams')">DRUŻYNY</button>
+            <button class="tab-btn" onclick="showTab('news')">NEWSY</button>
         </div>
 
-        <div id="players-tab" class="tab-content">
-            <div class="sub-section">
-                <h3>👥 Wybierz drużynę</h3>
-                <select id="players-team-select" onchange="window.selectTeamInDropdown()" style="width: 100%; padding: 10px; font-size: 16px;">
-                    <option value="">-- Kliknij, aby wybrać --</option>
+        <div id="matches" class="tab-content active">
+            <div class="card-box" id="match-form-box">
+                <h3 id="match-form-title">Dodaj Mecz</h3>
+                <input type="hidden" id="match-id-edit">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <select id="m-team1" class="dark-input"><option>Ładowanie...</option></select>
+                    <select id="m-team2" class="dark-input"><option>Ładowanie...</option></select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <input type="date" id="m-date" class="dark-input">
+                    <input type="time" id="m-time" class="dark-input">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <input type="number" id="m-score1" placeholder="Wynik 1" class="dark-input">
+                    <input type="number" id="m-score2" placeholder="Wynik 2" class="dark-input">
+                </div>
+                <select id="m-status" class="dark-input" style="margin-top:10px;">
+                    <option value="upcoming">Nadchodzący</option>
+                    <option value="live">Na Żywo (LIVE)</option>
+                    <option value="finished">Zakończony</option>
                 </select>
-            </div>
 
-            <div id="players-manager-area" style="display: none; margin-top: 20px;">
-                <div class="sub-section" style="border: 1px solid #2196f3; padding: 15px; border-radius: 8px; background: #152036;">
-                    <h4 style="color: #2196f3; margin-top: 0;">Dodaj Zawodnika</h4>
-                    <div class="form-row" id="add-player-form">
-                        <input id="new-p-name" placeholder="Imię" style="flex: 1;">
-                        <input id="new-p-surname" placeholder="Nazwisko" style="flex: 1;">
-                        <input id="new-p-number" type="number" placeholder="Nr" style="width: 60px;">
-                        <input id="new-p-position" placeholder="Poz." style="width: 80px;">
-                        <button onclick="window.addPlayerAdmin()" style="background-color: #4caf50;">Dodaj</button>
-                    </div>
-                </div>
-                <h4 style="margin-top: 20px;">Aktualny Skład:</h4>
-                <div id="team-players-list"></div>
-            </div>
-        </div>
-
-        <div id="matches-tab" class="tab-content">
-            <div class="sub-section">
-                <h3>⚽ Utwórz Mecz</h3>
-                <div class="form-row match-creation-row" id="add-match-form">
-                    <select id="new-match-team1" style="flex: 1;"><option>Drużyna 1</option></select>
-                    <span style="padding: 10px; font-weight: bold; display: flex; align-items: center;">VS</span>
-                    <select id="new-match-team2" style="flex: 1;"><option>Drużyna 2</option></select>
-                    <input id="group" placeholder="Gr." style="width: 60px;">
-                    <input id="new-match-date" type="date">
-                    <input id="new-match-time" type="time">
-                    <button onclick="window.addMatch()" style="background-color: #00bfff;">Utwórz</button>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="admin-btn" id="btn-save-match" onclick="saveMatch()" style="background:#0055ff;">ZAPISZ MECZ</button>
+                    <button class="admin-btn" onclick="resetMatchForm()" style="background:#333;">ANULUJ</button>
                 </div>
             </div>
-
-            <div class="sub-section">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+            
+            <div class="card-box" style="margin-top: 20px;">
+                <div class="section-header">
                     <h3>Lista Meczów</h3>
-                    <select id="match-status-filter" style="width: auto;">
-                        <option value="wszyscy">Wszystkie</option>
-                        <option value="planowany">Planowane</option>
-                        <option value="trwa">Na Żywo</option>
-                        <option value="zakończony">Zakończone</option>
-                    </select>
+                    <button class="refresh-btn" onclick="loadMatches()">Odśwież</button>
                 </div>
                 <div id="matches-list"></div>
             </div>
         </div>
 
-        <div id="settings-tab" class="tab-content">
-            <div class="sub-section">
-                <h3>🛡 Nadaj Uprawnienia Admina</h3>
-                <div class="form-row">
-                    <input id="new-admin-email" type="email" placeholder="Email użytkownika" style="flex: 1;">
-                    <button id="grant-admin-btn">Nadaj</button>
-                </div>
-            </div>
-            
-            <div class="sub-section">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>🏆 Zarządzanie Tabelą Strzelców</h3>
-                    <button onclick="window.loadScorersTable()" class="btn-small" style="background: #2196f3; font-size:0.8em;">
-                        <i class="fas fa-sync-alt"></i> Odśwież
-                    </button>
-                </div>
-                <div class="table-wrapper">
-                    <table id="scorers-table">
-                        <thead>
-                            <tr>
-                                <th>Kto</th>
-                                <th>Klub</th>
-                                <th>Gole</th>
-                                <th style="width: 80px; text-align: center;">Akcja</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-                </div>
-                <p style="color: #888; font-size: 0.9em; margin-top: 10px;">
-                    <i class="fas fa-info-circle"></i> Usunięcie strzelca tutaj usuwa tylko wpis z globalnej tabeli. Aby usunąć gola z meczu, edytuj konkretny mecz w zakładce "Mecze".
-                </p>
-            </div>
-        </div>
-    </div>
+        <div id="players" class="tab-content" style="display:none;">
+            <div class="card-box" id="player-form-box">
+                <h3 id="player-form-title">Dodaj Zawodnika</h3>
+                <input type="hidden" id="player-id-edit">
 
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="window.closeEditModal()">&times;</span>
-            <h3 style="margin-top: 0; text-align: center; color: #2196f3;">Edycja Meczu</h3>
-            
-            <div class="modal-section">
-                <h4 style="text-align: center;">Wynik</h4>
-                <div class="result-inputs">
-                    <span id="edit-match-team1-name" style="flex: 1; text-align: right;">A</span>
-                    <input type="number" id="edit-score1" style="width:60px; text-align:center;">
-                    <span>:</span>
-                    <input type="number" id="edit-score2" style="width:60px; text-align:center;">
-                    <span id="edit-match-team2-name" style="flex: 1; text-align: left;">B</span>
-                </div>
-                <button class="btn btn-full" onclick="window.saveMatchResult()" style="background: #2196f3;">Zapisz Wynik Ręcznie</button>
-            </div>
-
-            <div class="modal-section" style="border-bottom: none;">
-                <h4>Dodaj Gola</h4>
-                <div id="add-scorer-form" class="form-row">
-                    <select id="scorer-team-select" style="flex: 2;"></select>
-                    <select id="scorer-player-select" style="flex: 3;"></select>
-                    <input type="number" id="scorer-minute" placeholder="Min" style="width:50px;">
-                    
-                    <button id="btn-add-goal" class="btn btn-small" onclick="window.addScorer()" style="background: #4caf50;">+</button>
-                </div>
+                <input type="text" id="player-name" placeholder="Imię i Nazwisko" class="dark-input">
+                <select id="player-team" class="dark-input" style="margin-top:10px;">
+                    <option value="">Wybierz drużynę...</option>
+                </select>
                 
-                <h4>Lista bramek w tym meczu:</h4>
-                <div id="scorers-edit-list" style="max-height: 150px; overflow-y: auto;"></div>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="admin-btn" id="btn-save-player" onclick="savePlayer()" style="background:#28a745;">ZAPISZ ZAWODNIKA</button>
+                    <button class="admin-btn" onclick="resetPlayerForm()" style="background:#333;">ANULUJ</button>
+                </div>
+            </div>
+            
+            <div class="card-box" style="margin-top: 20px;">
+                <div class="section-header">
+                    <h3>Lista Zawodników</h3>
+                    <button class="refresh-btn" onclick="loadPlayers()">Odśwież</button>
+                </div>
+                <div id="players-list"></div>
             </div>
         </div>
+
+        <div id="teams" class="tab-content" style="display:none;">
+            <div class="card-box" id="team-form-box">
+                <h3 id="team-form-title">Dodaj Drużynę</h3>
+                <input type="hidden" id="team-id-edit">
+                
+                <input type="text" id="team-name" placeholder="Nazwa drużyny" class="dark-input">
+                <input type="text" id="team-logo" placeholder="Logo URL" class="dark-input" style="margin-top:10px;">
+                <select id="team-group" class="dark-input" style="margin-top:10px;">
+                    <option value="A">Grupa A</option>
+                    <option value="B">Grupa B</option>
+                </select>
+                
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="admin-btn" onclick="saveTeam()" style="background:#0055ff;">ZAPISZ DRUŻYNĘ</button>
+                    <button class="admin-btn" onclick="resetTeamForm()" style="background:#333;">ANULUJ</button>
+                </div>
+            </div>
+            <div class="card-box" style="margin-top: 20px;">
+                <h3>Lista Drużyn</h3>
+                <div id="teams-list"></div>
+            </div>
+        </div>
+
+        <div id="news" class="tab-content" style="display:none;">
+            <div class="card-box">
+                <h3>Dodaj News</h3>
+                <input type="text" id="news-title" placeholder="Tytuł" class="dark-input">
+                <textarea id="news-content" rows="3" placeholder="Treść..." class="dark-input" style="margin-top:10px;"></textarea>
+                <button class="admin-btn" onclick="addNews()" style="width:100%; margin-top:10px; background:#ff9900; color:#000;">OPUBLIKUJ</button>
+            </div>
+            <div class="card-box" style="margin-top: 20px;">
+                <h3>Aktualności</h3>
+                <div id="news-list"></div>
+            </div>
+        </div>
+
     </div>
 
-    <script src="admin.js"></script> 
-
+    <script src="admin.js"></script>
     <script>
-        // Prosta obsługa zakładek w czystym HTML, 
-        // ale logika biznesowa jest w admin.js
-        function openTab(tabId, event) {
-            var contents = document.getElementsByClassName('tab-content');
-            for (var i = 0; i < contents.length; i++) {
-                contents[i].style.display = 'none';
-                contents[i].classList.remove('active');
-            }
-            var buttons = document.getElementsByClassName('tab-button');
-            for (var i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove('active');
-            }
-            var selected = document.getElementById(tabId);
-            if (selected) {
-                selected.style.display = 'block';
-                selected.classList.add('active');
-            }
-            if (event) {
-                event.currentTarget.classList.add('active');
-            }
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'transparent'; b.style.borderColor = 'rgba(255,255,255,0.2)';
+            });
+            document.getElementById(id).style.display = 'block';
+            event.target.classList.add('active');
+            event.target.style.background = '#0055ff';
+            
+            if(id === 'players') loadPlayers();
+            if(id === 'teams') loadTeams(); // Naprawione wczytywanie
         }
-
-        // Domyślne otwarcie pierwszej zakładki
-        document.addEventListener('DOMContentLoaded', function() {
-             var firstTab = document.getElementById('teams-tab');
-             if(firstTab) {
-                 firstTab.style.display = 'block';
-                 firstTab.classList.add('active');
-             }
-        });
     </script>
 </body>
 </html>

@@ -3,189 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strona w konfiguracji | Puchar Gwiazd</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <title>Puchar Gwiazd | Strona Główna</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     
     <style>
-        /* RESET I PODSTAWY */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* --- TŁO STRONY (1.jpg + przyciemnienie) --- */
         body {
-            font-family: 'Montserrat', sans-serif;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            /* Zmienia tło na 1.jpg i nakłada ciemną warstwę (rgba 0.9) */
+            background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('1.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* ORYGINALNE STYLE */
+        .cta-section {
             text-align: center;
-            color: #ffffff;
-            /* Kolorystyka: Ciemny granat przechodzący w czerń */
-            background: linear-gradient(135deg, #000000 0%, #051024 100%);
-            overflow: hidden; /* Zapobiega paskom przewijania */
-        }
-
-        /* KONTENER GŁÓWNY */
-        .container {
+            margin: 40px auto 60px;
+            padding: 0 20px;
             max-width: 800px;
-            padding: 20px;
+        }
+        
+        .cta-box {
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
             position: relative;
-            z-index: 1;
+            overflow: hidden;
         }
 
-        /* EFEKT TŁA (Subtelne gwiazdy/szum) */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(white 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0.05;
-            z-index: 0;
+        /* --- NOWE LOGO W NAGŁÓWKU --- */
+        .hero-logo {
+            width: 120px;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.4));
+            animation: float 6s ease-in-out infinite;
         }
 
-        /* LOGO */
-        .logo {
-            max-width: 250px; /* Dostosuj wielkość logo tutaj */
-            width: 100%;
-            height: auto;
-            margin-bottom: 2rem;
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
         }
 
-        /* NAGŁÓWKI */
-        h1 {
+        .cta-box h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+
+        .highlight {
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        /* --- LICZNIK TURNIEJÓW --- */
+        .stats-counter-box {
+            margin: 25px 0;
+            padding: 15px;
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 12px;
+            display: inline-block;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+        }
+        .stats-number {
             font-size: 2.5rem;
+            font-weight: 800;
+            color: #fff;
+            display: block;
+            line-height: 1;
+        }
+        .stats-label {
+            font-size: 0.8rem;
+            color: #00d4ff;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 1rem;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            background: linear-gradient(to right, #ffffff, #a0c4ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            font-weight: 700;
         }
 
-        p.subtitle {
-            font-size: 1.1rem;
-            color: #8892b0;
-            margin-bottom: 3rem;
-        }
-
-        /* ODLICZANIE */
-        .countdown {
+        /* TIMER */
+        .timer-container {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 30px;
         }
-
-        .time-box {
-            background: rgba(10, 25, 47, 0.8);
-            border: 1px solid #1e3a8a;
-            padding: 20px;
-            border-radius: 10px;
-            min-width: 100px;
-            box-shadow: 0 0 15px rgba(30, 58, 138, 0.2);
-            backdrop-filter: blur(5px);
+        .timer-segment {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            min-width: 70px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-
-        .time-box span {
-            display: block;
-        }
-
-        .number {
-            font-size: 2.5rem;
+        .timer-segment span {
+            font-size: 1.8rem;
             font-weight: 700;
-            color: #ffffff;
+            display: block;
+            color: #fff;
         }
-
-        .label {
-            font-size: 0.8rem;
+        .timer-segment label {
+            font-size: 0.7rem;
             text-transform: uppercase;
-            color: #64ffda; /* Akcent kolorystyczny (turkusowy/złoty pasujący do gwiazd) */
-            margin-top: 5px;
+            color: #888;
         }
 
-        /* RESPANSYWNOŚĆ */
-        @media (max-width: 600px) {
-            h1 { font-size: 1.8rem; }
-            .countdown { gap: 10px; }
-            .time-box { min-width: 70px; padding: 10px; }
-            .number { font-size: 1.5rem; }
-            .label { font-size: 0.6rem; }
+        /* STYLE DLA NEWSÓW (ZACHOWANE) */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .news-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        .news-date { color: #00d4ff; font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 5px; }
+        .news-title { font-size: 1.2rem; margin-bottom: 10px; color: #fff; }
+        .news-content { color: rgba(255,255,255,0.6); font-size: 0.9rem; }
+
+        /* STYLE MECZÓW */
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto 60px;
+            padding: 0 20px;
+        }
+        .match-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .match-card:hover { border-color: #00d4ff; transform: translateY(-5px); }
+        .match-info { font-size: 0.8rem; color: #888; margin-bottom: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .match-teams { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px; }
+        .team { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .team img { width: 60px; height: 60px; object-fit: contain; }
+        .team span { font-weight: 700; font-size: 1rem; }
+        .score { font-size: 2.5rem; font-weight: 800; color: #fff; padding: 0 10px; }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            font-weight: 800;
         }
     </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:75e8df76127397b913612d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- POBIERANIE NEWSÓW ---
+        onSnapshot(query(collection(db, "news"), orderBy("timestamp", "desc"), limit(3)), (snap) => {
+            const container = document.getElementById('news-container');
+            if (container) {
+                container.innerHTML = '';
+                snap.forEach(doc => {
+                    const n = doc.data();
+                    container.innerHTML += `
+                        <div class="news-card" data-aos="fade-up">
+                            <span class="news-date">${n.date || ''}</span>
+                            <h4 class="news-title">${n.title || ''}</h4>
+                            <p class="news-content">${n.content || ''}</p>
+                        </div>`;
+                });
+            }
+        });
+
+        // --- POBIERANIE MECZÓW ---
+        const q = query(collection(db, "matches"), orderBy("timestamp", "desc"), limit(4));
+        onSnapshot(q, (snap) => {
+            const container = document.getElementById('matches-container');
+            container.innerHTML = '';
+            snap.forEach(doc => {
+                const m = doc.data();
+                const card = `
+                    <div class="match-card" data-aos="zoom-in">
+                        <div class="match-info">${m.date} | ${m.time}</div>
+                        <div class="match-teams">
+                            <div class="team">
+                                <img src="${m.team1Logo}" alt="${m.team1}">
+                                <span>${m.team1}</span>
+                            </div>
+                            <div class="score">${m.score1} : ${m.score2}</div>
+                            <div class="team">
+                                <img src="${m.team2Logo}" alt="${m.team2}">
+                                <span>${m.team2}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        });
+    </script>
 </head>
 <body>
 
-    <div class="container">
-        <img src="logo.png" alt="Logo Puchar Gwiazd" class="logo">
-        
-        <h1>Strona w trakcie konfiguracji</h1>
-        <p class="subtitle">Wracamy już wkrótce z nowymi informacjami.</p>
+    <nav class="navbar">
+        <a href="index.html" class="brand">
+            <img src="logo.png" alt="Logo" class="logo-img">
+            <span class="logo-text">PUCHAR GWIAZD</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="active-link">STRONA GŁÓWNA</a>
+            <a href="druzyny.html">DRUŻYNY</a>
+            <a href="terminarz.html">TERMINARZ</a>
+            <a href="tabela.html">TABELE</a>
+            <a href="regulamin.html">REGULAMIN</a>
+            <a href="onas.html">O NAS</a>
+            <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
+            <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
+        </div>
+    </nav>
 
-        <p style="margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem;">Start turnieju za:</p>
-        
-        <div class="countdown" id="countdown">
-            <div class="time-box">
-                <span class="number" id="days">00</span>
-                <span class="label">Dni</span>
+    <header class="cta-section" data-aos="fade-up">
+        <div class="cta-box">
+            <img src="logo.png" alt="Puchar Gwiazd" class="hero-logo">
+            
+            <h1>WITAMY W <span class="highlight">PUCHARZE GWIAZD</span></h1>
+            
+            <div class="stats-counter-box">
+                <span class="stats-number" id="tournaments-count">0</span>
+                <span class="stats-label">Zorganizowane Turnieje</span>
             </div>
-            <div class="time-box">
-                <span class="number" id="hours">00</span>
-                <span class="label">Godz</span>
-            </div>
-            <div class="time-box">
-                <span class="number" id="minutes">00</span>
-                <span class="label">Min</span>
-            </div>
-            <div class="time-box">
-                <span class="number" id="seconds">00</span>
-                <span class="label">Sek</span>
+
+            <p style="font-size: 1.1rem; color: rgba(255,255,255,0.7); margin: 20px 0;">
+                Najbardziej prestiżowy turniej amatorski w regionie.
+            </p>
+
+            <div id="timer" class="timer-container">
+                <div class="timer-segment"><span id="days">00</span><label>Dni</label></div>
+                <div class="timer-segment"><span id="hours">00</span><label>Godz</label></div>
+                <div class="timer-segment"><span id="minutes">00</span><label>Min</label></div>
+                <div class="timer-segment"><span id="seconds">00</span><label>Sek</label></div>
             </div>
         </div>
-    </div>
+    </header>
 
+    <section class="container">
+        <h2 class="section-title">AKTUALNOŚCI</h2>
+        <div id="news-container" class="news-grid"></div>
+    </section>
+
+    <section class="container">
+        <h2 class="section-title">OSTATNIE WYNIKI</h2>
+        <div id="matches-container" class="matches-grid">
+            <p style="text-align:center; opacity:0.5;">Wczytywanie...</p>
+        </div>
+    </section>
+
+    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid rgba(255,255,255,0.1);">
+        &copy; 2025 PUCHAR GWIAZD | LEAGUE SYSTEM
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script>
-        // Data docelowa: 18 Stycznia 2026, godzina 00:00:00
-        const targetDate = new Date('Jan 18, 2026 00:00:00').getTime();
+        AOS.init({ duration: 1000, once: true });
 
-        const updateCountdown = () => {
+        // --- SKRYPT ODLICZANIA (18 Stycznia, 12:00) ---
+        // Ustawiam rok 2026 zgodnie z poprzednim kontekstem. Jeśli to ma być ten rok, zmień 2026 na 2025.
+        const targetDate = new Date("Jan 18, 2026 12:00:00").getTime();
+        
+        const timerInterval = setInterval(() => {
             const now = new Date().getTime();
-            const gap = targetDate - now;
+            const diff = targetDate - now;
 
-            // Obliczenia czasu
-            const second = 1000;
-            const minute = second * 60;
-            const hour = minute * 60;
-            const day = hour * 24;
-
-            const textDay = Math.floor(gap / day);
-            const textHour = Math.floor((gap % day) / hour);
-            const textMinute = Math.floor((gap % hour) / minute);
-            const textSecond = Math.floor((gap % minute) / second);
-
-            // Aktualizacja HTML (dodajemy '0' jeśli liczba jest mniejsza niż 10)
-            document.getElementById('days').innerText = textDay < 10 ? '0' + textDay : textDay;
-            document.getElementById('hours').innerText = textHour < 10 ? '0' + textHour : textHour;
-            document.getElementById('minutes').innerText = textMinute < 10 ? '0' + textMinute : textMinute;
-            document.getElementById('seconds').innerText = textSecond < 10 ? '0' + textSecond : textSecond;
-
-            // Jeśli odliczanie się skończyło
-            if (gap < 0) {
-                document.getElementById('countdown').innerHTML = "<h3>Turniej rozpoczęty!</h3>";
+            if (diff < 0) {
+                clearInterval(timerInterval);
+                document.getElementById("timer").innerHTML = "<h2 style='color:#00d4ff'>TURNIEJ ROZPOCZĘTY!</h2>";
+                return;
             }
-        };
 
-        // Uruchomienie interwału co 1 sekundę
-        setInterval(updateCountdown, 1000);
-        // Pierwsze wywołanie, aby uniknąć opóźnienia 1s przy ładowaniu
-        updateCountdown();
+            document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+            document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+            document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+        }, 1000);
+
+        // --- ANIMACJA LICZNIKA TURNIEJÓW (do 4) ---
+        let count = 0;
+        const targetCount = 4;
+        const counterElement = document.getElementById('tournaments-count');
+        
+        const counterInterval = setInterval(() => {
+            if(count >= targetCount) {
+                clearInterval(counterInterval);
+            } else {
+                count++;
+                counterElement.innerText = count;
+            }
+        }, 400); // Szybkość animacji
     </script>
 </body>
 </html>

@@ -1,660 +1,388 @@
-// admin.js - WERSJA FINALNA (ZABEZPIECZONA + FIX PODWÓJNYCH GOLI)
+// admin.js - WERSJA SUBCOLLECTION (Dla struktury /teams/ID/players)
 
-// ===================================================================
-// 1. KONFIGURACJA FIREBASE
-// ===================================================================
-
+// --- KONFIGURACJA ---
 const firebaseConfig = {
-  apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-  authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-  databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "puchargwiazd-bdaa4",
-  storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-  messagingSenderId: "890734185883",
-  appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
+    apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+    authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+    projectId: "puchargwiazd-bdaa4",
+    storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+    messagingSenderId: "890734185883",
+    appId: "1:890734185883:web:75e8df76127397b913612d"
 };
 
-// Inicjalizacja (sprawdzamy czy już nie jest zainicjowana)
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Zmienne globalne
-let currentMatchId = null;
-
-// ===================================================================
-// 2. LOGOWANIE I AUTORYZACJA (WHITELIST)
-// ===================================================================
-
-// LISTA DOZWOLONYCH ADMINÓW
-const ALLOWED_ADMINS = [
-    "kacpernwm77@gmail.com",
-    "krzysztof.lodzinski@interia.pl"
-];
-
-// Czekamy na załadowanie HTML
-document.addEventListener('DOMContentLoaded', () => {
-    const loginBtn = document.getElementById('login-btn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            const msg = document.getElementById('login-msg');
-
-            msg.textContent = "Logowanie...";
-            msg.className = "message";
-
-            auth.signInWithEmailAndPassword(email, pass)
-                .catch(error => {
-                    msg.textContent = "Błąd: " + error.message;
-                    msg.className = "message error";
-                });
-        });
-    }
-});
-
-// Główna funkcja sprawdzająca uprawnienia
-auth.onAuthStateChanged(user => {
-    const loginBox = document.getElementById('login-box');
-    const adminWrapper = document.getElementById('admin-wrapper');
-
-    if (user) {
-        // SPRAWDZENIE CZY EMAIL JEST NA LIŚCIE
-        if (ALLOWED_ADMINS.includes(user.email)) {
-            console.log("Zalogowano Admina:", user.email);
-            
-            if(loginBox) loginBox.style.display = 'none';
-            if(adminWrapper) adminWrapper.style.display = 'block';
-            
-            // Ładowanie danych z opóźnieniem dla pewności
-            setTimeout(() => {
-                if(window.loadTeamsForSelects) loadTeamsForSelects();
-                if(window.loadMatches) loadMatches();
-                if(window.loadScorersTable) loadScorersTable();
-            }, 200);
-
-        } else {
-            // Zalogowany, ale brak uprawnień
-            console.warn("Próba nieautoryzowanego wejścia:", user.email);
-            alert("Brak uprawnień administratora dla konta: " + user.email);
-            auth.signOut();
-            
-            if(loginBox) loginBox.style.display = 'block';
-            if(adminWrapper) adminWrapper.style.display = 'none';
-        }
-    } else {
-        // Nikt nie jest zalogowany
-        if(loginBox) loginBox.style.display = 'block';
-        if(adminWrapper) adminWrapper.style.display = 'none';
-    }
-});
-
-window.logout = () => {
-    auth.signOut();
-    window.location.reload();
-};
-
-// ===================================================================
-// 3. ZARZĄDZANIE DRUŻYNAMI
-// ===================================================================
-
-window.addTeam = async () => {
-    const name = document.getElementById('new-team-name').value;
-    const manager = document.getElementById('new-team-manager').value;
-
-    if (!name) return alert("Podaj nazwę drużyny");
-
-    try {
-        await db.collection('teams').add({
-            name: name,
-            manager: manager,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Dodano drużynę!");
-        document.getElementById('new-team-name').value = '';
-        loadTeamsForSelects();
-    } catch (e) {
-        console.error(e);
-        alert("Błąd dodawania drużyny: " + e.message);
-    }
-};
-
-window.loadTeamsForSelects = async () => {
-    const snapshot = await db.collection('teams').orderBy('name').get();
-    
-    const ids = ['edit-team-select', 'players-team-select', 'new-match-team1', 'new-match-team2'];
-    
-    ids.forEach(id => {
-        const sel = document.getElementById(id);
-        if(sel) sel.innerHTML = '<option value="">-- Wybierz --</option>';
-    });
-
-    const teamsListDiv = document.getElementById('teams-list');
-    if(teamsListDiv) teamsListDiv.innerHTML = '';
-
-    snapshot.forEach(doc => {
-        const team = doc.data();
-        const optionHTML = `<option value="${doc.id}">${team.name}</option>`;
-
-        ids.forEach(id => {
-            const sel = document.getElementById(id);
-            if(sel) sel.innerHTML += optionHTML;
-        });
-
-        if(teamsListDiv) {
-            teamsListDiv.innerHTML += `<div style="padding:5px; border-bottom:1px solid #333;">${team.name} <small>(${team.manager || '-'})</small></div>`;
-        }
-    });
-};
-
-window.updateTeamName = async () => {
-    const teamId = document.getElementById('edit-team-select').value;
-    const newName = document.getElementById('edit-team-name').value;
-
-    if (!teamId || !newName) return alert("Wybierz drużynę i wpisz nową nazwę.");
-
-    await db.collection('teams').doc(teamId).update({ name: newName });
-    alert("Zaktualizowano nazwę!");
-    loadTeamsForSelects();
-};
-
-// ===================================================================
-// 4. ZARZĄDZANIE ZAWODNIKAMI
-// ===================================================================
-
-window.selectTeamInDropdown = async () => {
-    const teamId = document.getElementById('players-team-select').value;
-    const managerArea = document.getElementById('players-manager-area');
-    
-    if (!teamId) {
-        managerArea.style.display = 'none';
-        return;
-    }
-    managerArea.style.display = 'block';
-    loadTeamPlayers(teamId);
-};
-
-window.addPlayerAdmin = async () => {
-    const teamId = document.getElementById('players-team-select').value;
-    const name = document.getElementById('new-p-name').value;
-    const surname = document.getElementById('new-p-surname').value;
-    const number = document.getElementById('new-p-number').value;
-    const position = document.getElementById('new-p-position').value;
-
-    if (!teamId || !name || !surname) return alert("Uzupełnij imię i nazwisko.");
-
-    try {
-        await db.collection('teams').doc(teamId).collection('players').add({
-            name, surname, number, position
-        });
-        document.getElementById('new-p-name').value = '';
-        document.getElementById('new-p-surname').value = '';
-        document.getElementById('new-p-number').value = '';
-        loadTeamPlayers(teamId);
-    } catch (e) {
-        alert("Błąd: " + e.message);
-    }
-};
-
-window.loadTeamPlayers = async (teamId) => {
-    const listDiv = document.getElementById('team-players-list');
-    listDiv.innerHTML = "Ładowanie...";
-    
-    const snapshot = await db.collection('teams').doc(teamId).collection('players').orderBy('surname').get();
-    
-    listDiv.innerHTML = "";
-    if (snapshot.empty) listDiv.innerHTML = "Brak zawodników.";
-
-    snapshot.forEach(doc => {
-        const p = doc.data();
-        listDiv.innerHTML += `
-            <div style="padding: 8px; border-bottom: 1px solid #333; display:flex; justify-content:space-between;">
-                <span><b>${p.number || '-'}</b> ${p.surname} ${p.name} (${p.position || '?'})</span>
-                <button onclick="window.deletePlayer('${teamId}', '${doc.id}')" style="background:#d32f2f; font-size:0.8em; padding:2px 8px;">Usuń</button>
-            </div>
-        `;
-    });
-};
-
-window.deletePlayer = async (teamId, playerId) => {
-    if(!confirm("Usunąć zawodnika?")) return;
-    await db.collection('teams').doc(teamId).collection('players').doc(playerId).delete();
-    window.loadTeamPlayers(teamId);
-};
-
-// ===================================================================
-// 5. ZARZĄDZANIE MECZAMI
-// ===================================================================
-
-window.addMatch = async () => {
-    const t1 = document.getElementById('new-match-team1').value;
-    const t2 = document.getElementById('new-match-team2').value;
-    const group = document.getElementById('group').value;
-    const date = document.getElementById('new-match-date').value;
-    const time = document.getElementById('new-match-time').value;
-
-    const t1Name = document.getElementById('new-match-team1').options[document.getElementById('new-match-team1').selectedIndex].text;
-    const t2Name = document.getElementById('new-match-team2').options[document.getElementById('new-match-team2').selectedIndex].text;
-
-    if (!t1 || !t2 || !date || !time) return alert("Wybierz drużyny i datę.");
-    if (t1 === t2) return alert("Drużyny muszą być różne.");
-
-    try {
-        await db.collection('matches').add({
-            team1Id: t1, team2Id: t2,
-            teamA: t1Name, teamB: t2Name,
-            goalsA: 0, goalsB: 0,
-            group: group,
-            date: date,
-            time: time,
-            status: "scheduled",
-            timestamp: new Date(date + 'T' + time).getTime()
-        });
-        alert("Utworzono mecz.");
-        loadMatches();
-    } catch (e) {
-        console.error(e);
-        alert("Błąd tworzenia meczu: " + e.message);
-    }
-};
-
-window.loadMatches = async () => {
-    const container = document.getElementById('matches-list');
-    const filter = document.getElementById('match-status-filter').value;
-    
-    container.innerHTML = "Ładowanie i sortowanie...";
-
-    let query = db.collection('matches');
-    try { query = query.orderBy('date', 'asc'); } catch (e) {}
-
-    try {
-        const snapshot = await query.get();
-        container.innerHTML = "";
-
-        if (snapshot.empty) {
-            container.innerHTML = '<div style="padding:20px;">Brak meczów w bazie. Dodaj nowy mecz.</div>';
-            return;
-        }
-
-        let matchesData = [];
-
-        snapshot.forEach(doc => {
-            const m = doc.data();
-            const t1Name = m.teamA || m.team1Name || "Drużyna A";
-            const t2Name = m.teamB || m.team2Name || "Drużyna B";
-            let s1 = (m.goalsA !== undefined) ? m.goalsA : (m.score1 || 0);
-            let s2 = (m.goalsB !== undefined) ? m.goalsB : (m.score2 || 0);
-
-            let rawStatus = m.status || 'planowany';
-            let displayStatus = 'planowany';
-            
-            if (rawStatus === 'scheduled' || rawStatus === 'planowany') displayStatus = 'planowany';
-            else if (rawStatus === 'live' || rawStatus === 'trwa') displayStatus = 'trwa';
-            else if (rawStatus === 'finished' || rawStatus === 'zakończony') displayStatus = 'zakończony';
-
-            const dateStr = m.date || '---';
-            const timeStr = m.time || '--:--';
-            const groupName = m.group ? m.group.toString().toUpperCase() : 'INNE';
-
-            matchesData.push({
-                id: doc.id,
-                t1Name, t2Name, s1, s2,
-                displayStatus, rawStatus,
-                dateStr, timeStr, group: groupName
-            });
-        });
-
-        if (filter !== "wszyscy") {
-            matchesData = matchesData.filter(m => m.displayStatus === filter);
-        }
-
-        if (matchesData.length === 0) {
-            container.innerHTML = '<div style="padding:20px;">Brak meczów o statusie: ' + filter + '</div>';
-            return;
-        }
-
-        matchesData.sort((a, b) => {
-            if (a.group < b.group) return -1;
-            if (a.group > b.group) return 1;
-            if (a.dateStr < b.dateStr) return -1;
-            if (a.dateStr > b.dateStr) return 1;
-            return 0;
-        });
-
-        let lastGroup = null;
-
-        matchesData.forEach(match => {
-            if (match.group !== lastGroup) {
-                container.innerHTML += `<h3 style="border-bottom: 2px solid #2196f3; padding-bottom: 5px; margin-top: 25px; color: #2196f3;">GRUPA ${match.group}</h3>`;
-                lastGroup = match.group;
-            }
-
-            let statusColor = '#888'; 
-            if (match.displayStatus === 'trwa') statusColor = '#4caf50'; 
-            if (match.displayStatus === 'zakończony') statusColor = '#f44336'; 
-
-            const div = document.createElement('div');
-            div.style.background = "#152036";
-            div.style.margin = "10px 0";
-            div.style.padding = "15px";
-            div.style.borderRadius = "8px";
-            div.style.borderLeft = `5px solid ${statusColor}`;
-            
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <div style="font-weight:bold; font-size:1.1em; margin-bottom:5px;">
-                            ${match.t1Name} <span style="color:#2196f3">vs</span> ${match.t2Name}
-                        </div>
-                        <div style="color:#aaa; font-size:0.9em;">
-                            <i class="far fa-calendar-alt"></i> ${match.dateStr} &nbsp; 
-                            <i class="far fa-clock"></i> ${match.timeStr} &nbsp; 
-                            | <span style="color:${statusColor}; font-weight:bold; text-transform:uppercase;">${match.displayStatus}</span>
-                        </div>
-                        <div style="font-size:1.4em; margin-top:8px; font-weight:bold;">
-                            ${match.s1} : ${match.s2}
-                        </div>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:5px;">
-                        <button onclick="window.openEditModal('${match.id}')" style="background:#2196f3; font-size:0.9em;">Edytuj / Gole</button>
-                        <button onclick="window.toggleMatchStatus('${match.id}', '${match.rawStatus}')" style="background:#ff9800; font-size:0.9em;">Status</button>
-                        <button onclick="window.deleteMatch('${match.id}')" style="background:#d32f2f; font-size:0.9em;">Usuń</button>
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
-        });
-
-    } catch (e) {
-        console.error("Błąd wyświetlania meczów: ", e);
-        container.innerHTML = '<div class="message error">Błąd: ' + e.message + '</div>';
-    }
-};
-
-document.getElementById('match-status-filter').addEventListener('change', window.loadMatches);
-
-window.deleteMatch = async (id) => {
-    if(!confirm("Usunąć ten mecz?")) return;
-    await db.collection('matches').doc(id).delete();
-    loadMatches();
-};
-
-window.toggleMatchStatus = async (id, currentRaw) => {
-    let newStatus = 'scheduled';
-    if (currentRaw === 'scheduled' || currentRaw === 'planowany') newStatus = 'live';
-    else if (currentRaw === 'live' || currentRaw === 'trwa') newStatus = 'finished';
-    else if (currentRaw === 'finished' || currentRaw === 'zakończony') newStatus = 'scheduled';
-
-    await db.collection('matches').doc(id).update({ status: newStatus });
-    loadMatches();
-};
-
-// ===================================================================
-// 6. EDYCJA I STRZELCY (GOLE) - Z POPRAWKĄ DUPLIKOWANIA
-// ===================================================================
-
-window.openEditModal = async (matchId) => {
-    currentMatchId = matchId;
-    const modal = document.getElementById('editModal');
-    modal.style.display = 'flex';
-
-    const doc = await db.collection('matches').doc(matchId).get();
-    const m = doc.data();
-
-    const t1Name = m.teamA || m.team1Name || "Drużyna A";
-    const t2Name = m.teamB || m.team2Name || "Drużyna B";
-    let s1 = (m.goalsA !== undefined) ? m.goalsA : (m.score1 || 0);
-    let s2 = (m.goalsB !== undefined) ? m.goalsB : (m.score2 || 0);
-
-    const t1Id = m.team1Id;
-    const t2Id = m.team2Id;
-
-    document.getElementById('edit-match-team1-name').innerText = t1Name;
-    document.getElementById('edit-match-team2-name').innerText = t2Name;
-    document.getElementById('edit-score1').value = s1;
-    document.getElementById('edit-score2').value = s2;
-
-    if(t1Id && t2Id) {
-        loadScorerSelects(t1Id, t2Id, t1Name, t2Name);
-    } else {
-        document.getElementById('scorer-team-select').innerHTML = "<option>Błąd: Brak ID drużyn w bazie</option>";
-    }
-    
-    loadMatchScorersList(matchId);
-};
-
-window.closeEditModal = () => {
-    document.getElementById('editModal').style.display = 'none';
-    currentMatchId = null;
-    loadMatches(); 
-    loadScorersTable(); 
-};
-
-window.saveMatchResult = async () => {
-    if (!currentMatchId) return;
-    const s1 = parseInt(document.getElementById('edit-score1').value);
-    const s2 = parseInt(document.getElementById('edit-score2').value);
-
-    await db.collection('matches').doc(currentMatchId).update({
-        goalsA: s1, goalsB: s2,
-        score1: s1, score2: s2
-    });
-    alert("Zapisano wynik.");
-};
-
-window.loadScorerSelects = async (t1Id, t2Id, t1Name, t2Name) => {
-    const teamSelect = document.getElementById('scorer-team-select');
-    const playerSelect = document.getElementById('scorer-player-select');
-    
-    teamSelect.innerHTML = `
-        <option value="${t1Id}" data-name="${t1Name}">${t1Name}</option>
-        <option value="${t2Id}" data-name="${t2Name}">${t2Name}</option>
-    `;
-
-    const loadPlayers = async (teamId) => {
-        playerSelect.innerHTML = '<option>Ładowanie...</option>';
-        try {
-            const sn = await db.collection('teams').doc(teamId).collection('players').orderBy('surname').get();
-            playerSelect.innerHTML = '';
-            
-            if(sn.empty) {
-                playerSelect.innerHTML = '<option value="">Brak graczy w tej drużynie</option>';
-            }
-
-            sn.forEach(p => {
-                const pd = p.data();
-                playerSelect.innerHTML += `<option value="${p.id}" data-fullname="${pd.surname} ${pd.name}">${pd.number || ''} ${pd.surname} ${pd.name}</option>`;
-            });
-        } catch(e) {
-            console.log("Błąd ładowania graczy: " + e.message);
-            playerSelect.innerHTML = '<option>Błąd ładowania</option>';
-        }
-    };
-
-    loadPlayers(teamSelect.value);
-    teamSelect.onchange = () => loadPlayers(teamSelect.value);
-};
-
-// NOWA FUNKCJA - Z BLOKADĄ PRZYCISKU
-window.addScorer = async () => {
-    if (!currentMatchId) return;
-
-    const btn = document.getElementById('btn-add-goal'); // Pobieramy przycisk (wymaga id="btn-add-goal" w HTML)
-    
-    // 1. BLOKUJEMY PRZYCISK
-    if (btn) {
-        btn.disabled = true; 
-        btn.innerText = "..."; 
-        btn.style.opacity = "0.5";
-    }
-
-    const teamSelect = document.getElementById('scorer-team-select');
-    const playerSelect = document.getElementById('scorer-player-select');
-    const minute = document.getElementById('scorer-minute').value;
-
-    const teamId = teamSelect.value;
-    const teamOption = teamSelect.options[teamSelect.selectedIndex];
-    const teamName = teamOption ? teamOption.getAttribute('data-name') : "Nieznana";
-    
-    const playerId = playerSelect.value;
-    
-    if (!playerId) {
-        alert("Wybierz zawodnika!");
-        // Odblokuj w razie błędu walidacji
-        if (btn) {
-            btn.disabled = false;
-            btn.innerText = "+";
-            btn.style.opacity = "1";
-        }
-        return;
-    }
-    
-    const playerOption = playerSelect.options[playerSelect.selectedIndex];
-    const playerName = playerOption ? playerOption.getAttribute('data-fullname') : "Nieznany";
-
-    try {
-        // 2. Zapis gola w historii meczu
-        await db.collection('matches').doc(currentMatchId).collection('goals').add({
-            teamId, teamName, playerId, playerName, minute,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // 3. Aktualizacja wyniku meczu
-        const matchDoc = await db.collection('matches').doc(currentMatchId).get();
-        const mData = matchDoc.data();
+// --- ADMINI ---
+const ALLOWED_ADMINS = ["kacpernwm77@gmail.com", "krzysztof.lodzinski@interia.pl"];
+
+// --- LOGOWANIE ---
+const loginBtn = document.getElementById('login-btn');
+if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        const err = document.getElementById('login-error');
         
-        const isTeam1 = (teamId === mData.team1Id); 
+        if(!email || !pass) return err.innerText = "Podaj dane!";
+        err.innerText = "Logowanie...";
 
-        if (isTeam1) {
-            await db.collection('matches').doc(currentMatchId).update({ 
-                goalsA: firebase.firestore.FieldValue.increment(1),
-                score1: firebase.firestore.FieldValue.increment(1) 
-            });
-            let currentVal = parseInt(document.getElementById('edit-score1').value) || 0;
-            document.getElementById('edit-score1').value = currentVal + 1;
-        } else {
-            await db.collection('matches').doc(currentMatchId).update({ 
-                goalsB: firebase.firestore.FieldValue.increment(1),
-                score2: firebase.firestore.FieldValue.increment(1) 
-            });
-            let currentVal = parseInt(document.getElementById('edit-score2').value) || 0;
-            document.getElementById('edit-score2').value = currentVal + 1;
-        }
-
-        // 4. AKTUALIZACJA GLOBALNEJ TABELI STRZELCÓW
-        const scorersRef = db.collection('scorers');
-        const q = await scorersRef.where('playerId', '==', playerId).get();
-
-        if (q.empty) {
-            // Jeśli strzelec nie istnieje, utwórz go
-            await scorersRef.add({
-                playerId: playerId,
-                playerName: playerName,
-                teamName: teamName,
-                teamId: teamId,
-                goals: 1
-            });
-        } else {
-            // Jeśli istnieje, zaktualizuj
-            const docId = q.docs[0].id;
-            await scorersRef.doc(docId).update({
-                goals: firebase.firestore.FieldValue.increment(1)
-            });
-        }
-
-        loadMatchScorersList(currentMatchId);
-
-    } catch (e) {
-        console.error(e);
-        alert("Błąd: " + e.message);
-    } finally {
-        // 5. ODBLOKUJEMY PRZYCISK (zawsze)
-        if (btn) {
-            btn.disabled = false;
-            btn.innerText = "+";
-            btn.style.opacity = "1";
-        }
-    }
-};
-
-window.loadMatchScorersList = async (matchId) => {
-    const div = document.getElementById('scorers-edit-list');
-    div.innerHTML = "Ładowanie...";
-    const snap = await db.collection('matches').doc(matchId).collection('goals').orderBy('createdAt').get();
-    
-    div.innerHTML = "";
-    snap.forEach(d => {
-        const g = d.data();
-        div.innerHTML += `<div style="border-bottom:1px solid #333; padding:5px;">${g.minute}' <b>${g.playerName}</b> (${g.teamName})</div>`;
-    });
-};
-
-// ===================================================================
-// 7. GLOBALNA TABELA STRZELCÓW
-// ===================================================================
-
-window.loadScorersTable = async () => {
-    const tableBody = document.querySelector("#scorers-table tbody");
-    if (!tableBody) return;
-
-    tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center'>Ładowanie tabeli...</td></tr>";
-
-    try {
-        const snapshot = await db.collection("scorers").orderBy("goals", "desc").get();
-        tableBody.innerHTML = ""; 
-
-        if (snapshot.empty) {
-            tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center'>Brak strzelców.</td></tr>";
-            return;
-        }
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const row = `
-                <tr>
-                    <td>${data.playerName}</td>
-                    <td>${data.teamName}</td>
-                    <td style="font-weight:bold; color:#4caf50;">${data.goals}</td>
-                    <td style="text-align: center;">
-                        <button class="btn-delete" onclick="window.deleteScorer('${doc.id}')">
-                            <i class="fas fa-trash"></i> Usuń
-                        </button>
-                    </td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
-        });
-    } catch (error) {
-        console.error("Błąd pobierania strzelców:", error);
-        tableBody.innerHTML = "<tr><td colspan='4' style='text-align:center; color:red;'>Błąd pobierania danych.</td></tr>";
-    }
-};
-
-window.deleteScorer = async (docId) => {
-    if(!confirm("Usunąć tego strzelca z tabeli?")) return;
-    try {
-        await db.collection("scorers").doc(docId).delete();
-        window.loadScorersTable();
-    } catch (e) {
-        alert("Błąd: " + e.message);
-    }
-};
-
-// ===================================================================
-// 8. ADMIN UPRAWNIENIA
-// ===================================================================
-
-const grantBtn = document.getElementById('grant-admin-btn');
-if(grantBtn) {
-    grantBtn.addEventListener('click', async () => {
-        const email = document.getElementById('new-admin-email').value;
-        if(!email) return alert("Podaj email");
-        
-        // Zapis tylko informacyjny, bo uprawnienia są w ALLOWED_ADMINS na górze
-        await db.collection('admins').add({ email: email });
-        alert("Zapisano admina. Pamiętaj, aby dodać go również do listy ALLOWED_ADMINS w kodzie JS!");
+        auth.signInWithEmailAndPassword(email, pass)
+            .catch(error => err.innerText = "Błąd: " + error.message);
     });
 }
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+    auth.signOut(); window.location.reload();
+});
+
+// START
+auth.onAuthStateChanged(user => {
+    if (user && ALLOWED_ADMINS.includes(user.email)) {
+        document.getElementById('login-panel').style.display = 'none';
+        document.getElementById('admin-wrapper').style.display = 'block';
+        document.getElementById('user-info').innerText = `Zalogowano: ${user.email}`;
+        
+        loadTeams();
+        loadMatches();
+        loadPlayers(); // To teraz zadziała!
+        loadNewsAdmin();
+    } else if (user) {
+        alert("Brak uprawnień!"); auth.signOut();
+    }
+});
+
+
+// =========================================================
+// 1. ZAWODNICY (SUBCOLLECTIONS FIX)
+// =========================================================
+
+function savePlayer() {
+    const id = document.getElementById('player-id-edit').value;
+    const name = document.getElementById('player-name').value;
+    const teamId = document.getElementById('player-team').value;
+    // Ważne: przy edycji musimy wiedzieć, w jakiej STAREJ drużynie był gracz, 
+    // ale dla uproszczenia zakładamy edycję w ramach tej samej drużyny lub dodanie nowego.
+    
+    // Jeśli to edycja, pobieramy teamId z ukrytego pola (jeśli zablokowaliśmy zmianę drużyny)
+    // lub z selecta.
+    
+    if(!name || !teamId) return alert("Podaj imię i wybierz drużynę!");
+
+    // Pobierz nazwę drużyny (dla wyświetlania)
+    const teamSelect = document.getElementById('player-team');
+    const teamName = teamSelect.options[teamSelect.selectedIndex].text;
+
+    const data = { 
+        name: name, 
+        teamName: teamName, // Zapisujemy też nazwę, żeby łatwiej wyświetlać
+        goals: parseInt(document.getElementById('player-goals').value) || 0
+    };
+
+    let promise;
+    if (id) {
+        // EDYCJA: Musimy wiedzieć dokładnie gdzie jest gracz.
+        // W tricku loadPlayers zapisaliśmy ID drużyny w atrybucie przycisku
+        // Ale tutaj prościej: przy edycji nadpisujemy w wybranej drużynie.
+        promise = db.collection("teams").doc(teamId).collection("players").doc(id).update(data);
+    } else {
+        // NOWY
+        promise = db.collection("teams").doc(teamId).collection("players").add(data);
+    }
+    
+    promise.then(() => { 
+        if(!id) alert("Zawodnik dodany!"); 
+        resetPlayerForm(); 
+    }).catch(e => alert("Błąd: " + e.message));
+}
+
+function loadPlayers() {
+    const list = document.getElementById('players-list');
+    
+    // UŻYWAMY COLLECTION GROUP - to pobiera graczy ze wszystkich drużyn naraz!
+    db.collectionGroup("players").onSnapshot(snap => {
+        list.innerHTML = '';
+        if(snap.empty) { list.innerHTML = '<p>Brak zawodników. Dodaj kogoś do drużyny.</p>'; return; }
+
+        snap.forEach(doc => {
+            const p = doc.data();
+            // Musimy wyciągnąć ID drużyny z "ścieżki" dokumentu
+            // Ścieżka to: teams/TEAM_ID/players/PLAYER_ID
+            const teamId = doc.ref.parent.parent.id; 
+
+            list.innerHTML += `
+                <div class="list-item">
+                    <div style="flex-grow:1;">
+                        <b>${p.name}</b> <span style="color:#00d4ff">(${p.teamName || 'Drużyna'})</span>
+                    </div>
+                    
+                    <div class="goal-controls">
+                        <button class="btn-goal minus" onclick="quickUpdateGoals('${teamId}', '${doc.id}', -1)">-</button>
+                        <span style="font-size:1.2rem; font-weight:bold; min-width:30px; text-align:center;">${p.goals || 0}</span>
+                        <button class="btn-goal plus" onclick="quickUpdateGoals('${teamId}', '${doc.id}', 1)">+</button>
+                    </div>
+
+                    <div style="margin-left:15px;">
+                        <button class="btn-edit" onclick="editPlayer('${doc.id}', '${teamId}', '${p.name}', '${p.goals}')">Edytuj</button>
+                        <button class="btn-delete" onclick="deleteSubPlayer('${teamId}', '${doc.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+        });
+    });
+}
+
+// Szybka zmiana goli
+window.quickUpdateGoals = (teamId, playerId, change) => {
+    db.collection("teams").doc(teamId).collection("players").doc(playerId).update({
+        goals: firebase.firestore.FieldValue.increment(change)
+    }).catch(console.error);
+};
+
+// Edycja zawodnika
+window.editPlayer = (id, teamId, name, goals) => {
+    document.getElementById('player-id-edit').value = id;
+    document.getElementById('player-name').value = name;
+    document.getElementById('player-goals').value = goals;
+    
+    // Ustawiamy selecta na odpowiednią drużynę
+    document.getElementById('player-team').value = teamId;
+    // Blokujemy zmianę drużyny przy edycji (bo to by wymagało skomplikowanego przenoszenia)
+    // document.getElementById('player-team').disabled = true; 
+
+    document.getElementById('player-form-title').innerText = "EDYTUJESZ: " + name;
+    document.getElementById('btn-save-player').innerText = "ZAKTUALIZUJ";
+    document.getElementById('player-form-box').scrollIntoView({behavior: "smooth"});
+};
+
+// Usuwanie zawodnika z podkolekcji
+window.deleteSubPlayer = (teamId, playerId) => {
+    if(confirm("Usunąć zawodnika?")) {
+        db.collection("teams").doc(teamId).collection("players").doc(playerId).delete();
+    }
+};
+
+window.resetPlayerForm = () => {
+    document.getElementById('player-id-edit').value = '';
+    document.getElementById('player-name').value = '';
+    document.getElementById('player-goals').value = '0';
+    document.getElementById('player-team').value = '';
+    document.getElementById('player-team').disabled = false;
+    
+    document.getElementById('player-form-title').innerText = "Dodaj Zawodnika";
+    document.getElementById('btn-save-player').innerText = "ZAPISZ ZAWODNIKA";
+};
+
+
+// =========================================================
+// 2. DRUŻYNY
+// =========================================================
+
+function saveTeam() {
+    const id = document.getElementById('team-id-edit').value;
+    const name = document.getElementById('team-name').value;
+    const logo = document.getElementById('team-logo').value || 'logo.png';
+    const group = document.getElementById('team-group').value;
+
+    if(!name) return alert("Podaj nazwę!");
+
+    const data = { name, logo, group };
+    if(!id) {
+        data.points = 0; data.matches = 0; data.wins = 0; 
+        data.draws = 0; data.losses = 0; data.goals_scored = 0; data.goals_lost = 0;
+    }
+
+    const promise = id ? db.collection("teams").doc(id).update(data) : db.collection("teams").add(data);
+
+    promise.then(() => {
+        alert(id ? "Zaktualizowano!" : "Dodano!");
+        resetTeamForm();
+    }).catch(e => alert(e.message));
+}
+
+function loadTeams() {
+    const list = document.getElementById('teams-list');
+    const select1 = document.getElementById('m-team1');
+    const select2 = document.getElementById('m-team2');
+    const selectPlayer = document.getElementById('player-team');
+
+    db.collection("teams").onSnapshot(snap => {
+        list.innerHTML = '';
+        let opts = '<option value="">Wybierz...</option>';
+        
+        snap.forEach(doc => {
+            const t = doc.data();
+            list.innerHTML += `
+                <div class="list-item">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${t.logo}" style="width:30px; height:30px; border-radius:50%">
+                        <b>${t.name}</b>
+                    </div>
+                    <div>
+                        <button class="btn-edit" onclick="editTeam('${doc.id}', '${t.name}', '${t.logo}', '${t.group}')">Edytuj</button>
+                        <button class="btn-delete" onclick="deleteDoc('teams', '${doc.id}')">Usuń</button>
+                    </div>
+                </div>`;
+            // Zapisujemy ID jako value dla selecta graczy
+            opts += `<option value="${doc.id}">${t.name}</option>`;
+        });
+
+        if(select1) { // Dla meczów potrzebujemy nazwy
+             // Tutaj mała zmiana - do meczów lepiej używać nazw, do graczy ID.
+             // Zrobię oddzielną pętlę dla meczów w locie albo prościej:
+             // Zostawmy value jako name dla meczów (bo tak masz w bazie meczów)
+        }
+        
+        // Specjalna pętla dla selecta meczów (Value = Name)
+        let matchOpts = '<option value="">Wybierz...</option>';
+        snap.forEach(doc => { matchOpts += `<option value="${doc.data().name}">${doc.data().name}</option>`; });
+        
+        if(select1) { select1.innerHTML = matchOpts; select2.innerHTML = matchOpts; }
+
+        // Pętla dla selecta graczy (Value = ID) - BO MUSIMY WIEDZIEĆ GDZIE DODAĆ GRACZA
+        let playerOpts = '<option value="">Wybierz drużynę...</option>';
+        snap.forEach(doc => { playerOpts += `<option value="${doc.id}">${doc.data().name}</option>`; });
+        if(selectPlayer) selectPlayer.innerHTML = playerOpts;
+    });
+}
+
+window.editTeam = (id, name, logo, group) => {
+    document.getElementById('team-id-edit').value = id;
+    document.getElementById('team-name').value = name;
+    document.getElementById('team-logo').value = logo;
+    document.getElementById('team-group').value = group;
+    document.getElementById('team-form-title').innerText = "Edytuj Drużynę";
+    document.getElementById('team-form-box').scrollIntoView({behavior: "smooth"});
+};
+
+window.resetTeamForm = () => {
+    document.getElementById('team-id-edit').value = '';
+    document.getElementById('team-name').value = '';
+    document.getElementById('team-logo').value = '';
+    document.getElementById('team-form-title').innerText = "Dodaj Drużynę";
+};
+
+
+// =========================================================
+// 3. MECZE
+// =========================================================
+
+function saveMatch() {
+    const id = document.getElementById('match-id-edit').value;
+    const t1 = document.getElementById('m-team1').value;
+    const t2 = document.getElementById('m-team2').value;
+    const date = document.getElementById('m-date').value;
+    const time = document.getElementById('m-time').value;
+    const s1 = document.getElementById('m-score1').value;
+    const s2 = document.getElementById('m-score2').value;
+    const status = document.getElementById('m-status').value;
+
+    if(!t1 || !t2) return alert("Wybierz drużyny!");
+
+    const data = {
+        team1: t1, team2: t2, date, time, status,
+        score1: s1 === '' ? null : parseInt(s1),
+        score2: s2 === '' ? null : parseInt(s2)
+    };
+
+    const promise = id ? db.collection("matches").doc(id).update(data) : db.collection("matches").add(data);
+    promise.then(() => { 
+        alert(id ? "Mecz zaktualizowany!" : "Mecz dodany!");
+        resetMatchForm(); 
+    }).catch(e => alert("Błąd: " + e.message));
+}
+
+function loadMatches() {
+    const list = document.getElementById('matches-list');
+    db.collection("matches").onSnapshot(snap => {
+        list.innerHTML = '';
+        if(snap.empty) { list.innerHTML = '<p>Brak meczów.</p>'; return; }
+
+        snap.forEach(doc => {
+            const m = doc.data();
+            const score = m.status !== 'upcoming' ? `${m.score1}:${m.score2}` : '-:-';
+            const color = m.status === 'live' ? '#00d4ff' : (m.status === 'finished' ? '#28a745' : '#888');
+            
+            list.innerHTML += `
+                <div class="list-item" style="border-left: 4px solid ${color}">
+                    <div>
+                        <small>${m.date} ${m.time}</small><br>
+                        <b>${m.team1} vs ${m.team2}</b> [${score}]
+                    </div>
+                    <div>
+                        <button class="btn-edit" onclick="editMatch('${doc.id}', '${m.team1}', '${m.team2}', '${m.date}', '${m.time}', '${m.score1}', '${m.score2}', '${m.status}')">Edytuj</button>
+                        <button class="btn-delete" onclick="deleteDoc('matches', '${doc.id}')">Usuń</button>
+                    </div>
+                </div>`;
+        });
+    });
+}
+
+window.editMatch = (id, t1, t2, date, time, s1, s2, status) => {
+    document.getElementById('match-id-edit').value = id;
+    document.getElementById('m-team1').value = t1;
+    document.getElementById('m-team2').value = t2;
+    document.getElementById('m-date').value = date;
+    document.getElementById('m-time').value = time;
+    document.getElementById('m-score1').value = s1 === 'null' ? '' : s1;
+    document.getElementById('m-score2').value = s2 === 'null' ? '' : s2;
+    document.getElementById('m-status').value = status;
+    
+    document.getElementById('match-form-title').innerText = "EDYTUSZ MECZ";
+    document.getElementById('btn-save-match').innerText = "ZAKTUALIZUJ";
+    document.getElementById('match-form-box').scrollIntoView({behavior: "smooth"});
+};
+
+window.resetMatchForm = () => {
+    document.getElementById('match-id-edit').value = '';
+    document.getElementById('m-score1').value = '';
+    document.getElementById('m-score2').value = '';
+    document.getElementById('match-form-title').innerText = "Dodaj Mecz";
+    document.getElementById('btn-save-match').innerText = "ZAPISZ MECZ";
+};
+
+
+// =========================================================
+// 4. NEWSY
+// =========================================================
+
+function addNews() {
+    const title = document.getElementById('news-title').value;
+    const content = document.getElementById('news-content').value;
+
+    if(!title) return alert("Podaj tytuł!");
+
+    db.collection("news").add({
+        title, content,
+        date: new Date().toLocaleDateString('pl-PL'),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        alert("Opublikowano!");
+        document.getElementById('news-title').value = '';
+        document.getElementById('news-content').value = '';
+    });
+}
+
+function loadNewsAdmin() {
+    const list = document.getElementById('news-list');
+    db.collection("news").orderBy('timestamp', 'desc').onSnapshot(snap => {
+        list.innerHTML = '';
+        snap.forEach(doc => {
+            const n = doc.data();
+            list.innerHTML += `
+                <div class="list-item">
+                    <div><b>${n.title}</b><br><small>${n.date}</small></div>
+                    <button class="btn-delete" onclick="deleteDoc('news', '${doc.id}')">Usuń</button>
+                </div>`;
+        });
+    });
+}
+
+// =========================================================
+// HELPER
+// =========================================================
+window.deleteDoc = (collection, id) => {
+    if(confirm("Czy na pewno usunąć?")) {
+        db.collection(collection).doc(id).delete();
+    }
+};

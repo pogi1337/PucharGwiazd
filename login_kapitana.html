@@ -2,110 +2,82 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Logowanie Kapitana</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puchar Gwiazd | Logowanie Kapitana</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
-        body { font-family: Arial; background: #f0f0f0; padding: 20px; }
-        .box {
-            max-width: 400px; margin: auto; padding: 20px;
-            background: white; border-radius: 10px; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-        }
-        .message-area { margin-top: 10px; font-size: 14px; }
-        .success { color: green; }
-        .error { color: red; }
-    </style>
-
-    <!-- Firebase SDK v8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-</head>
 
-<body>
-
-<div class="box">
-    <h2>Panel Kapitana</h2>
-
-    <!-- ✅ FORMULARZ KTÓREGO BRAKOWAŁO -->
-    <form id="captain-login-form">
-        <label>Email:</label>
-        <input type="email" id="captain-email" required style="width:100%; padding:8px;"><br><br>
-
-        <label>Hasło:</label>
-        <input type="password" id="captain-password" required style="width:100%; padding:8px;"><br><br>
-
-        <button type="submit" style="width:100%; padding:10px;">Zaloguj</button>
-    </form>
-
-    <div id="login-message" class="message-area"></div>
-</div>
-
-<!-- ✅ SKRYPT MUSI BYĆ NA DOLE, ŻEBY HTML JUŻ ISTNIAŁ -->
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-        projectId: "puchargwiazd-bdaa4",
-    };
-
-    firebase.initializeApp(firebaseConfig);
-
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // ✅ ELEMENTY SĄ TERAZ NA STRONIE, WIĘC DZIAŁA:
-    const loginForm = document.getElementById('captain-login-form');
-    const messageArea = document.getElementById('login-message');
-
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById('captain-email').value;
-        const password = document.getElementById('captain-password').value;
-
-        messageArea.textContent = "Logowanie...";
-
-        try {
-            const userCred = await auth.signInWithEmailAndPassword(email, password);
-            const uid = userCred.user.uid;
-
-            const doc = await db.collection("users").doc(uid).get();
-
-            if (!doc.exists) {
-                auth.signOut();
-                messageArea.textContent = "Błąd: konto nie posiada uprawnień.";
-                messageArea.className = "error";
-                return;
-            }
-
-            const data = doc.data();
-
-            if (data.role !== "teamManager") {
-                auth.signOut();
-                messageArea.textContent = "To nie jest konto kapitana.";
-                messageArea.className = "error";
-                return;
-            }
-
-            localStorage.setItem("teamId", data.teamId);
-
-            messageArea.textContent = "Zalogowano!";
-            messageArea.className = "success";
-
-            setTimeout(() => {
-                window.location.href = "captain_panel.html";
-            }, 700);
-
-        } catch (err) {
-            let msg = "Błędny email lub hasło.";
-            if (err.code === "auth/network-request-failed") msg = "Brak internetu";
-
-            messageArea.textContent = msg;
-            messageArea.className = "error";
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--bg); margin:0; }
+        .login-box {
+            background: var(--card-bg); border: 1px solid var(--border);
+            padding: 40px; border-radius: 20px; width: 100%; max-width: 400px;
+            text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-    });
-</script>
+        input {
+            width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            color: #fff; border-radius: 8px;
+        }
+        button {
+            width: 100%; padding: 12px; margin-top: 20px; background: var(--primary);
+            color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;
+        }
+        .error { color: #ff4d4d; margin-top: 10px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <i class="fas fa-user-shield" style="font-size: 3rem; color: var(--accent); margin-bottom: 20px;"></i>
+        <h2>PANEL KAPITANA</h2>
+        <form id="captain-login-form">
+            <input type="email" id="captain-email" placeholder="Email" required>
+            <input type="password" id="captain-password" placeholder="Hasło" required>
+            <button type="submit">ZALOGUJ SIĘ</button>
+        </form>
+        <div id="login-message"></div>
+        <a href="index.html" style="display:block; margin-top: 20px; color: var(--text-muted); font-size: 0.8rem;">Wróć do strony głównej</a>
+    </div>
 
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:75e8df76127397b913612d"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        document.getElementById('captain-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('captain-email').value;
+            const password = document.getElementById('captain-password').value;
+            const msg = document.getElementById('login-message');
+
+            try {
+                const userCred = await auth.signInWithEmailAndPassword(email, password);
+                const doc = await db.collection("users").doc(userCred.user.uid).get();
+                if (doc.exists && doc.data().role === "teamManager") {
+                    localStorage.setItem("teamId", doc.data().teamId);
+                    window.location.href = "captain_panel.html";
+                } else {
+                    auth.signOut();
+                    msg.innerHTML = "<p class='error'>Brak uprawnień kapitana.</p>";
+                }
+            } catch (err) {
+                msg.innerHTML = "<p class='error'>Błędne dane logowania.</p>";
+            }
+        });
+    </script>
 </body>
 </html>

@@ -3,229 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regulamin - Puchar Gwiazd</title>
+    <title>Puchar Gwiazd | Regulamin</title>
+    
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="logo.png">
-    <meta name="description" content="Oficjalny regulamin 4. edycji Pucharu Gwiazd. Zapoznaj się z zasadami turnieju, punktacją i systemem gry.">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+
     <style>
-        /* =========================================
-           NOWOCZESNY STYL - NEONOWY GRANAT
-           ========================================= */
-        :root {
-            --bg-dark: #0a0e17;       /* Bardzo ciemny granat */
-            --bg-card: #131a2a;       /* Trochę jaśniejszy */
-            --accent: #00d4ff;        /* Neonowy błękit */
-            --accent-glow: rgba(0, 212, 255, 0.4);
-            --text-main: #ffffff;
-            --text-sec: #a0aec0;
-            --border: #1f2a40;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            margin: 0; padding: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        /* HEADER */
-        .header {
-            width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
-            display: flex; justify-content: center; align-items: center;
-            background: rgba(19, 26, 42, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
+        /* Lokalne style dla czytelności tekstu */
+        .reg-section {
+            background: var(--card-bg);
             border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 10;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
         }
-        .header h1 {
-            font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 0;
-            background: linear-gradient(90deg, #fff, var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px var(--accent-glow);
-            text-transform: uppercase;
-        }
-
-        /* NAV */
-        #main-nav {
-            margin: 20px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-        }
-        #main-nav a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            padding: 10px 20px; border-radius: 30px; border: 1px solid transparent;
-            transition: 0.3s; background: var(--bg-card);
-        }
-        #main-nav a:hover {
-            border-color: var(--accent); color: #fff;
-            box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px);
-        }
-
-        /* CONTENT */
-        .content-section {
-            width: 100%; max-width: 800px; padding: 40px; box-sizing: border-box;
-            background: var(--bg-card);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            margin-bottom: 50px;
-        }
-
-        .content-section h2 {
-            text-align: center; font-size: 2rem; margin-bottom: 40px; margin-top: 0;
-            color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.1);
-            border-bottom: 2px solid var(--accent); padding-bottom: 15px;
-        }
-
-        .content-section h3 {
+        .reg-section h2 {
             color: var(--accent);
-            font-size: 1.3rem;
-            margin-top: 30px; margin-bottom: 15px;
-            border-left: 4px solid var(--accent);
-            padding-left: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+            margin-top: 0;
+            display: flex; align-items: center; gap: 10px;
         }
-
-        .content-section p {
-            color: var(--text-sec);
-            margin-bottom: 15px;
-            font-size: 1rem;
+        .reg-content h3 {
+            color: #fff;
+            margin-top: 30px;
+            font-size: 1.1rem;
+            display: flex; align-items: center; gap: 10px;
         }
-
-        .content-section ul {
-            list-style: none;
-            padding: 0;
-            margin-bottom: 20px;
-        }
-
-        .content-section ul li {
-            color: var(--text-main);
+        .reg-content p, .reg-content li {
+            color: var(--text-muted);
+            font-size: 0.95rem;
             margin-bottom: 10px;
+        }
+        .reg-content ul {
             padding-left: 20px;
-            position: relative;
+            list-style-type: disc;
         }
-
-        .content-section ul li::before {
-            content: "•";
-            color: var(--accent);
-            font-weight: bold;
-            font-size: 1.5em;
-            position: absolute;
-            left: 0;
-            top: -5px;
-        }
-
-        /* FOOTER */
-        .footer {
-            margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem;
-            border-top: 1px solid var(--border); width: 100%; background: #070a11;
-        }
-        .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.5rem; transition: 0.3s; }
-        .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
-        
-        /* THEME TOGGLE */
-        #theme-toggle {
-            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
-            border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
-            font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: 0.3s; display: flex; justify-content: center; align-items: center;
-        }
-        #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
-
-        /* RESPONSYWNOŚĆ */
-        @media (max-width: 600px) {
-            .header { border-radius: 0 0 20px 20px; margin-top: 0; border: none; border-bottom: 1px solid var(--border); }
-            #main-nav { gap: 8px; }
-            #main-nav a { padding: 8px 15px; font-size: 0.8rem; }
-            .content-section { padding: 20px; }
-            .header h1 { font-size: 1.4rem; }
+        .reg-content strong {
+            color: #fff;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>REGULAMIN - PUCHAR GWIAZD</h1>
-    </div>
 
-    <nav id="main-nav">
-        <a href="index.html">Strona Główna</a>
-        <a href="druzyny.html">Drużyny</a>
-        <a href="terminarz.html">Terminarz</a>
-        <a href="regulamin.html" style="background: var(--accent); color: var(--bg-dark);">Regulamin</a>
-        <a href="tabela.html">Tabele</a>
-        <a href="onas.html">O Nas</a>
+    <nav class="navbar">
+        <a href="index.html" class="brand">
+            <img src="logo.png" alt="Logo" class="logo-img">
+            <span class="logo-text">PUCHAR GWIAZD</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">STRONA GŁÓWNA</a>
+            <a href="druzyny.html">DRUŻYNY</a>
+            <a href="terminarz.html">TERMINARZ</a>
+            <a href="tabela.html">TABELE</a>
+            <a href="regulamin.html" class="active-link">REGULAMIN</a>
+            <a href="onas.html">O NAS</a>
+            <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
+            <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
+        </div>
     </nav>
 
-    <section class="content-section">
-        <h2>Zasady 4. Edycji</h2>
-        <p>Wszyscy uczestnicy Pucharu Gwiazd są zobowiązani do przestrzegania niniejszego regulaminu. Celem turnieju jest zapewnienie sprawiedliwej i przyjemnej rywalizacji dla wszystkich.</p>
-        
-        <h3>1. Uczestnictwo</h3>
-        <ul>
-            <li>W Turnieju mogą brać udział drużyny złożone z co najmniej 5 zawodników i maksymalnie z 10 graczy.</li>
-            <li>Wszyscy zawodnicy biorący udział w turnieju muszą mieć ukończone 13 lat.</li>
-            <li>Organizatorzy nie biorą odpowiedzialności za ewentualne kontuzje, zniszczenie lub zgubienie mienia.</li>
-            <li>Każdy uczestnik 4. edycji "Pucharu Gwiazd" może należeć tylko do jednej drużyny.</li>
-        </ul>
+    <main class="container">
+        <header class="page-header" data-aos="fade-down">
+            <p>Zasady i Postanowienia</p>
+            <h2>DOKUMENTACJA TURNIEJU</h2>
+        </header>
 
-        <h3>2. Format Turnieju</h3>
-        <ul>
-            <li>Turniej zostanie rozegrany w systemie 4 grup po 4 drużyny.</li>
-            <li>Po fazie grupowej rozgrywane będą ćwierćfinały, w których zagrają drużyny, które zajęły pierwsze lub drugie miejsce w grupie.</li>
-            <li>W kolejnych etapach rozegrane zostaną półfinały oraz mecze o Puchary.</li>
-            <li>Szczegółowy harmonogram meczów znajduje się na stronie głównej.</li>
-        </ul>
+        <section class="reg-section" data-aos="fade-up">
+            <h2><i class="fas fa-file-contract"></i> Regulamin Ogólny</h2>
+            <div class="reg-content">
+                <h3>1. Postanowienia Ogólne</h3>
+                <p>Turniej "Puchar Gwiazd" ma na celu promocję sportu, integrację lokalnej społeczności oraz wyłonienie najlepszej drużyny w duchu Fair Play.</p>
 
-        <h3>3. Zasady Gry</h3>
-        <p>Wszystkie mecze 4. edycji "Pucharu Gwiazd" będą rozgrywane zgodnie z zasadami piłki nożnej, z następującymi wyjątkami dotyczącymi kartek:</p>
-        <ul>
-            <li><strong>Żółta kartka:</strong> Jest zwykłym upomnieniem od sędziego (nie różni się od standardowych zasad).</li>
-            <li><strong>Czerwona kartka:</strong> Zawodnik musi zejść z boiska na minutę lub do momentu stracenia/zdobycia bramki przez jego drużynę. W tym konkretnym meczu ukarany zawodnik nie może już wrócić na boisko, ale może wejść za niego inny zawodnik.</li>
-        </ul>
-        
-        <h3>4. Fair Play</h3>
-        <p>Oczekujemy od wszystkich uczestników zachowania zasad fair play. Wszelkie formy oszustwa, toksycznego zachowania lub celowego zakłócania przebiegu meczu będą skutkować dyskwalifikacją.</p>
+                <h3>2. Uczestnictwo</h3>
+                <p>W turnieju mogą brać udział drużyny, które dokonały pełnej rejestracji i uiściły opłatę wpisową. Każdy zawodnik musi posiadać dokument tożsamości.</p>
 
-        <h3>5. Postępowanie w Przypadku Sporów</h3>
-        <p>Wszelkie spory lub niejasności dotyczące przebiegu meczów będą rozstrzygane przez sędziego turnieju. Decyzje sędziego są ostateczne.</p>
+                <h3>3. System Rozgrywek</h3>
+                <p>Mecze rozgrywane są w dwóch fazach: grupowej (każdy z każdym) oraz pucharowej (przegrany odpada). Szczegółowy harmonogram dostępny jest w zakładce Terminarz.</p>
 
-        <h3>6. Nagrody</h3>
-        <p>Nagrody na turnieju przewidziane są za:</p>
-        <ul>
-            <li>Pierwsze, drugie oraz trzecie miejsce dla drużyn.</li>
-            <li>Osiągnięcia indywidualne dla zawodników.</li>
-            <li>Dla kibiców przewidziany jest konkurs z nagrodą główną oraz wiele nagród pobocznych.</li>
-        </ul>
+                <h3>4. Zasady Fair Play</h3>
+                <p>Organizatorzy kładą duży nacisk na kulturę gry. Wszelkie przejawy agresji, niesportowego zachowania lub celowego zakłócania przebiegu meczu będą skutkować dyskwalifikacją.</p>
 
-        <h3>7. Zmiany w Regulaminie</h3>
-        <p>Organizator zastrzega sobie prawo do wprowadzania zmian w regulaminie, o czym uczestnicy zostaną poinformowani z odpowiednim wyprzedzeniem.</p>
-    </section>
+                <h3>5. Nagrody</h3>
+                <ul>
+                    <li>Puchary dla miejsc 1-3.</li>
+                    <li>Statuetki dla Króla Strzelców i Najlepszego Bramkarza.</li>
+                    <li>Dyplomy dla wszystkich uczestników.</li>
+                </ul>
+            </div>
+        </section>
 
-    <div class="footer">
-        <div class="social-media-links">
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-        </div>
-        <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
-    </div>
+        <section class="reg-section" data-aos="fade-up" data-aos-delay="100">
+            <h2><i class="fas fa-futbol"></i> Zasady Gry</h2>
+            <div class="reg-content">
+                
+                <h3><i class="fas fa-clock"></i> 1. Czas Gry</h3>
+                <p>Mecze w fazie grupowej trwają <strong>2 x 10 minut</strong>. W fazie pucharowej czas gry wynosi <strong>2 x 15 minut</strong>. Przerwa między połowami trwa 2 minuty.</p>
 
-    <button id="theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
+                <h3><i class="fas fa-users"></i> 2. Skład Drużyny</h3>
+                <p>Na boisku przebywa <strong>5 zawodników w polu + bramkarz (5+1)</strong>. Minimalna liczba zawodników do rozpoczęcia meczu to 4.</p>
 
-    <script>
-        // Prosta obsługa Theme Toggle
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            alert("Motyw nocny jest aktywny domyślnie!");
-        });
-    </script>
+                <h3><i class="fas fa-sync-alt"></i> 3. Zmiany</h3>
+                <p>Obowiązują tzw. <strong>zmiany lotne</strong> (hokejowe). Zmiana może nastąpić w dowolnym momencie meczu, pod warunkiem, że zawodnik schodzący opuścił już plac gry w strefie zmian.</p>
+
+                <h3><i class="far fa-flag"></i> 4. Przepisy Boiskowe</h3>
+                <ul>
+                    <li><strong>Auty:</strong> Wykonywane są nogą z linii bocznej (piłka musi stać nieruchomo). Bramka zdobyta bezpośrednio z autu nie jest uznawana.</li>
+                    <li><strong>Bramkarz:</strong> Wznawia grę ręką z pola karnego. Nie może łapać piłki w ręce po celowym podaniu nogą od własnego zawodnika.</li>
+                    <li><strong>Wślizgi:</strong> Wślizgi kontaktowe (atak na nogi przeciwnika) są zabronione i traktowane jako faul. Dozwolone są tylko wślizgi ratunkowe (blokowanie piłki bez kontaktu z rywalem).</li>
+                    <li><strong>Spalony:</strong> Przepis o spalonym nie obowiązuje.</li>
+                </ul>
+
+                <h3><i class="fas fa-exclamation-triangle"></i> 5. Kary Dyscyplinarne</h3>
+                <ul>
+                    <li><strong>Żółta Kartka:</strong> Kara czasowa (2 minuty). Drużyna gra w osłabieniu do momentu upływu czasu lub utraty bramki.</li>
+                    <li><strong>Czerwona Kartka:</strong> Wykluczenie z meczu. Drużyna gra w osłabieniu przez 5 minut, a ukarany zawodnik nie może wrócić do gry w tym spotkaniu.</li>
+                </ul>
+
+                <h3><i class="fas fa-handshake"></i> 6. Rozstrzyganie Remisów</h3>
+                <p>W fazie pucharowej, w przypadku remisu, następuje seria <strong>3 rzutów karnych</strong>. Jeśli nadal jest remis, rzuty karne wykonywane są w systemie "nagłej śmierci" (do pierwszego błędu).</p>
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid var(--border);">
+        &copy; 2025 PUCHAR GWIAZD | TOURNAMENT RULES & REGULATIONS
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>AOS.init({ duration: 800, once: true });</script>
+
 </body>
 </html>
-
-

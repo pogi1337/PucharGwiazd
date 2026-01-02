@@ -3,360 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puchar Gwiazd - Lista Drużyn</title>
+    <title>Puchar Gwiazd | Drużyny</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="logo.png">
-
-    <!-- Importy Firebase V11 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // 1. KONFIGURACJA (Twoja)
-        const HARDCODED_CONFIG = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargugwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:33e7f6e45b2a7095dfe53e"
-        };
-
-        const app = initializeApp(HARDCODED_CONFIG);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const PATH_TEAMS = 'teams';
-        const loadedPlayers = new Set();
-
-        async function initApp() {
-            try {
-                await signInAnonymously(auth);
-                loadTeams();
-            } catch (e) {
-                console.warn("Błąd logowania anonimowego, próbuję wczytać dane...", e);
-                loadTeams();
-            }
-        }
-
-        function loadTeams() {
-            const list = document.getElementById('teams-list');
-            const q = query(collection(db, PATH_TEAMS), orderBy('name'));
-
-            onSnapshot(q, (snapshot) => {
-                list.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    list.innerHTML = '<p style="text-align:center; color:#888; font-size:1.2rem;">Brak zarejestrowanych drużyn.</p>';
-                    return;
-                }
-
-                snapshot.forEach(doc => {
-                    const t = doc.data();
-                    const teamId = doc.id;
-
-                    const li = document.createElement('li');
-                    li.className = 'team-card';
-                    li.id = `card-${teamId}`;
-                    
-                    li.innerHTML = `
-                        <div class="team-card-header" onclick="window.toggleTeam('${teamId}')">
-                            <h3><i class="fas fa-shield-alt"></i> ${t.name}</h3>
-                            <div style="display:flex; align-items:center; gap:15px;">
-                                <span class="group-tag">Gr. ${t.group || '-'}</span>
-                                <i class="fas fa-chevron-down toggle-icon" id="icon-${teamId}"></i>
-                            </div>
-                        </div>
-                        <div class="team-details" id="details-${teamId}">
-                            <div class="manager-info">
-                                <i class="fas fa-user-tie"></i> Kapitan: <strong>${t.manager || t.managerEmail || 'Brak danych'}</strong>
-                            </div>
-                            <h4 class="squad-title">SKŁAD DRUŻYNY</h4>
-                            <div id="players-list-${teamId}" class="players-container">
-                                <div class="loading-spinner"></div>
-                            </div>
-                        </div>
-                    `;
-                    list.appendChild(li);
-                });
-            }, (error) => {
-                console.error("Błąd:", error);
-                list.innerHTML = '<p style="color:red; text-align:center;">Błąd ładowania danych.</p>';
-            });
-        }
-
-        window.toggleTeam = (teamId) => {
-            const card = document.getElementById(`card-${teamId}`);
-            const isActive = card.classList.toggle('expanded');
-            
-            if (isActive && !loadedPlayers.has(teamId)) {
-                loadPlayersForTeam(teamId);
-                loadedPlayers.add(teamId);
-            }
-        };
-
-        function loadPlayersForTeam(teamId) {
-            const container = document.getElementById(`players-list-${teamId}`);
-            const playersRef = collection(db, PATH_TEAMS, teamId, 'players');
-            const q = query(playersRef, orderBy('number'));
-
-            onSnapshot(q, (snapshot) => {
-                container.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    container.innerHTML = '<p class="empty-squad">Brak zawodników w składzie.</p>';
-                    return;
-                }
-
-                const ul = document.createElement('ul');
-                ul.className = 'players-list';
-
-                snapshot.forEach(doc => {
-                    const p = doc.data();
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        <div class="player-row">
-                            <span class="p-number">${p.number || '-'}</span>
-                            <span class="p-name">${p.name} ${p.surname}</span>
-                        </div>
-                        <span class="p-pos">${p.position || ''}</span>
-                    `;
-                    ul.appendChild(li);
-                });
-                container.appendChild(ul);
-
-            }, (error) => {
-                console.error("Błąd graczy:", error);
-                container.innerHTML = '<p style="color:red;">Błąd pobierania składu.</p>';
-            });
-        }
-
-        window.addEventListener('load', initApp);
-        
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-        });
-    </script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     
     <style>
-        /* =========================================
-           NOWOCZESNY STYL - GRANATOWO-BIAŁY + NEON
-           ========================================= */
-        
-        :root {
-            --bg-dark: #0a0e17;       /* Bardzo ciemny granat */
-            --bg-card: #131a2a;       /* Trochę jaśniejszy */
-            --accent: #00d4ff;        /* Neonowy błękit */
-            --accent-glow: rgba(0, 212, 255, 0.4);
-            --text-main: #ffffff;
-            --text-sec: #a0aec0;
-            --border: #1f2a40;
+        /* STYL LISTY (Kompaktowy) */
+        .teams-container {
+            max-width: 900px;
+            margin: 40px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            margin: 0; padding: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden;
-        }
-
-        /* HEADER */
-        .header {
-            width: 100%; max-width: 1000px; padding: 20px; margin-top: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(19, 26, 42, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 10;
-        }
-        .header h1 {
-            font-size: 1.8rem; font-weight: 900; letter-spacing: 1px; margin: 0;
-            background: linear-gradient(90deg, #fff, var(--accent));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        
-        .login-links a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            margin-left: 15px; transition: 0.3s; position: relative;
-        }
-        .login-links a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
-
-        /* NAV */
-        #main-nav {
-            margin: 20px 0 40px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-        }
-        #main-nav a {
-            color: var(--text-sec); text-decoration: none; font-weight: 600; font-size: 0.9rem;
-            padding: 10px 20px; border-radius: 30px; border: 1px solid transparent;
-            transition: 0.3s; background: var(--bg-card);
-        }
-        #main-nav a:hover {
-            border-color: var(--accent); color: #fff;
-            box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-2px);
-        }
-
-        /* CONTENT */
-        .content-container { width: 100%; max-width: 800px; padding: 0 20px; box-sizing: border-box; }
-        h2 { text-align: center; font-size: 2rem; margin-bottom: 30px; color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
-        
-        #teams-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 20px; }
-
-        /* KARTA DRUŻYNY */
-        .team-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-        }
-
-        /* EFEKT NEONU PRZY NAJECHANIU */
-        .team-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 0 20px var(--accent-glow), inset 0 0 20px rgba(0, 212, 255, 0.05);
-            transform: scale(1.02);
-            z-index: 2;
-        }
-
-        .team-card-header {
-            padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-        }
-        
-        .team-card h3 {
-            margin: 0; font-size: 1.3rem; font-weight: 700; color: #fff;
-            display: flex; align-items: center; gap: 12px;
-        }
-        .team-card h3 i { color: var(--accent); font-size: 1.1rem; }
-        
-        .group-tag {
-            background: rgba(255, 255, 255, 0.1); color: var(--text-sec);
-            padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .toggle-icon { color: var(--text-sec); transition: transform 0.4s; }
-        
-        /* STAN ROZWINIĘTY */
-        .team-card.expanded {
-            border-color: var(--accent);
-            box-shadow: 0 0 25px var(--accent-glow);
-        }
-        .team-card.expanded .toggle-icon { transform: rotate(180deg); color: var(--accent); }
-        
-        .team-details {
-            max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out, opacity 0.5s;
-            opacity: 0; background: rgba(0,0,0,0.2);
-        }
-        .team-card.expanded .team-details { max-height: 1000px; opacity: 1; }
-        
-        .manager-info {
-            padding: 15px 25px; border-bottom: 1px solid var(--border);
-            font-size: 0.9rem; color: var(--text-sec);
-            display: flex; align-items: center; gap: 8px;
-        }
-        .manager-info strong { color: #fff; }
-        .manager-info i { color: var(--accent); }
-
-        .squad-title {
-            margin: 20px 25px 10px; font-size: 0.8rem; letter-spacing: 1px;
-            color: var(--text-sec); text-transform: uppercase; font-weight: 700;
-        }
-
-        /* LISTA ZAWODNIKÓW */
-        .players-list {
-            list-style: none; padding: 0 25px 25px; margin: 0;
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;
-        }
-        .players-list li {
+        .team-row {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 10px 15px; border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.3s;
+        }
+
+        .team-row:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #00d4ff;
+            transform: translateX(5px);
+        }
+
+        .team-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .team-logo-small {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #00d4ff;
+        }
+
+        .team-name-row {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        /* PRZYCISK */
+        .btn-mini {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ccc;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .btn-mini:hover {
+            border-color: #00d4ff;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center;
+            z-index: 2000; opacity: 0; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-content {
+            background: #0f172a;
+            width: 100%; max-width: 450px;
+            border-radius: 16px;
+            border: 1px solid #333;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            transform: scale(0.95); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        .modal-header {
+            background: #1e293b;
+            padding: 20px;
             display: flex; justify-content: space-between; align-items: center;
-            transition: 0.2s;
+            border-bottom: 1px solid #333;
         }
-        .players-list li:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.1); }
-        
-        .player-row { display: flex; align-items: center; gap: 10px; }
-        .p-number {
-            font-weight: 900; color: var(--bg-dark); background: var(--accent);
-            width: 24px; height: 24px; display: flex; justify-content: center; align-items: center;
-            border-radius: 50%; font-size: 0.8rem;
-        }
-        .p-name { font-weight: 600; font-size: 0.95rem; }
-        .p-pos { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px; }
+        .modal-header h3 { margin: 0; font-size: 1.2rem; color: #fff; }
+        .close-btn { color: #aaa; cursor: pointer; font-size: 1.2rem; }
+        .close-btn:hover { color: #fff; }
 
-        .empty-squad, .loading-spinner { text-align: center; padding: 20px; color: var(--text-sec); font-style: italic; }
-        .loading-spinner::after { content: "⟳"; display: inline-block; animation: spin 1s infinite linear; margin-left: 5px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* FOOTER */
-        .footer { margin-top: auto; padding: 40px 0; text-align: center; color: var(--text-sec); font-size: 0.85rem; border-top: 1px solid var(--border); width: 100%; margin-top: 60px; background: #070a11; }
-        .social-media-links a { color: var(--text-sec); margin: 0 10px; font-size: 1.4rem; transition: 0.3s; }
-        .social-media-links a:hover { color: #fff; transform: scale(1.2); display: inline-block; }
-        
-        #theme-toggle {
-            position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
-            border-radius: 50%; background: var(--bg-card); color: #fff; border: 1px solid var(--border);
-            font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: 0.3s; display: flex; justify-content: center; align-items: center;
+        .squad-list {
+            list-style: none; padding: 0; margin: 0;
+            max-height: 60vh; overflow-y: auto;
         }
-        #theme-toggle:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
-        
-        /* Responsywność */
-        @media (max-width: 600px) {
-            .header { flex-direction: column; gap: 15px; text-align: center; border-radius: 0 0 20px 20px; margin-top: 0; border: none; border-bottom: 1px solid var(--border); }
-            #main-nav { gap: 8px; }
-            #main-nav a { padding: 8px 15px; font-size: 0.8rem; }
-            .players-list { grid-template-columns: 1fr; padding: 0 15px 15px; }
-            .team-card-header { padding: 15px; }
-            .team-card h3 { font-size: 1.1rem; }
+        .player-li {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: space-between;
+            font-size: 0.95rem; color: #ddd;
+        }
+        .player-li:last-child { border-bottom: none; }
+        .goal-badge { 
+            background: rgba(0, 212, 255, 0.1); color: #00d4ff; 
+            padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;
         }
     </style>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, query, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        const CONFIG = { apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo", authDomain: "puchargwiazd-bdaa4.firebaseapp.com", projectId: "puchargwiazd-bdaa4", storageBucket: "puchargwiazd-bdaa4.firebasestorage.app", messagingSenderId: "890734185883", appId: "1:890734185883:web:75e8df76127397b913612d" };
+        
+        const app = initializeApp(CONFIG);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        signInAnonymously(auth).catch(console.error);
+
+        // --- 1. POBIERANIE DRUŻYN ---
+        const q = query(collection(db, "teams"));
+
+        onSnapshot(q, (snap) => {
+            const container = document.getElementById('teams-container');
+            container.innerHTML = '';
+            
+            if (snap.empty) {
+                container.innerHTML = '<p style="text-align:center; opacity:0.6;">Brak drużyn.</p>';
+                return;
+            }
+
+            let teams = [];
+            snap.forEach(doc => {
+                let d = doc.data();
+                d.id = doc.id; 
+                teams.push(d);
+            });
+
+            // Sortowanie Drużyn A-Z
+            teams.sort((a, b) => {
+                const nameA = a.name ? a.name.toString() : "";
+                const nameB = b.name ? b.name.toString() : "";
+                return nameA.localeCompare(nameB);
+            });
+
+            teams.forEach(t => {
+                const safeName = t.name ? t.name.replace(/'/g, "\\'") : "Drużyna";
+                
+                const row = `
+                    <div class="team-row" data-aos="fade-up">
+                        <div class="team-info">
+                            <img src="${t.logo || 'logo.png'}" alt="Logo" class="team-logo-small">
+                            <h3 class="team-name-row">${t.name || 'Brak nazwy'}</h3>
+                        </div>
+                        <button class="btn-mini" onclick="window.openSquad('${t.id}', '${safeName}')">
+                            <i class="fas fa-list"></i> SKŁAD
+                        </button>
+                    </div>
+                `;
+                container.innerHTML += row;
+            });
+        });
+
+        // --- 2. OBSŁUGA SKŁADU (POPRAWIONE NA SURNAME) ---
+        window.openSquad = async function(teamId, teamName) {
+            const modal = document.getElementById('squadModal');
+            const list = document.getElementById('squadList');
+            const title = document.getElementById('modalTitle');
+            
+            title.innerText = teamName;
+            list.innerHTML = '<li style="text-align:center; padding:20px; color:#888;">Ładowanie...</li>';
+            
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+
+            try {
+                const playersRef = collection(db, "teams", teamId, "players");
+                const snap = await getDocs(playersRef);
+                
+                list.innerHTML = ''; 
+
+                if (snap.empty) {
+                    list.innerHTML = '<li style="text-align:center; padding:20px; color:#666;">Brak wpisanych zawodników.</li>';
+                } else {
+                    let players = [];
+                    snap.forEach(doc => players.push(doc.data()));
+                    
+                    // --- SORTOWANIE PO SURNAME ---
+                    players.sort((a, b) => {
+                        // Zabezpieczenie: jeśli nie ma surname, użyj pustego stringa
+                        const surA = a.surname ? a.surname.toString() : "";
+                        const surB = b.surname ? b.surname.toString() : "";
+                        
+                        // Najpierw sortujemy po nazwisku
+                        if (surA !== surB) {
+                            return surA.localeCompare(surB);
+                        }
+                        
+                        // Jak nazwiska są te same, sortujemy po imieniu
+                        const nameA = a.name ? a.name.toString() : "";
+                        const nameB = b.name ? b.name.toString() : "";
+                        return nameA.localeCompare(nameB);
+                    });
+
+                    players.forEach(p => {
+                        // Wyświetlanie: Imię + Nazwisko (używamy surname)
+                        const fullName = `${p.name || ''} ${p.surname || ''}`.trim() || "Brak danych";
+                        
+                        list.innerHTML += `
+                            <li class="player-li">
+                                <span>${fullName}</span>
+                                ${p.goals > 0 ? `<span class="goal-badge">⚽ ${p.goals}</span>` : ''}
+                            </li>
+                        `;
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = '<li style="text-align:center; color:red; padding:20px;">Błąd pobierania danych.</li>';
+            }
+        };
+
+        window.closeSquad = function() {
+            const modal = document.getElementById('squadModal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
+        };
+        
+        document.getElementById('squadModal').addEventListener('click', (e) => {
+            if (e.target.id === 'squadModal') window.closeSquad();
+        });
+    </script>
 </head>
 <body>
 
-    <div class="header">
-        <h1>PUCHAR GWIAZD</h1>
-        <div class="login-links">
-            <a href="captain_panel.html"><i class="fas fa-user-shield"></i> KAPITAN</a>
-            <a href="admin.html"><i class="fas fa-user-cog"></i> ADMIN</a>
+    <nav class="navbar">
+        <a href="index.html" class="brand">
+            <img src="logo.png" alt="Logo" class="logo-img">
+            <span class="logo-text">PUCHAR GWIAZD</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">STRONA GŁÓWNA</a>
+            <a href="druzyny.html" class="active-link" style="color:#00d4ff; opacity:1;">DRUŻYNY</a>
+            <a href="terminarz.html">TERMINARZ</a>
+            <a href="tabela.html">TABELE</a>
+            <a href="regulamin.html">REGULAMIN</a>
+            <a href="onas.html">O NAS</a>
+            <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
+            <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
         </div>
-    </div>
-
-    <nav id="main-nav">
-        <a href="index.html">Strona Główna</a>
-        <a href="druzyny.html" style="background: var(--accent); color: var(--bg-dark);">Drużyny</a>
-        <a href="terminarz.html">Terminarz</a>
-        <a href="regulamin.html">Regulamin</a>
-        <a href="tabela.html">Tabele</a>
-        <a href="onas.html">O Nas</a>
     </nav>
 
-    <div class="content-container">
-        <h2>LISTA DRUŻYN</h2>
-        <ul id="teams-list">
-            <!-- Tutaj JavaScript wstrzyknie karty -->
-        </ul>
-    </div>
+    <main class="container">
+        <header class="page-header" data-aos="fade-down" style="text-align:center; margin: 50px 0 30px;">
+            <h2 style="font-size:2rem; font-weight:800; margin:0;">DRUŻYNY</h2>
+            <p style="color:#00d4ff; letter-spacing:2px; font-size:0.9rem; font-weight:700;">UCZESTNICY TURNIEJU</p>
+        </header>
 
-    <div class="footer">
-        <div class="social-media-links">
-            <a href="#"><i class="fab fa-tiktok"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
+        <div id="teams-container" class="teams-container">
+            <p style="text-align:center; opacity:0.5;">Wczytywanie...</p>
         </div>
-        <p style="margin-top: 10px;">© 2025 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
+    </main>
+
+    <div id="squadModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nazwa Drużyny</h3>
+                <i class="fas fa-times close-btn" onclick="window.closeSquad()"></i>
+            </div>
+            <ul id="squadList" class="squad-list">
+                </ul>
+        </div>
     </div>
 
-    <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+    <footer style="text-align:center; padding: 40px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid rgba(255,255,255,0.1);">
+        &copy; 2025 PUCHAR GWIAZD
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script> AOS.init({ duration: 600, once: true }); </script>
 
 </body>
 </html>
-
-
