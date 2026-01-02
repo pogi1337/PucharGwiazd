@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     
     <style>
-        /* TŁO I STYLE LOKALNE (Reszta jest w style.css) */
+        /* TŁO I STYLE LOKALNE */
         body {
             background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('1.jpg');
             background-size: cover;
@@ -19,6 +19,15 @@
             background-attachment: fixed;
             min-height: 100vh;
             color: #fff;
+            overflow-x: hidden; /* Zapobiega przewijaniu na boki */
+        }
+
+        /* POPRAWKA DLA PRZYCISKU MENU - Musi być na wierzchu */
+        .menu-toggle {
+            z-index: 10001; /* Bardzo wysoki indeks */
+            position: relative;
+            cursor: pointer;
+            padding: 10px; /* Większe pole kliknięcia */
         }
 
         .cta-section { text-align: center; margin: 40px auto 60px; padding: 0 20px; max-width: 800px; }
@@ -124,7 +133,7 @@
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
 
-        <div class="menu-toggle" onclick="toggleMenu()">
+        <div class="menu-toggle" id="menuBtn">
             <i class="fas fa-bars"></i>
         </div>
 
@@ -183,37 +192,49 @@
     <script>
         AOS.init({ duration: 1000, once: true });
 
-        // --- SKRYPT DO OTWIERANIA MENU NA TELEFONIE ---
-        function toggleMenu() {
-            const nav = document.getElementById('navLinks');
-            nav.classList.toggle('active');
-        }
+        // --- SKRYPT UI (MENU + TIMER) ---
+        // Uruchamia się dopiero gdy strona jest załadowana
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. OBSŁUGA MENU NA TELEFONIE
+            const menuBtn = document.getElementById('menuBtn');
+            const navLinks = document.getElementById('navLinks');
 
-        // TIMER: 18 Stycznia 2026, 12:00
-        const targetDate = new Date("Jan 18, 2026 12:00:00").getTime();
-        const timerInterval = setInterval(() => {
-            const now = new Date().getTime();
-            const diff = targetDate - now;
-
-            if (diff < 0) {
-                clearInterval(timerInterval);
-                document.getElementById("timer").innerHTML = "<h2 style='color:#00d4ff'>TURNIEJ ROZPOCZĘTY!</h2>";
-                return;
+            if(menuBtn && navLinks) {
+                menuBtn.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                    console.log("Kliknięto menu!"); // Do debugowania
+                });
             }
-            document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-            document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
-        }, 1000);
 
-        // Animacja cyfry 4
-        let count = 0;
-        const targetCount = 4;
-        const counterElement = document.getElementById('tournaments-count');
-        const counterInterval = setInterval(() => {
-            if(count >= targetCount) clearInterval(counterInterval);
-            else { count++; counterElement.innerText = count; }
-        }, 400);
+            // 2. TIMER (18 Stycznia 2026, 12:00)
+            const targetDate = new Date("Jan 18, 2026 12:00:00").getTime();
+            const timerInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const diff = targetDate - now;
+
+                if (diff < 0) {
+                    clearInterval(timerInterval);
+                    const t = document.getElementById("timer");
+                    if(t) t.innerHTML = "<h2 style='color:#00d4ff'>TURNIEJ ROZPOCZĘTY!</h2>";
+                    return;
+                }
+                document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+                document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+                document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            }, 1000);
+
+            // 3. LICZNIK TURNIEJÓW
+            let count = 0;
+            const targetCount = 4;
+            const counterElement = document.getElementById('tournaments-count');
+            const counterInterval = setInterval(() => {
+                if(count >= targetCount) clearInterval(counterInterval);
+                else { count++; if(counterElement) counterElement.innerText = count; }
+            }, 400);
+
+        });
     </script>
 </body>
 </html>
