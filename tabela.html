@@ -13,124 +13,86 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
 
     <style>
-        /* Dodatkowe style dla układu tabel */
+        /* --- NAVBAR FIX (Menu Mobilne) --- */
+        .navbar {
+            position: sticky; top: 0; z-index: 999999;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; background: rgba(15, 23, 42, 0.98);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-weight: 800; }
+        .logo-img { height: 40px; }
+        .menu-toggle { display: none; font-size: 2rem; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        
+        @media (max-width: 900px) {
+            .menu-toggle { display: block; }
+            .nav-links { 
+                display: none; 
+                position: absolute; top: 100%; left: 0; width: 100%; 
+                background: #0f172a; flex-direction: column; padding: 20px 0; 
+                border-bottom: 1px solid rgba(255,255,255,0.2); 
+                box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            }
+            .nav-links.active { display: flex !important; }
+            .nav-links a { 
+                padding: 15px; width: 100%; text-align: center; 
+                border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 1.2rem; 
+            }
+        }
+
+        /* --- STYLE TABEL --- */
         #tables-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
             gap: 40px;
         }
 
+        /* Responsywność dla małych ekranów (telefony) */
+        @media (max-width: 600px) {
+            #tables-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .table-wrapper {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             overflow: hidden;
             transition: 0.3s;
         }
-        .table-wrapper:hover {
-            border-color: var(--accent);
-            transform: translateY(-5px);
+        .table-wrapper:hover { border-color: #00d4ff; transform: translateY(-5px); }
+
+        .table-header {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 15px; text-align: center;
+            font-weight: 800; font-size: 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
         }
 
-        .group-header-label {
-            background: rgba(255,255,255,0.03);
-            padding: 15px;
-            font-weight: 800;
-            color: var(--accent);
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-            letter-spacing: 1px;
+        .standings-table {
+            width: 100%; border-collapse: collapse;
+            font-size: 0.9rem;
         }
 
-        @media (max-width: 768px) {
-            #tables-container { grid-template-columns: 1fr; }
+        .standings-table th {
+            background: rgba(0,0,0,0.3); color: #888;
+            font-weight: 600; padding: 12px 10px; text-align: center;
+            font-size: 0.75rem; text-transform: uppercase;
         }
+        .standings-table td {
+            padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        }
+        .standings-table tr:last-child td { border-bottom: none; }
+        
+        .t-club { text-align: left !important; display: flex; align-items: center; gap: 10px; }
+        .t-club img { width: 30px; height: 30px; object-fit: contain; }
+        .pos-1, .pos-2 { color: #00ff88; font-weight: bold; } /* Awans */
+        .pos-3, .pos-4 { color: #ff4d4d; } /* Odpadnięcie */
     </style>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        const CONFIG = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:75e8df76127397b913612d"
-        };
-
-        const app = initializeApp(CONFIG);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        signInAnonymously(auth);
-
-        function initApp() {
-            const container = document.getElementById('tables-container');
-            // Sortowanie: najpierw punkty (malejąco), potem można dodać bilans w logice JS jeśli trzeba
-            const q = query(collection(db, 'teams'), orderBy('points', 'desc'));
-
-            onSnapshot(q, (snapshot) => {
-                const groups = { 'A': [], 'B': [], 'C': [], 'D': [] };
-                
-                snapshot.forEach(doc => {
-                    const t = doc.data();
-                    if (t.group && groups[t.group.toUpperCase()]) {
-                        groups[t.group.toUpperCase()].push(t);
-                    }
-                });
-
-                container.innerHTML = '';
-                let hasData = false;
-
-                Object.keys(groups).forEach(gName => {
-                    if(groups[gName].length > 0) {
-                        container.innerHTML += renderTable(gName, groups[gName]);
-                        hasData = true;
-                    }
-                });
-
-                if (!hasData) {
-                    container.innerHTML = '<p style="text-align:center; opacity: 0.5; width:100%;">Brak danych o grupach w bazie.</p>';
-                }
-            });
-        }
-
-        function renderTable(groupName, teams) {
-            let rows = '';
-            teams.forEach((t, index) => {
-                rows += `
-                    <tr>
-                        <td style="font-weight:800; color:rgba(255,255,255,0.3);">${index + 1}</td>
-                        <td style="text-align:left; font-weight:700;">${t.name || 'Drużyna'}</td>
-                        <td>${t.played || 0}</td>
-                        <td style="color:var(--accent); font-weight:800;">${t.points || 0}</td>
-                        <td>${t.goalsScored || 0}:${t.goalsLost || 0}</td>
-                    </tr>`;
-            });
-
-            // Używamy klasy .styled-table z Twojego style.css
-            return `
-                <div class="table-wrapper" data-aos="fade-up">
-                    <div class="group-header-label">GRUPA ${groupName}</div>
-                    <table class="styled-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th style="text-align:left;">DRUŻYNA</th>
-                                <th>M</th>
-                                <th>PKT</th>
-                                <th>BR</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>`;
-        }
-
-        window.onload = initApp;
-    </script>
 </head>
 <body>
 
@@ -139,11 +101,16 @@
             <img src="logo.png" alt="Logo" class="logo-img">
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
-        <div class="nav-links">
+
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="nav-links" id="navLinks">
             <a href="index.html">STRONA GŁÓWNA</a>
             <a href="druzyny.html">DRUŻYNY</a>
             <a href="terminarz.html">TERMINARZ</a>
-            <a href="tabela.html" class="active-link">TABELE</a>
+            <a href="tabela.html" class="active-link" style="color:#00d4ff;">TABELE</a>
             <a href="regulamin.html">REGULAMIN</a>
             <a href="onas.html">O NAS</a>
             <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
@@ -151,10 +118,22 @@
         </div>
     </nav>
 
+    <script>
+        function toggleMenu() {
+            var nav = document.getElementById("navLinks");
+            if (nav.style.display === "flex") {
+                nav.style.display = "";
+                nav.classList.remove("active");
+            } else {
+                nav.classList.toggle("active");
+            }
+        }
+    </script>
+
     <main class="container">
-        <header class="page-header" data-aos="fade-down">
-            <p>Klasyfikacja Drużyn</p>
-            <h2>TABELE GRUPOWE</h2>
+        <header class="page-header" data-aos="fade-down" style="text-align:center; margin: 50px 0 30px;">
+            <p style="color:#00d4ff; letter-spacing:2px; font-size:0.9rem; font-weight:700;">KLASYFIKACJA DRUŻYN</p>
+            <h2 style="font-size:2rem; font-weight:800; margin:0;">TABELE GRUPOWE</h2>
         </header>
 
         <div id="tables-container">
@@ -162,12 +141,165 @@
         </div>
     </main>
 
-    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid var(--border);">
-        &copy; 2025 PUCHAR GWIAZD | LEAGUE SYSTEM
+    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid rgba(255,255,255,0.1);">
+        &copy; 2025 PUCHAR GWIAZD
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script>AOS.init({ duration: 800, once: true });</script>
+    <script> AOS.init({ duration: 600, once: true }); </script>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, query, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const CONFIG = { apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo", authDomain: "puchargwiazd-bdaa4.firebaseapp.com", projectId: "puchargwiazd-bdaa4", storageBucket: "puchargwiazd-bdaa4.firebasestorage.app", messagingSenderId: "890734185883", appId: "1:890734185883:web:75e8df76127397b913612d" };
+        const app = initializeApp(CONFIG);
+        const db = getFirestore(app);
+
+        // --- 1. POBIERZ DRUŻYNY ---
+        let teamsData = {};
+
+        // Funkcja pomocnicza do tworzenia struktury tabeli
+        function createTable(groupName, teams) {
+            // Sortowanie: Punkty > Bilans > Bramki Strzelone
+            teams.sort((a, b) => {
+                if (b.stats.points !== a.stats.points) return b.stats.points - a.stats.points;
+                const goalDiffA = a.stats.goalsScored - a.stats.goalsLost;
+                const goalDiffB = b.stats.goalsScored - b.stats.goalsLost;
+                if (goalDiffB !== goalDiffA) return goalDiffB - goalDiffA;
+                return b.stats.goalsScored - a.stats.goalsScored;
+            });
+
+            let rows = '';
+            teams.forEach((t, index) => {
+                const posClass = (index < 2) ? 'pos-1' : 'pos-3'; // Top 2 awansują
+                rows += `
+                    <tr>
+                        <td class="${posClass}">${index + 1}.</td>
+                        <td class="t-club">
+                            <img src="${t.logo || 'logo.png'}"> ${t.name}
+                        </td>
+                        <td>${t.stats.matches}</td>
+                        <td>${t.stats.wins}</td>
+                        <td>${t.stats.draws}</td>
+                        <td>${t.stats.losses}</td>
+                        <td>${t.stats.goalsScored}:${t.stats.goalsLost}</td>
+                        <td style="font-weight:bold; color:#fff;">${t.stats.points}</td>
+                    </tr>
+                `;
+            });
+
+            return `
+                <div class="table-wrapper" data-aos="fade-up">
+                    <div class="table-header">GRUPA ${groupName}</div>
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th>#</th> <th>DRUŻYNA</th> <th>M</th> <th>W</th> <th>R</th> <th>P</th> <th>BRAMKI</th> <th>PKT</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function loadData() {
+            // Pobierz drużyny
+            const qTeams = query(collection(db, "teams"));
+            const snapTeams = await getDocs(qTeams);
+            
+            // Inicjalizacja danych (zerowanie statystyk)
+            snapTeams.forEach(doc => {
+                const d = doc.data();
+                // Jeśli nazwa grupy nie jest wpisana, daj "Inne"
+                const g = d.group ? d.group.toUpperCase() : "BRAK"; 
+                
+                if(!teamsData[g]) teamsData[g] = [];
+
+                teamsData[g].push({
+                    id: d.name, // używamy nazwy jako ID do łączenia z meczami
+                    name: d.name,
+                    logo: d.logo,
+                    stats: { points: 0, matches: 0, wins: 0, draws: 0, losses: 0, goalsScored: 0, goalsLost: 0 }
+                });
+            });
+
+            // Pobierz mecze i oblicz punkty
+            const qMatches = query(collection(db, "matches"));
+            const snapMatches = await getDocs(qMatches);
+
+            snapMatches.forEach(doc => {
+                const m = doc.data();
+                
+                // Szukamy drużyn w naszej strukturze teamsData
+                // Musimy przeszukać wszystkie grupy
+                let t1 = null, t2 = null;
+
+                for(const g in teamsData) {
+                    const found1 = teamsData[g].find(t => t.name === m.team1);
+                    if(found1) t1 = found1;
+                    
+                    const found2 = teamsData[g].find(t => t.name === m.team2);
+                    if(found2) t2 = found2;
+                }
+
+                // Jeśli mecz się odbył (ma wynik)
+                if(t1 && t2 && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== "" && m.score2 !== "") {
+                    const s1 = parseInt(m.score1);
+                    const s2 = parseInt(m.score2);
+
+                    // Aktualizacja statystyk T1
+                    t1.stats.matches++;
+                    t1.stats.goalsScored += s1;
+                    t1.stats.goalsLost += s2;
+
+                    // Aktualizacja statystyk T2
+                    t2.stats.matches++;
+                    t2.stats.goalsScored += s2;
+                    t2.stats.goalsLost += s1;
+
+                    if(s1 > s2) {
+                        t1.stats.wins++;
+                        t1.stats.points += 3;
+                        t2.stats.losses++;
+                    } else if(s2 > s1) {
+                        t2.stats.wins++;
+                        t2.stats.points += 3;
+                        t1.stats.losses++;
+                    } else {
+                        t1.stats.draws++;
+                        t1.stats.points += 1;
+                        t2.stats.draws++;
+                        t2.stats.points += 1;
+                    }
+                }
+            });
+
+            // Generowanie HTML
+            const container = document.getElementById('tables-container');
+            container.innerHTML = '';
+            
+            // Kolejność grup: A, B, C, D...
+            const sortedGroups = Object.keys(teamsData).sort();
+
+            if(sortedGroups.length === 0) {
+                container.innerHTML = '<p style="text-align:center;">Brak drużyn i grup.</p>';
+            }
+
+            sortedGroups.forEach(g => {
+                if(teamsData[g].length > 0) {
+                    container.innerHTML += createTable(g, teamsData[g]);
+                }
+            });
+        }
+
+        loadData();
+
+        // Nasłuchiwanie zmian w meczach (Live update)
+        onSnapshot(collection(db, "matches"), () => {
+            loadData();
+        });
+    </script>
 </body>
 </html>
