@@ -25,6 +25,12 @@
         .menu-toggle { display: none; font-size: 2rem; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
         .nav-links { display: flex; gap: 20px; align-items: center; }
         
+        .nav-links a {
+            text-decoration: none; color: rgba(255,255,255,0.7); font-weight: 600; font-size: 0.9rem; transition: 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active-link { color: #00d4ff; }
+        .admin-btn { padding: 8px 16px; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; }
+
         @media (max-width: 900px) {
             .menu-toggle { display: block; }
             .nav-links { 
@@ -42,6 +48,12 @@
         }
 
         /* --- STYLE REGULAMINU --- */
+        body {
+            background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('1.jpg');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            min-height: 100vh; color: #fff; margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
         .reg-section {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -60,8 +72,9 @@
             color: #fff;
             margin-top: 30px;
             display: flex; align-items: center; gap: 10px;
+            font-size: 1.2rem;
         }
-        .reg-content i { color: #00d4ff; }
+        .reg-content i { color: #00d4ff; width: 25px; text-align: center; }
         
         .reg-content ul {
             list-style: none; padding-left: 10px;
@@ -71,12 +84,15 @@
             color: rgba(255,255,255,0.8);
             position: relative;
             padding-left: 20px;
+            line-height: 1.6;
         }
         .reg-content li::before {
             content: "•"; color: #00d4ff; font-weight: bold;
             position: absolute; left: 0;
         }
-        strong { color: #fff; }
+        strong { color: #fff; font-weight: 700; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
     </style>
 </head>
 <body>
@@ -123,42 +139,84 @@
 
         <section class="reg-section" data-aos="fade-up">
             <div class="reg-content">
+                
                 <h3><i class="fas fa-info-circle"></i> 1. Postanowienia Ogólne</h3>
                 <ul>
-                    <li>Turniej <strong>Puchar Gwiazd</strong> jest amatorskim turniejem piłki nożnej.</li>
-                    <li>Udział w turnieju jest dobrowolny i na własną odpowiedzialność zawodników.</li>
-                    <li>Każda drużyna musi posiadać Kapitana, który reprezentuje zespół w kontaktach z Organizatorem.</li>
+                    <li>Turniej „Puchar Gwiazd” jest amatorskim turniejem piłki nożnej rozgrywanym na hali sportowej.</li>
+                    <li>Udział w turnieju jest dobrowolny i oznacza pełną akceptację niniejszego regulaminu.</li>
+                    <li>Każda drużyna musi posiadać kapitana, który reprezentuje zespół wobec sędziego i organizatora.</li>
                 </ul>
 
-                <h3><i class="fas fa-users"></i> 2. Składy Drużyn</h3>
+                <h3><i class="fas fa-users"></i> 2. Skład Drużyn</h3>
                 <ul>
-                    <li>Maksymalna liczba zawodników w drużynie wynosi <strong>12 osób</strong>.</li>
-                    <li>Na boisku przebywa <strong>6 zawodników</strong> (5 w polu + bramkarz).</li>
-                    <li>Zmiany są lotne i nieograniczone.</li>
+                    <li>Na boisku przebywa jednocześnie <strong>5 zawodników</strong>: 4 zawodników w polu + bramkarz.</li>
+                    <li>Zmiany zawodników są dozwolone i odbywają się zgodnie z decyzjami organizatora.</li>
                 </ul>
 
                 <h3><i class="fas fa-stopwatch"></i> 3. Czas Gry</h3>
                 <ul>
-                    <li>Mecz trwa <strong>2 x 15 minut</strong>.</li>
-                    <li>Przerwa między połowami wynosi 5 minut.</li>
-                    <li>Organizator zastrzega sobie prawo do zmiany czasu gry w zależności od warunków.</li>
+                    <li>Mecz trwa <strong>10 minut</strong>.</li>
+                    <li>Mecz rozgrywany jest bez podziału na połowy.</li>
+                    <li>Nie ma zmiany stron boiska w trakcie meczu.</li>
+                    <li>Przerwa między meczami wynosi 2 minuty.</li>
                 </ul>
 
-                <h3><i class="fas fa-futbol"></i> 4. Zasady Gry</h3>
+                <h3><i class="fas fa-futbol"></i> 4. Zasady Gry i Faule</h3>
                 <ul>
-                    <li>Gra toczy się bez spalonego.</li>
-                    <li>Wślizgi kontaktowe (atak na nogi przeciwnika) są zabronione i traktowane jako faul. Dozwolone są tylko wślizgi ratunkowe (blokowanie piłki bez kontaktu z rywalem).</li>
-                    <li><strong>Spalony:</strong> Przepis o spalonym nie obowiązuje.</li>
+                    <li>Faule są liczone zespołowo.</li>
+                    <li>Po popełnieniu <strong>5 fauli</strong> przez jedną drużynę przeciwnikowi przysługuje rzut karny.</li>
+                    <li>Za przewinienia sędzia może przyznać kary czasowe (minuty karne), podczas których drużyna gra w osłabieniu.</li>
+                    <li>Ostateczna interpretacja fauli należy do sędziego.</li>
                 </ul>
 
-                <h3><i class="fas fa-exclamation-triangle"></i> 5. Kary Dyscyplinarne</h3>
+                <h3><i class="fas fa-exclamation-triangle"></i> 5. Dyscyplina i Zachowanie</h3>
                 <ul>
-                    <li><strong>Żółta Kartka:</strong> Kara czasowa (2 minuty). Drużyna gra w osłabieniu do momentu upływu czasu lub utraty bramki.</li>
-                    <li><strong>Czerwona Kartka:</strong> Wykluczenie z meczu. Drużyna gra w osłabieniu przez 5 minut, a ukarany zawodnik nie może wrócić do gry w tym spotkaniu.</li>
+                    <li>Tylko kapitan drużyny ma prawo do dyskusji z sędzią lub organizatorem.</li>
+                    <li>Wulgarne słownictwo, agresja, prowokacje oraz niesportowe zachowanie mogą skutkować karami czasowymi, wykluczeniem zawodnika lub drużyny z turnieju.</li>
+                    <li>Turniej rozgrywany jest w duchu <strong>FAIR PLAY</strong>.</li>
                 </ul>
 
-                <h3><i class="fas fa-handshake"></i> 6. Rozstrzyganie Remisów</h3>
-                <p>W fazie pucharowej, w przypadku remisu, następuje seria <strong>3 rzutów karnych</strong>. Jeśli nadal jest remis, rzuty karne wykonywane są w systemie "nagłej śmierci" (do pierwszego błędu).</p>
+                <h3><i class="fas fa-shoe-prints"></i> 6. Obuwie i Bezpieczeństwo</h3>
+                <ul>
+                    <li>Turniej rozgrywany jest na hali – obowiązuje wyłącznie <strong>obuwie halowe</strong> (halówki).</li>
+                    <li>Zawodnik bez odpowiedniego obuwia nie zostanie dopuszczony do gry.</li>
+                    <li>Zabrania się gry w biżuterii, zegarkach oraz innych przedmiotach mogących stwarzać zagrożenie.</li>
+                </ul>
+
+                <h3><i class="fas fa-tshirt"></i> 7. Stroje Drużyn</h3>
+                <ul>
+                    <li>Drużyny nie mają obowiązku posiadania jednolitych koszulek.</li>
+                    <li>W przypadku trudności z rozróżnieniem drużyn organizator może zapewnić lub nakazać użycie znaczników.</li>
+                </ul>
+
+                <h3><i class="fas fa-clock"></i> 8. Spóźnienia i Walkowery</h3>
+                <ul>
+                    <li>Drużyna zobowiązana jest stawić się na mecz punktualnie.</li>
+                    <li>Dopuszczalne spóźnienie wynosi maksymalnie <strong>3 minuty</strong>.</li>
+                    <li>Po przekroczeniu tego czasu organizator może zarządzić walkower.</li>
+                </ul>
+
+                <h3><i class="fas fa-user-shield"></i> 9. Odpowiedzialność</h3>
+                <ul>
+                    <li>Każdy zawodnik bierze udział w turnieju na własną odpowiedzialność.</li>
+                    <li>W przypadku zawodników niepełnoletnich, odpowiedzialność ponoszą ich rodzice lub opiekunowie prawni.</li>
+                    <li>Organizator nie ponosi odpowiedzialności za kontuzje, urazy, ani za zgubienie lub zniszczenie rzeczy osobistych uczestników.</li>
+                    <li>Za zniszczenie sprzętu lub rzeczy udostępnionych przez organizatora odpowiedzialność ponosi osoba, która dokonała zniszczenia.</li>
+                </ul>
+
+                <h3><i class="fas fa-camera"></i> 10. Wizerunek i Media</h3>
+                <ul>
+                    <li>Biorąc udział w turnieju „Puchar Gwiazd”, zawodnicy wyrażają zgodę na nieodpłatne utrwalanie i publikację swojego wizerunku.</li>
+                    <li>Materiały (zdjęcia, nagrania wideo) mogą być publikowane na stronie internetowej, Instagramie oraz TikToku turnieju.</li>
+                    <li>Zawodnik ma prawo zgłosić brak zgody na publikację swojego wizerunku, informując o tym organizatora przed rozpoczęciem turnieju.</li>
+                </ul>
+
+                <h3><i class="fas fa-gavel"></i> 11. Decyzje Organizatora</h3>
+                <ul>
+                    <li>Decyzje sędziego i organizatora są ostateczne.</li>
+                    <li>Organizator zastrzega sobie prawo do zmiany regulaminu lub decyzji organizacyjnych, o czym uczestnicy zostaną poinformowani.</li>
+                </ul>
+
             </div>
         </section>
     </main>
