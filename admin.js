@@ -1,6 +1,5 @@
-// admin.js - WERSJA SUBCOLLECTION (Dla struktury /teams/ID/players)
+/* admin.js - Logic for Premium Dark Panel */
 
-// --- KONFIGURACJA ---
 const firebaseConfig = {
     apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
     authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
@@ -14,375 +13,348 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- ADMINI ---
-const ALLOWED_ADMINS = ["kacpernwm77@gmail.com", "krzysztof.lodzinski@interia.pl"];
+const ADMINS = ["kacpernwm77@gmail.com", "krzysztof.lodzinski@interia.pl"];
+const DEFAULT_DATE = '2026-01-18';
 
-// --- LOGOWANIE ---
-const loginBtn = document.getElementById('login-btn');
-if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-password').value;
-        const err = document.getElementById('login-error');
+// --- INIT & AUTH ---
+document.addEventListener('DOMContentLoaded', () => {
+    auth.onAuthStateChanged(user => {
+        const ui = document.getElementById('app-container');
+        const login = document.getElementById('login-screen');
         
-        if(!email || !pass) return err.innerText = "Podaj dane!";
-        err.innerText = "Logowanie...";
-
-        auth.signInWithEmailAndPassword(email, pass)
-            .catch(error => err.innerText = "Błąd: " + error.message);
+        if (user && ADMINS.includes(user.email.toLowerCase())) {
+            ui.style.display = 'flex';
+            login.style.display = 'none';
+            document.getElementById('userEmail').innerText = user.email;
+            initApp();
+        } else {
+            ui.style.display = 'none';
+            login.style.display = 'flex';
+            if(user) auth.signOut();
+        }
     });
+});
+
+window.login = () => {
+    const e = document.getElementById('login-email').value;
+    const p = document.getElementById('login-password').value;
+    if(!ADMINS.includes(e.toLowerCase())) return document.getElementById('login-msg').innerText = "Brak uprawnień admina.";
+    auth.signInWithEmailAndPassword(e, p).catch(err => document.getElementById('login-msg').innerText = err.message);
+};
+window.logout = () => auth.signOut();
+
+function initApp() {
+    loadTeamsToSelect();
+    listenMatches();
+    listenTeams();
+    listenNews();
+    loadSettings();
+    calculateStandings();   // Tabela Ligowa
+    calculateTopScorers();  // <--- NOWOŚĆ: Tabela Strzelców
+    document.getElementById('matchDate').value = DEFAULT_DATE;
 }
 
-document.getElementById('logout-btn').addEventListener('click', () => {
-    auth.signOut(); window.location.reload();
-});
+// --- 1. MATCHES ---
+window.toggleScoreInputs = () => {
+    const status = document.getElementById('matchStatus').value;
+    document.getElementById('scoreInputs').style.display = (status === 'live' || status === 'finished') ? 'grid' : 'none';
+};
 
-// START
-auth.onAuthStateChanged(user => {
-    if (user && ALLOWED_ADMINS.includes(user.email)) {
-        document.getElementById('login-panel').style.display = 'none';
-        document.getElementById('admin-wrapper').style.display = 'block';
-        document.getElementById('user-info').innerText = `Zalogowano: ${user.email}`;
-        
-        loadTeams();
-        loadMatches();
-        loadPlayers(); // To teraz zadziała!
-        loadNewsAdmin();
-    } else if (user) {
-        alert("Brak uprawnień!"); auth.signOut();
-    }
-});
+window.saveMatch = () => {
+    const id = document.getElementById('matchId').value;
+    const home = document.getElementById('homeTeamSelect').value;
+    const away = document.getElementById('awayTeamSelect').value;
+    const date = document.getElementById('matchDate').value;
+    const status = document.getElementById('matchStatus').value;
+    const hScore = parseInt(document.getElementById('homeScore').value) || 0;
+    const aScore = parseInt(document.getElementById('awayScore').value) || 0;
 
-
-// =========================================================
-// 1. ZAWODNICY (SUBCOLLECTIONS FIX)
-// =========================================================
-
-function savePlayer() {
-    const id = document.getElementById('player-id-edit').value;
-    const name = document.getElementById('player-name').value;
-    const teamId = document.getElementById('player-team').value;
-    // Ważne: przy edycji musimy wiedzieć, w jakiej STAREJ drużynie był gracz, 
-    // ale dla uproszczenia zakładamy edycję w ramach tej samej drużyny lub dodanie nowego.
-    
-    // Jeśli to edycja, pobieramy teamId z ukrytego pola (jeśli zablokowaliśmy zmianę drużyny)
-    // lub z selecta.
-    
-    if(!name || !teamId) return alert("Podaj imię i wybierz drużynę!");
-
-    // Pobierz nazwę drużyny (dla wyświetlania)
-    const teamSelect = document.getElementById('player-team');
-    const teamName = teamSelect.options[teamSelect.selectedIndex].text;
+    if(!home || !away || home === away) return alert("Wybierz poprawne drużyny.");
 
     const data = { 
-        name: name, 
-        teamName: teamName, // Zapisujemy też nazwę, żeby łatwiej wyświetlać
-        goals: parseInt(document.getElementById('player-goals').value) || 0
+        home, away, date, status, 
+        homeScore: hScore, awayScore: aScore,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp() 
     };
 
-    let promise;
-    if (id) {
-        // EDYCJA: Musimy wiedzieć dokładnie gdzie jest gracz.
-        // W tricku loadPlayers zapisaliśmy ID drużyny w atrybucie przycisku
-        // Ale tutaj prościej: przy edycji nadpisujemy w wybranej drużynie.
-        promise = db.collection("teams").doc(teamId).collection("players").doc(id).update(data);
-    } else {
-        // NOWY
-        promise = db.collection("teams").doc(teamId).collection("players").add(data);
-    }
+    const promise = id ? db.collection('matches').doc(id).update(data) : db.collection('matches').add(data);
+    promise.then(resetMatchForm).catch(err => alert(err.message));
+};
+
+window.editMatch = (id, h, a, d, s, hs, as) => {
+    document.getElementById('matchId').value = id;
+    document.getElementById('homeTeamSelect').value = h;
+    document.getElementById('awayTeamSelect').value = a;
+    document.getElementById('matchDate').value = d;
+    document.getElementById('matchStatus').value = s;
+    document.getElementById('homeScore').value = hs;
+    document.getElementById('awayScore').value = as;
+    toggleScoreInputs();
     
-    promise.then(() => { 
-        if(!id) alert("Zawodnik dodany!"); 
-        resetPlayerForm(); 
-    }).catch(e => alert("Błąd: " + e.message));
-}
-
-function loadPlayers() {
-    const list = document.getElementById('players-list');
-    
-    // UŻYWAMY COLLECTION GROUP - to pobiera graczy ze wszystkich drużyn naraz!
-    db.collectionGroup("players").onSnapshot(snap => {
-        list.innerHTML = '';
-        if(snap.empty) { list.innerHTML = '<p>Brak zawodników. Dodaj kogoś do drużyny.</p>'; return; }
-
-        snap.forEach(doc => {
-            const p = doc.data();
-            // Musimy wyciągnąć ID drużyny z "ścieżki" dokumentu
-            // Ścieżka to: teams/TEAM_ID/players/PLAYER_ID
-            const teamId = doc.ref.parent.parent.id; 
-
-            list.innerHTML += `
-                <div class="list-item">
-                    <div style="flex-grow:1;">
-                        <b>${p.name}</b> <span style="color:#00d4ff">(${p.teamName || 'Drużyna'})</span>
-                    </div>
-                    
-                    <div class="goal-controls">
-                        <button class="btn-goal minus" onclick="quickUpdateGoals('${teamId}', '${doc.id}', -1)">-</button>
-                        <span style="font-size:1.2rem; font-weight:bold; min-width:30px; text-align:center;">${p.goals || 0}</span>
-                        <button class="btn-goal plus" onclick="quickUpdateGoals('${teamId}', '${doc.id}', 1)">+</button>
-                    </div>
-
-                    <div style="margin-left:15px;">
-                        <button class="btn-edit" onclick="editPlayer('${doc.id}', '${teamId}', '${p.name}', '${p.goals}')">Edytuj</button>
-                        <button class="btn-delete" onclick="deleteSubPlayer('${teamId}', '${doc.id}')"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>`;
-        });
-    });
-}
-
-// Szybka zmiana goli
-window.quickUpdateGoals = (teamId, playerId, change) => {
-    db.collection("teams").doc(teamId).collection("players").doc(playerId).update({
-        goals: firebase.firestore.FieldValue.increment(change)
-    }).catch(console.error);
-};
-
-// Edycja zawodnika
-window.editPlayer = (id, teamId, name, goals) => {
-    document.getElementById('player-id-edit').value = id;
-    document.getElementById('player-name').value = name;
-    document.getElementById('player-goals').value = goals;
-    
-    // Ustawiamy selecta na odpowiednią drużynę
-    document.getElementById('player-team').value = teamId;
-    // Blokujemy zmianę drużyny przy edycji (bo to by wymagało skomplikowanego przenoszenia)
-    // document.getElementById('player-team').disabled = true; 
-
-    document.getElementById('player-form-title').innerText = "EDYTUJESZ: " + name;
-    document.getElementById('btn-save-player').innerText = "ZAKTUALIZUJ";
-    document.getElementById('player-form-box').scrollIntoView({behavior: "smooth"});
-};
-
-// Usuwanie zawodnika z podkolekcji
-window.deleteSubPlayer = (teamId, playerId) => {
-    if(confirm("Usunąć zawodnika?")) {
-        db.collection("teams").doc(teamId).collection("players").doc(playerId).delete();
-    }
-};
-
-window.resetPlayerForm = () => {
-    document.getElementById('player-id-edit').value = '';
-    document.getElementById('player-name').value = '';
-    document.getElementById('player-goals').value = '0';
-    document.getElementById('player-team').value = '';
-    document.getElementById('player-team').disabled = false;
-    
-    document.getElementById('player-form-title').innerText = "Dodaj Zawodnika";
-    document.getElementById('btn-save-player').innerText = "ZAPISZ ZAWODNIKA";
-};
-
-
-// =========================================================
-// 2. DRUŻYNY
-// =========================================================
-
-function saveTeam() {
-    const id = document.getElementById('team-id-edit').value;
-    const name = document.getElementById('team-name').value;
-    const logo = document.getElementById('team-logo').value || 'logo.png';
-    const group = document.getElementById('team-group').value;
-
-    if(!name) return alert("Podaj nazwę!");
-
-    const data = { name, logo, group };
-    if(!id) {
-        data.points = 0; data.matches = 0; data.wins = 0; 
-        data.draws = 0; data.losses = 0; data.goals_scored = 0; data.goals_lost = 0;
-    }
-
-    const promise = id ? db.collection("teams").doc(id).update(data) : db.collection("teams").add(data);
-
-    promise.then(() => {
-        alert(id ? "Zaktualizowano!" : "Dodano!");
-        resetTeamForm();
-    }).catch(e => alert(e.message));
-}
-
-function loadTeams() {
-    const list = document.getElementById('teams-list');
-    const select1 = document.getElementById('m-team1');
-    const select2 = document.getElementById('m-team2');
-    const selectPlayer = document.getElementById('player-team');
-
-    db.collection("teams").onSnapshot(snap => {
-        list.innerHTML = '';
-        let opts = '<option value="">Wybierz...</option>';
-        
-        snap.forEach(doc => {
-            const t = doc.data();
-            list.innerHTML += `
-                <div class="list-item">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <img src="${t.logo}" style="width:30px; height:30px; border-radius:50%">
-                        <b>${t.name}</b>
-                    </div>
-                    <div>
-                        <button class="btn-edit" onclick="editTeam('${doc.id}', '${t.name}', '${t.logo}', '${t.group}')">Edytuj</button>
-                        <button class="btn-delete" onclick="deleteDoc('teams', '${doc.id}')">Usuń</button>
-                    </div>
-                </div>`;
-            // Zapisujemy ID jako value dla selecta graczy
-            opts += `<option value="${doc.id}">${t.name}</option>`;
-        });
-
-        if(select1) { // Dla meczów potrzebujemy nazwy
-             // Tutaj mała zmiana - do meczów lepiej używać nazw, do graczy ID.
-             // Zrobię oddzielną pętlę dla meczów w locie albo prościej:
-             // Zostawmy value jako name dla meczów (bo tak masz w bazie meczów)
-        }
-        
-        // Specjalna pętla dla selecta meczów (Value = Name)
-        let matchOpts = '<option value="">Wybierz...</option>';
-        snap.forEach(doc => { matchOpts += `<option value="${doc.data().name}">${doc.data().name}</option>`; });
-        
-        if(select1) { select1.innerHTML = matchOpts; select2.innerHTML = matchOpts; }
-
-        // Pętla dla selecta graczy (Value = ID) - BO MUSIMY WIEDZIEĆ GDZIE DODAĆ GRACZA
-        let playerOpts = '<option value="">Wybierz drużynę...</option>';
-        snap.forEach(doc => { playerOpts += `<option value="${doc.id}">${doc.data().name}</option>`; });
-        if(selectPlayer) selectPlayer.innerHTML = playerOpts;
-    });
-}
-
-window.editTeam = (id, name, logo, group) => {
-    document.getElementById('team-id-edit').value = id;
-    document.getElementById('team-name').value = name;
-    document.getElementById('team-logo').value = logo;
-    document.getElementById('team-group').value = group;
-    document.getElementById('team-form-title').innerText = "Edytuj Drużynę";
-    document.getElementById('team-form-box').scrollIntoView({behavior: "smooth"});
-};
-
-window.resetTeamForm = () => {
-    document.getElementById('team-id-edit').value = '';
-    document.getElementById('team-name').value = '';
-    document.getElementById('team-logo').value = '';
-    document.getElementById('team-form-title').innerText = "Dodaj Drużynę";
-};
-
-
-// =========================================================
-// 3. MECZE
-// =========================================================
-
-function saveMatch() {
-    const id = document.getElementById('match-id-edit').value;
-    const t1 = document.getElementById('m-team1').value;
-    const t2 = document.getElementById('m-team2').value;
-    const date = document.getElementById('m-date').value;
-    const time = document.getElementById('m-time').value;
-    const s1 = document.getElementById('m-score1').value;
-    const s2 = document.getElementById('m-score2').value;
-    const status = document.getElementById('m-status').value;
-
-    if(!t1 || !t2) return alert("Wybierz drużyny!");
-
-    const data = {
-        team1: t1, team2: t2, date, time, status,
-        score1: s1 === '' ? null : parseInt(s1),
-        score2: s2 === '' ? null : parseInt(s2)
-    };
-
-    const promise = id ? db.collection("matches").doc(id).update(data) : db.collection("matches").add(data);
-    promise.then(() => { 
-        alert(id ? "Mecz zaktualizowany!" : "Mecz dodany!");
-        resetMatchForm(); 
-    }).catch(e => alert("Błąd: " + e.message));
-}
-
-function loadMatches() {
-    const list = document.getElementById('matches-list');
-    db.collection("matches").onSnapshot(snap => {
-        list.innerHTML = '';
-        if(snap.empty) { list.innerHTML = '<p>Brak meczów.</p>'; return; }
-
-        snap.forEach(doc => {
-            const m = doc.data();
-            const score = m.status !== 'upcoming' ? `${m.score1}:${m.score2}` : '-:-';
-            const color = m.status === 'live' ? '#00d4ff' : (m.status === 'finished' ? '#28a745' : '#888');
-            
-            list.innerHTML += `
-                <div class="list-item" style="border-left: 4px solid ${color}">
-                    <div>
-                        <small>${m.date} ${m.time}</small><br>
-                        <b>${m.team1} vs ${m.team2}</b> [${score}]
-                    </div>
-                    <div>
-                        <button class="btn-edit" onclick="editMatch('${doc.id}', '${m.team1}', '${m.team2}', '${m.date}', '${m.time}', '${m.score1}', '${m.score2}', '${m.status}')">Edytuj</button>
-                        <button class="btn-delete" onclick="deleteDoc('matches', '${doc.id}')">Usuń</button>
-                    </div>
-                </div>`;
-        });
-    });
-}
-
-window.editMatch = (id, t1, t2, date, time, s1, s2, status) => {
-    document.getElementById('match-id-edit').value = id;
-    document.getElementById('m-team1').value = t1;
-    document.getElementById('m-team2').value = t2;
-    document.getElementById('m-date').value = date;
-    document.getElementById('m-time').value = time;
-    document.getElementById('m-score1').value = s1 === 'null' ? '' : s1;
-    document.getElementById('m-score2').value = s2 === 'null' ? '' : s2;
-    document.getElementById('m-status').value = status;
-    
-    document.getElementById('match-form-title').innerText = "EDYTUSZ MECZ";
-    document.getElementById('btn-save-match').innerText = "ZAKTUALIZUJ";
-    document.getElementById('match-form-box').scrollIntoView({behavior: "smooth"});
+    const btn = document.getElementById('saveMatchBtn');
+    btn.innerText = "Aktualizuj Mecz";
+    btn.className = "btn btn-primary"; // Reset klasy
+    document.getElementById('cancelMatchBtn').style.display = 'inline-block';
+    document.querySelector('.card').scrollIntoView({behavior:'smooth'});
 };
 
 window.resetMatchForm = () => {
-    document.getElementById('match-id-edit').value = '';
-    document.getElementById('m-score1').value = '';
-    document.getElementById('m-score2').value = '';
-    document.getElementById('match-form-title').innerText = "Dodaj Mecz";
-    document.getElementById('btn-save-match').innerText = "ZAPISZ MECZ";
+    document.getElementById('matchId').value = '';
+    document.getElementById('matchStatus').value = 'planned';
+    document.getElementById('homeScore').value = 0;
+    document.getElementById('awayScore').value = 0;
+    toggleScoreInputs();
+    document.getElementById('saveMatchBtn').innerText = "Zapisz Mecz";
+    document.getElementById('cancelMatchBtn').style.display = 'none';
 };
 
+window.deleteMatch = (id) => { if(confirm("Usunąć mecz?")) db.collection('matches').doc(id).delete(); };
 
-// =========================================================
-// 4. NEWSY
-// =========================================================
-
-function addNews() {
-    const title = document.getElementById('news-title').value;
-    const content = document.getElementById('news-content').value;
-
-    if(!title) return alert("Podaj tytuł!");
-
-    db.collection("news").add({
-        title, content,
-        date: new Date().toLocaleDateString('pl-PL'),
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        alert("Opublikowano!");
-        document.getElementById('news-title').value = '';
-        document.getElementById('news-content').value = '';
+function listenMatches() {
+    db.collection('matches').orderBy('timestamp', 'desc').onSnapshot(snap => {
+        const div = document.getElementById('matchesContainer');
+        div.innerHTML = '';
+        snap.forEach(doc => {
+            const m = doc.data();
+            const statusClass = m.status === 'live' ? 'st-live' : (m.status === 'finished' ? 'st-finished' : 'st-planned');
+            const statusText = m.status === 'live' ? 'NA ŻYWO' : (m.status === 'finished' ? 'KONIEC' : 'PLAN');
+            
+            div.innerHTML += `
+                <div class="match-card" style="border-left: 4px solid ${m.status === 'live' ? '#ff4d4d' : '#00d4ff'};">
+                    <div style="flex:1">
+                        <div style="font-size:1.1rem; font-weight:700; color:white;">
+                            ${m.home} <span class="score-box">${m.homeScore} : ${m.awayScore}</span> ${m.away}
+                        </div>
+                        <div style="margin-top:8px; font-size:0.85rem; color: #a0aec0;">
+                            <span class="status-pill ${statusClass}">${statusText}</span>
+                            <span style="margin-left:10px;"><i class="far fa-calendar"></i> ${m.date}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn-warning" style="padding:8px 12px; margin-right:5px;" onclick="editMatch('${doc.id}','${m.home}','${m.away}','${m.date}','${m.status}',${m.homeScore},${m.awayScore})"><i class="fas fa-edit"></i></button>
+                        <button class="btn-danger" style="padding:8px 12px;" onclick="deleteMatch('${doc.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+        calculateStandings();
     });
 }
 
-function loadNewsAdmin() {
-    const list = document.getElementById('news-list');
-    db.collection("news").orderBy('timestamp', 'desc').onSnapshot(snap => {
-        list.innerHTML = '';
-        snap.forEach(doc => {
-            const n = doc.data();
-            list.innerHTML += `
-                <div class="list-item">
-                    <div><b>${n.title}</b><br><small>${n.date}</small></div>
-                    <button class="btn-delete" onclick="deleteDoc('news', '${doc.id}')">Usuń</button>
-                </div>`;
+// --- 2. TABLES (STANDINGS & SCORERS) ---
+function calculateStandings() {
+    // Prosta logika tabeli ligowej
+    Promise.all([db.collection('teams').get(), db.collection('matches').get()]).then(([tSnap, mSnap]) => {
+        let stats = {};
+        tSnap.forEach(d => stats[d.data().name] = { m:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 });
+        
+        mSnap.forEach(d => {
+            const m = d.data();
+            if(m.status === 'finished' && stats[m.home] && stats[m.away]) {
+                stats[m.home].m++; stats[m.away].m++;
+                stats[m.home].gf += m.homeScore; stats[m.home].ga += m.awayScore;
+                stats[m.away].gf += m.awayScore; stats[m.away].ga += m.homeScore;
+                
+                if(m.homeScore > m.awayScore) { stats[m.home].w++; stats[m.home].pts += 3; stats[m.away].l++; }
+                else if(m.homeScore < m.awayScore) { stats[m.away].w++; stats[m.away].pts += 3; stats[m.home].l++; }
+                else { stats[m.home].d++; stats[m.home].pts += 1; stats[m.away].d++; stats[m.away].pts += 1; }
+            }
+        });
+
+        const sorted = Object.keys(stats).sort((a,b) => stats[b].pts - stats[a].pts || (stats[b].gf-stats[b].ga) - (stats[a].gf-stats[a].ga));
+        const tbody = document.getElementById('standingsBody');
+        tbody.innerHTML = '';
+        
+        sorted.forEach((team, i) => {
+            const s = stats[team];
+            const posClass = i === 0 ? 'pos-1' : (i === 1 ? 'pos-2' : (i === 2 ? 'pos-3' : ''));
+            tbody.innerHTML += `
+                <tr>
+                    <td><div class="pos-badge ${posClass}">${i+1}</div></td>
+                    <td style="font-weight:600; color:white;">${team}</td>
+                    <td class="text-center">${s.m}</td>
+                    <td class="text-center" style="color:#00ff88">${s.w}</td>
+                    <td class="text-center" style="color:#f59e0b">${s.d}</td>
+                    <td class="text-center" style="color:#ff4d4d">${s.l}</td>
+                    <td class="text-center">${s.gf - s.ga}</td>
+                    <td class="text-center" style="font-weight:bold; color:var(--accent); font-size:1.1em;">${s.pts}</td>
+                </tr>`;
         });
     });
 }
 
-// =========================================================
-// HELPER
-// =========================================================
-window.deleteDoc = (collection, id) => {
-    if(confirm("Czy na pewno usunąć?")) {
-        db.collection(collection).doc(id).delete();
+function calculateTopScorers() {
+    // Używamy collectionGroup aby pobrać wszystkich graczy ze wszystkich podkolekcji 'players'
+    // UWAGA: Może wymagać utworzenia indeksu w konsoli Firebase (link pojawi się w konsoli przeglądarki jeśli błąd)
+    db.collectionGroup('players').orderBy('goals', 'desc').limit(20).onSnapshot(snap => {
+        const tbody = document.getElementById('topScorersBody');
+        tbody.innerHTML = '';
+        
+        if (snap.empty) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Brak strzelców</td></tr>';
+            return;
+        }
+
+        let index = 1;
+        snap.forEach(doc => {
+            const p = doc.data();
+            // Musimy pobrać nazwę drużyny z rodzica (trochę trikowe w collectionGroup bez dodatkowego pola)
+            // Dla prostoty, jeśli nie zapisujesz teamName w dokumencie gracza, tu może być pusto.
+            // ZALECENIE: Przy dodawaniu gracza (addPlayer) zapisuj też pole 'teamName'.
+            // Poniżej zakładam, że dodamy to pole w funkcji addPlayer.
+            
+            // Kolor dla top 3
+            let rowColor = index === 1 ? 'color:#FFD700' : (index === 2 ? 'color:#C0C0C0' : (index === 3 ? 'color:#CD7F32' : ''));
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td><b style="${rowColor}">${index++}.</b></td>
+                    <td style="font-weight:bold;">${p.name}</td>
+                    <td style="color:#a0aec0;">${p.teamName || '---'}</td> 
+                    <td style="text-align:right; font-weight:bold; color:var(--accent);">${p.goals}</td>
+                </tr>
+            `;
+        });
+    }, error => {
+        console.error("Błąd strzelców (może brak indeksu):", error);
+        document.getElementById('topScorersBody').innerHTML = '<tr><td colspan="4" style="color:red; text-align:center">Wymagany indeks Firestore (sprawdź konsolę)</td></tr>';
+    });
+}
+
+// --- 3. TEAMS & SQUAD ---
+function loadTeamsToSelect() {
+    db.collection('teams').orderBy('name').onSnapshot(s => {
+        let opts = '<option value="">-- Wybierz --</option>';
+        s.forEach(d => opts += `<option value="${d.data().name}">${d.data().name}</option>`);
+        document.getElementById('homeTeamSelect').innerHTML = opts;
+        document.getElementById('awayTeamSelect').innerHTML = opts;
+    });
+}
+
+function listenTeams() {
+    db.collection('teams').orderBy('name').onSnapshot(s => {
+        const list = document.getElementById('teamsList');
+        list.innerHTML = '';
+        s.forEach(doc => {
+            const t = doc.data();
+            list.innerHTML += `
+                <div class="card" style="text-align:center; padding:20px; margin:0;">
+                    ${t.logo ? `<img src="${t.logo}" style="width:60px; height:60px; object-fit:contain; border-radius:50%; margin-bottom:15px; border:2px solid var(--border);">` : ''}
+                    <div style="font-size:1.1rem; font-weight:bold; color:white; margin-bottom:15px;">${t.name}</div>
+                    <button class="btn btn-primary" style="width:100%; font-size:0.8rem;" onclick="openSquad('${doc.id}', '${t.name}')">Zarządzaj Kadrą</button>
+                    <button class="btn btn-danger" style="width:100%; margin-top:10px; font-size:0.8rem;" onclick="delTeam('${doc.id}')">Usuń</button>
+                </div>
+            `;
+        });
+    });
+}
+
+window.addTeam = () => {
+    const n = document.getElementById('teamNameInput').value;
+    const l = document.getElementById('teamLogoInput').value;
+    if(n) db.collection('teams').add({name:n, logo:l}).then(()=>{ 
+        document.getElementById('teamNameInput').value=''; 
+        document.getElementById('teamLogoInput').value=''; 
+    });
+};
+window.delTeam = (id) => { if(confirm("Usunąć?")) db.collection('teams').doc(id).delete(); };
+
+// --- PLAYERS ---
+let squadUnsub = null;
+let currentTeamId = null;
+let currentTeamName = null;
+
+window.openSquad = (tid, tname) => {
+    currentTeamId = tid;
+    currentTeamName = tname;
+    document.getElementById('squadTeamName').innerText = tname;
+    document.getElementById('squad-editor').style.display = 'block';
+    document.getElementById('squad-editor').scrollIntoView({behavior:'smooth'});
+    
+    if(squadUnsub) squadUnsub();
+    squadUnsub = db.collection('teams').doc(tid).collection('players').orderBy('number').onSnapshot(renderSquad);
+};
+
+function renderSquad(snap) {
+    const div = document.getElementById('playersList');
+    div.innerHTML = '';
+    snap.forEach(d => {
+        const p = d.data();
+        div.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02);">
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="background:var(--primary); width:25px; height:25px; display:flex; justify-content:center; align-items:center; border-radius:50%; font-size:0.8rem; font-weight:bold;">${p.number}</span>
+                    <span>${p.name}</span>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <span style="color:var(--text-muted); font-size:0.8rem;">Gole:</span>
+                    <input type="number" value="${p.goals||0}" style="width:60px; padding:5px; text-align:center;" onchange="updateGoal('${d.id}', this.value)">
+                    <button class="btn-danger" style="padding:5px 10px;" onclick="delPlayer('${d.id}')"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+window.addPlayer = () => {
+    const n = document.getElementById('plName').value;
+    const num = document.getElementById('plNum').value;
+    if(n && num && currentTeamId) {
+        db.collection('teams').doc(currentTeamId).collection('players').add({
+            name: n, 
+            number: parseInt(num), 
+            goals: 0,
+            teamName: currentTeamName // Ważne dla Tabeli Strzelców
+        });
+        document.getElementById('plName').value = '';
+        document.getElementById('plNum').value = '';
     }
+};
+
+window.updateGoal = (pid, val) => db.collection('teams').doc(currentTeamId).collection('players').doc(pid).update({goals: parseInt(val)});
+window.delPlayer = (pid) => db.collection('teams').doc(currentTeamId).collection('players').doc(pid).delete();
+window.closeSquadEditor = () => document.getElementById('squad-editor').style.display = 'none';
+
+// --- NEWS & SETTINGS ---
+window.saveNews = () => {
+    const t = document.getElementById('newsTitle').value;
+    const c = document.getElementById('newsContent').value;
+    const i = document.getElementById('newsImg').value;
+    if(t) db.collection('news').add({
+        title:t, content:c, image:i, 
+        date: new Date().toISOString().slice(0,10), 
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        document.getElementById('newsTitle').value = '';
+        document.getElementById('newsContent').value = '';
+        document.getElementById('newsImg').value = '';
+    });
+};
+
+function listenNews() {
+    db.collection('news').orderBy('timestamp','desc').onSnapshot(s => {
+        const d = document.getElementById('newsList'); d.innerHTML = '';
+        s.forEach(doc => {
+            d.innerHTML += `
+            <div class="card" style="padding:20px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong style="font-size:1.1rem; color:var(--text-main);">${doc.data().title}</strong>
+                    <button class="btn-danger" style="padding:5px 10px;" onclick="db.collection('news').doc('${doc.id}').delete()"><i class="fas fa-trash"></i></button>
+                </div>
+                <div style="color:var(--accent); font-size:0.8rem; margin:5px 0;">${doc.data().date}</div>
+                <p style="color:var(--text-muted);">${doc.data().content}</p>
+            </div>`;
+        });
+    });
+}
+
+function loadSettings() {
+    db.collection('settings').doc('config').onSnapshot(d => { if(d.exists) document.getElementById('lockSquads').checked = d.data().squadsLocked; });
+}
+window.toggleLock = () => db.collection('settings').doc('config').set({squadsLocked: document.getElementById('lockSquads').checked}, {merge:true});
+
+window.createAccount = () => {
+    const e = document.getElementById('accEmail').value;
+    const p = document.getElementById('accPass').value;
+    if(e && p && confirm("To wyloguje admina. OK?")) auth.createUserWithEmailAndPassword(e,p).then(()=>window.location.reload());
 };
