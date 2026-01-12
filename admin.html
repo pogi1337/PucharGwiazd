@@ -9,7 +9,7 @@
     
     <style>
         :root {
-            /* Paleta kolorów z Twojego style.css */
+            /* Paleta kolorów */
             --bg-body: #050a18;
             --sidebar-bg: rgba(15, 23, 42, 0.6);
             --card-bg: rgba(255, 255, 255, 0.03);
@@ -23,11 +23,9 @@
             --warning: #f59e0b;
         }
 
-        /* --- BAZA --- */
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-body);
-            /* Opcjonalne tło graficzne, jeśli masz plik 1.jpg to zadziała, jak nie - zostanie ciemny kolor */
             background-image: linear-gradient(rgba(5, 10, 24, 0.95), rgba(5, 10, 24, 0.98)), url('1.jpg');
             background-size: cover;
             background-attachment: fixed;
@@ -81,35 +79,25 @@
             background: linear-gradient(90deg, rgba(0, 212, 255, 0.15), transparent); 
             color: var(--accent); border-left: 3px solid var(--accent);
         }
-        .menu-btn i { width: 20px; text-align: center; }
 
         /* --- MAIN CONTENT --- */
         .main { flex-grow: 1; padding: 40px; overflow-y: auto; position: relative; }
-        
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         .header h2 { margin: 0; font-size: 2rem; font-weight: 700; color: white; }
-        .btn-refresh { 
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; 
-            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: 0.3s;
-        }
-        .btn-refresh:hover { background: var(--accent); border-color: var(--accent); color: #000; transform: rotate(180deg); }
-
+        
         .section { display: none; animation: fadeIn 0.4s ease-out; }
         .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- KARTY (Glassmorphism) --- */
+        /* --- KARTY --- */
         .card {
             background: var(--card-bg); border: 1px solid var(--border);
             border-radius: 20px; padding: 30px; margin-bottom: 30px;
             box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-            transition: 0.3s;
         }
-        .card:hover { border-color: rgba(255,255,255,0.2); }
-        
         .card-title { 
             font-size: 1.1rem; font-weight: 700; margin-bottom: 25px; padding-bottom: 15px; 
             border-bottom: 1px solid var(--border); color: var(--accent); 
-            display: flex; justify-content: space-between; align-items: center;
         }
 
         /* --- FORMULARZE --- */
@@ -120,64 +108,28 @@
             background: rgba(0,0,0,0.3); color: white; font-family: inherit; font-size: 0.95rem;
             transition: 0.3s; box-sizing: border-box;
         }
-        input:focus, select:focus, textarea:focus { 
-            border-color: var(--accent); outline: none; background: rgba(0, 212, 255, 0.05); 
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.1);
-        }
-        
-        /* Select arrows correction */
-        select option { background: #0f172a; color: white; }
+        input:focus { border-color: var(--accent); outline: none; background: rgba(0, 212, 255, 0.05); }
 
-        /* PRZYCISKI */
         .btn {
             padding: 12px 28px; border: none; border-radius: 12px; cursor: pointer;
             font-weight: 700; font-size: 0.9rem; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
-        .btn-primary { background: linear-gradient(135deg, var(--primary), #2563eb); color: white; box-shadow: 0 5px 15px rgba(0, 85, 255, 0.3); }
-        .btn-success { background: linear-gradient(135deg, #059669, var(--success)); color: #000; box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), #2563eb); color: white; }
+        .btn-success { background: linear-gradient(135deg, #059669, var(--success)); color: #000; }
         .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
         .btn-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
-        
         .btn:hover { transform: translateY(-2px); filter: brightness(120%); }
 
-        /* --- TABELA (Stylizowana) --- */
-        .styled-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .styled-table th { 
-            text-align: left; padding: 15px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .styled-table td { 
-            background: rgba(255,255,255,0.03); padding: 15px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-        }
-        .styled-table tr td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid var(--border); }
-        .styled-table tr td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid var(--border); }
-        .styled-table tr:hover td { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
-
-        .pos-badge { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .pos-1 { background: linear-gradient(135deg, #FFD700, #FDB931); color: black; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
-        .pos-2 { background: linear-gradient(135deg, #E0E0E0, #BDBDBD); color: black; }
-        .pos-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); color: black; }
-
-        /* --- KARTY MECZÓW --- */
+        /* --- MECZE & TABELE --- */
         .match-card {
             background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px;
             padding: 20px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;
-            transition: 0.3s;
         }
-        .match-card:hover { border-color: var(--accent); background: rgba(0, 212, 255, 0.05); transform: translateX(5px); }
-        
-        .score-box { 
-            font-size: 1.5rem; font-weight: 800; color: white; background: rgba(0,0,0,0.3); 
-            padding: 5px 20px; border-radius: 10px; border: 1px solid var(--border); margin: 0 15px;
-        }
-
-        .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .st-live { background: rgba(255, 77, 77, 0.2); color: #ff4d4d; border: 1px solid #ff4d4d; animation: pulse 1.5s infinite; }
-        .st-planned { background: rgba(0, 212, 255, 0.1); color: var(--accent); border: 1px solid var(--accent); }
-        .st-finished { background: rgba(255, 255, 255, 0.1); color: var(--text-muted); }
-
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
+        .styled-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .styled-table th { text-align: left; padding: 15px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+        .styled-table td { background: rgba(255,255,255,0.03); padding: 15px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .styled-table tr td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid var(--border); }
+        .styled-table tr td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -185,7 +137,6 @@
 <div id="login-screen">
     <div class="login-card">
         <h2><i class="fas fa-shield-alt"></i> PANEL MANAGERA</h2>
-        <p style="color: var(--text-muted); margin-bottom: 30px;">Autoryzacja dostępu do systemu</p>
         <input type="email" id="login-email" placeholder="Adres E-mail" style="margin-bottom:15px;">
         <input type="password" id="login-password" placeholder="Hasło dostępu" style="margin-bottom:25px;">
         <button class="btn btn-primary" style="width:100%" onclick="login()">Zaloguj się</button>
@@ -197,7 +148,6 @@
     
     <nav class="sidebar">
         <div class="logo"><i class="fas fa-trophy"></i> Puchar Gwiazd</div>
-        
         <button class="menu-btn active" onclick="switchTab('matches', this)"><i class="fas fa-calendar-alt"></i> Mecze</button>
         <button class="menu-btn" onclick="switchTab('tables', this)"><i class="fas fa-list-ol"></i> Tabele</button>
         <button class="menu-btn" onclick="switchTab('teams', this)"><i class="fas fa-users"></i> Drużyny</button>
@@ -214,158 +164,122 @@
     <main class="main">
         <div class="header">
             <h2 id="page-title">Mecze</h2>
-            <button class="btn-refresh" onclick="refreshData()" title="Odśwież dane"><i class="fas fa-sync-alt"></i></button>
+            <button class="btn-refresh" onclick="window.location.reload()" title="Odśwież" style="background:transparent; border:none; color:white; cursor:pointer;"><i class="fas fa-sync-alt"></i></button>
         </div>
 
         <div id="tab-matches" class="section active">
             <div class="card">
-                <div class="card-title"><span><i class="fas fa-plus"></i> Dodaj / Edytuj Mecz</span></div>
+                <div class="card-title"><span><i class="fas fa-plus"></i> Edycja Meczu</span></div>
                 <input type="hidden" id="matchId">
                 <div class="grid-form">
-                    <div>
-                        <label style="font-size:0.8rem; color:var(--text-muted);">Gospodarz</label>
-                        <select id="homeTeamSelect"></select>
-                    </div>
-                    <div>
-                        <label style="font-size:0.8rem; color:var(--text-muted);">Gość</label>
-                        <select id="awayTeamSelect"></select>
-                    </div>
-                    <div>
-                        <label style="font-size:0.8rem; color:var(--text-muted);">Data</label>
-                        <input type="date" id="matchDate">
-                    </div>
-                    <div>
-                        <label style="font-size:0.8rem; color:var(--text-muted);">Status</label>
+                    <div><label>Gospodarz</label><select id="homeTeamSelect"></select></div>
+                    <div><label>Gość</label><select id="awayTeamSelect"></select></div>
+                    <div><label>Data</label><input type="date" id="matchDate"></div>
+                    <div><label>Status</label>
                         <select id="matchStatus" onchange="toggleScoreInputs()">
-                            <option value="planned">📅 Planowany</option>
-                            <option value="live">🔴 NA ŻYWO</option>
-                            <option value="finished">🏁 Zakończony</option>
+                            <option value="planned">Planowany</option>
+                            <option value="live">NA ŻYWO</option>
+                            <option value="finished">Zakończony</option>
                         </select>
                     </div>
                 </div>
-                
-                <div id="scoreInputs" class="grid-form" style="margin-top:20px; display:none; background:rgba(0,0,0,0.2); padding:20px; border-radius:15px; border:1px solid var(--border);">
-                    <div>
-                        <label style="color:var(--accent); font-weight:bold;">Gole Gospodarzy</label>
-                        <input type="number" id="homeScore" value="0" style="font-size:1.2rem; font-weight:bold;">
-                    </div>
-                    <div>
-                        <label style="color:var(--accent); font-weight:bold;">Gole Gości</label>
-                        <input type="number" id="awayScore" value="0" style="font-size:1.2rem; font-weight:bold;">
-                    </div>
+                <div id="scoreInputs" class="grid-form" style="margin-top:20px; display:none; border-top:1px solid var(--border); padding-top:20px;">
+                    <div><label>Gole Gospodarzy</label><input type="number" id="homeScore" value="0"></div>
+                    <div><label>Gole Gości</label><input type="number" id="awayScore" value="0"></div>
                 </div>
-
                 <div style="margin-top:25px; display:flex; gap:10px;">
                     <button class="btn btn-primary" id="saveMatchBtn" onclick="saveMatch()">Zapisz Mecz</button>
                     <button class="btn btn-warning" id="cancelMatchBtn" onclick="resetMatchForm()" style="display:none;">Anuluj</button>
                 </div>
             </div>
-
-            <div id="matchesContainer">
-                <p style="text-align:center; color:var(--text-muted);">Ładowanie listy meczów...</p>
-            </div>
+            <div id="matchesContainer"></div>
         </div>
 
         <div id="tab-tables" class="section">
-            
             <div class="card">
-                <div class="card-title"><span><i class="fas fa-list"></i> Tabela Ligowa</span></div>
-                <div style="overflow-x:auto;">
-                    <table class="styled-table">
-                        <thead>
-                            <tr>
-                                <th style="width:50px">Poz</th>
-                                <th>Drużyna</th>
-                                <th class="text-center">M</th>
-                                <th class="text-center">W</th>
-                                <th class="text-center">R</th>
-                                <th class="text-center">P</th>
-                                <th class="text-center">Bilans</th>
-                                <th class="text-center">Pkt</th>
-                            </tr>
-                        </thead>
-                        <tbody id="standingsBody"></tbody>
-                    </table>
-                </div>
+                <div class="card-title"><span>Tabela Ligowa</span></div>
+                <table class="styled-table">
+                    <thead><tr><th>Poz</th><th>Drużyna</th><th>M</th><th>PKT</th></tr></thead>
+                    <tbody id="standingsBody"></tbody>
+                </table>
             </div>
-
-            <div class="card" style="border-color: var(--accent);">
-                <div class="card-title"><span><i class="fas fa-futbol"></i> Tabela Strzelców (Top Scorers)</span></div>
-                <div style="overflow-x:auto;">
-                    <table class="styled-table">
-                        <thead>
-                            <tr>
-                                <th style="width:60px">#</th>
-                                <th>Zawodnik</th>
-                                <th>Drużyna</th>
-                                <th style="text-align:right;">Gole</th>
-                            </tr>
-                        </thead>
-                        <tbody id="topScorersBody">
-                            <tr><td colspan="4" style="text-align:center; color:gray;">Ładowanie strzelców...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="card">
+                <div class="card-title"><span>Strzelcy</span></div>
+                <table class="styled-table">
+                    <thead><tr><th>#</th><th>Zawodnik</th><th>Gole</th></tr></thead>
+                    <tbody id="topScorersBody"></tbody>
+                </table>
             </div>
-
         </div>
 
         <div id="tab-teams" class="section">
             <div class="card">
-                <div class="card-title"><span><i class="fas fa-plus-circle"></i> Dodaj Drużynę</span></div>
+                <div class="card-title"><span>Dodaj Drużynę (Baza)</span></div>
                 <div class="grid-form" style="grid-template-columns: 2fr 2fr 1fr;">
-                    <input type="text" id="teamNameInput" placeholder="Nazwa drużyny">
+                    <input type="text" id="teamNameInput" placeholder="Nazwa">
                     <input type="text" id="teamLogoInput" placeholder="URL Logo">
                     <button class="btn btn-success" onclick="addTeam()">Dodaj</button>
                 </div>
             </div>
-            
             <div id="teamsList" class="grid-form"></div>
             
-            <div id="squad-editor" class="card" style="display:none; border: 2px solid var(--accent); background: #0b1121;">
+            <div id="squad-editor" class="card" style="display:none; border: 2px solid var(--accent);">
                 <div class="card-title">
-                    <span style="color:white;">Kadra: <span id="squadTeamName" style="color:var(--accent)"></span></span>
-                    <button class="btn btn-warning" style="padding:8px 15px;" onclick="closeSquadEditor()">Zamknij</button>
+                    <span>Kadra: <span id="squadTeamName"></span></span>
+                    <button class="btn-warning" onclick="closeSquadEditor()" style="padding:5px 10px; border:none; border-radius:5px; cursor:pointer;">X</button>
                 </div>
-                <div class="grid-form" style="background:rgba(255,255,255,0.03); padding:15px; border-radius:10px; margin-bottom:20px;">
+                <div class="grid-form">
                     <input type="text" id="plName" placeholder="Imię Nazwisko">
-                    <input type="number" id="plNum" placeholder="Numer">
-                    <button class="btn btn-primary" onclick="addPlayer()">Dodaj Gracza</button>
+                    <input type="number" id="plNum" placeholder="Nr">
+                    <button class="btn btn-primary" onclick="addPlayer()">Dodaj</button>
                 </div>
-                <div id="playersList"></div>
+                <div id="playersList" style="margin-top:20px;"></div>
             </div>
         </div>
 
         <div id="tab-news" class="section">
             <div class="card">
-                <div class="card-title"><span><i class="fas fa-pen"></i> Nowy Artykuł</span></div>
-                <input type="text" id="newsTitle" placeholder="Tytuł newsa" style="margin-bottom:15px; font-weight:bold;">
-                <textarea id="newsContent" rows="5" placeholder="Treść wiadomości..." style="margin-bottom:15px;"></textarea>
-                <input type="text" id="newsImg" placeholder="Link do obrazka (opcjonalnie)">
-                <button class="btn btn-success" style="margin-top:15px;" onclick="saveNews()">Opublikuj News</button>
+                <div class="card-title"><span>Nowy Artykuł</span></div>
+                <input type="text" id="newsTitle" placeholder="Tytuł" style="margin-bottom:10px;">
+                <textarea id="newsContent" rows="4" placeholder="Treść..." style="margin-bottom:10px;"></textarea>
+                <input type="text" id="newsImg" placeholder="Link do zdjęcia">
+                <button class="btn btn-success" style="margin-top:15px;" onclick="saveNews()">Publikuj</button>
             </div>
-            <div id="newsList" class="grid-form" style="grid-template-columns: 1fr;"></div>
+            <div id="newsList"></div>
         </div>
 
         <div id="tab-settings" class="section">
             <div class="card">
-                <div class="card-title"><span>Bezpieczeństwo</span></div>
-                <div style="display:flex; align-items:center; gap:15px; background:rgba(255,165,0,0.1); padding:20px; border-radius:15px; border:1px solid rgba(255,165,0,0.3);">
-                    <input type="checkbox" id="lockSquads" onchange="toggleLock()" style="width:24px; height:24px;">
-                    <div>
-                        <strong style="color:var(--warning); font-size:1.1rem;">Zablokuj edycję składów</strong>
-                        <div style="font-size:0.9rem; color:var(--text-muted);">Gdy włączone, kapitanowie nie mogą dodawać/usuwać graczy.</div>
-                    </div>
+                <div class="card-title"><span>Opcje Ligi</span></div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" id="lockSquads" onchange="toggleLock()" style="width:20px; height:20px;">
+                    <label for="lockSquads">Zablokuj edycję składów dla Kapitanów</label>
                 </div>
             </div>
             
             <div class="card">
-                <div class="card-title"><span>Utwórz Konto Kapitana</span></div>
-                <div class="grid-form">
-                    <input type="email" id="accEmail" placeholder="Login (Email)">
+                <div class="card-title"><span><i class="fas fa-user-plus"></i> Rejestracja Drużyny i Kapitana</span></div>
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px;">
+                    Tutaj utworzysz konto dla kapitana ORAZ stworzysz strukturę drużyny w bazie danych.
+                </p>
+
+                <div class="grid-form" style="grid-template-columns: 1fr 1fr;">
+                    <div style="grid-column: span 2; border-bottom:1px solid var(--border); padding-bottom:5px; margin-top:10px;">
+                        <span style="color:var(--accent);">1. Konto Kapitana</span>
+                    </div>
+                    <input type="email" id="accEmail" placeholder="Email (Login)">
                     <input type="password" id="accPass" placeholder="Hasło">
+
+                    <div style="grid-column: span 2; border-bottom:1px solid var(--border); padding-bottom:5px; margin-top:20px;">
+                        <span style="color:var(--success);">2. Dane Drużyny</span>
+                    </div>
+                    <input type="text" id="accTeamName" placeholder="Pełna nazwa (np. Goon FC)">
+                    <input type="text" id="accTeamId" placeholder="ID (np. TEAM05)">
                 </div>
-                <button class="btn btn-primary" style="margin-top:20px;" onclick="createAccount()">Utwórz Konto</button>
+
+                <div style="margin-top:25px;">
+                    <button class="btn btn-primary" style="width:100%;" onclick="createAccountAndTeam()">UTWÓRZ WSZYSTKO</button>
+                </div>
             </div>
         </div>
 
@@ -378,18 +292,14 @@
 <script src="admin.js"></script>
 
 <script>
-    // Tab switching logic
     function switchTab(id, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-'+id).classList.add('active');
         if(btn) btn.classList.add('active');
-        
-        const titles = {matches: "Zarządzanie Meczami", tables: "Tabele i Statystyki", teams: "Drużyny", news: "Newsy", settings: "Ustawienia"};
+        const titles = {matches: "Mecze", tables: "Tabele", teams: "Drużyny", news: "Newsy", settings: "Ustawienia"};
         document.getElementById('page-title').innerText = titles[id];
     }
-    function refreshData() { window.location.reload(); }
 </script>
-
 </body>
 </html>
