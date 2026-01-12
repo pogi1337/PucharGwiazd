@@ -3,80 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zarządzaj Drużyną | Puchar Gwiazd</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Zarządzanie Składem | Puchar Gwiazd</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
-        .player-row { display: flex; gap: 10px; margin-bottom: 8px; }
-        .player-row input { background: #0f172a; border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 5px; }
-        .btn-save { background: var(--success); color: #000; font-weight: 800; width: 100%; padding: 15px; border-radius: 10px; border:none; cursor:pointer; margin-top:20px; }
+        :root {
+            --bg-body: #050a18;
+            --sidebar-bg: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --accent: #00d4ff;
+            --success: #00ff88;
+            --danger: #ff4d4d;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px;
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        .team-name { color: var(--accent); font-weight: 800; text-transform: uppercase; }
+
+        .btn {
+            padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;
+        }
+        .btn-logout { background: rgba(255,255,255,0.1); color: white; }
+        .btn-add { background: var(--success); color: black; width: 100%; margin-top: 10px; padding: 15px; }
+
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px; margin-bottom: 20px;
+        }
+
+        /* --- LISTA GRACZY --- */
+        .player-row {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px; border-radius: 10px; margin-bottom: 10px;
+            border: 1px solid transparent;
+        }
+        .player-row:hover { border-color: var(--border); }
+
+        input {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            color: white; padding: 10px; border-radius: 8px; font-family: inherit;
+        }
+        
+        .inp-num { width: 60px; text-align: center; font-weight: bold; color: var(--accent); }
+        .inp-name { flex-grow: 1; font-weight: 600; }
+        
+        .btn-icon {
+            background: transparent; border: 1px solid var(--border); color: var(--danger);
+            width: 40px; height: 40px; border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        .btn-icon:hover { background: var(--danger); color: white; }
+
+        /* Formularz dodawania */
+        .add-form { display: grid; grid-template-columns: 80px 1fr; gap: 10px; margin-bottom: 10px; }
+
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="brand"><span class="logo-text">PANEL ZARZĄDZANIA</span></div>
-        <button onclick="firebase.auth().signOut().then(()=>window.location.href='index.html')" class="admin-btn" style="background:var(--danger)">WYLOGUJ</button>
-    </nav>
 
-    <div class="container" style="max-width: 600px; margin-top: 50px;">
-        <div class="card-box">
-            <h2 id="team-name-display">Ładowanie...</h2>
-            <form id="team-form">
-                <div id="players-container"></div>
-                <button type="submit" class="btn-save">ZAPISZ SKŁAD</button>
-            </form>
-            <div id="message-area" style="margin-top:15px; text-align:center;"></div>
+    <div class="header">
+        <div>
+            <div style="font-size:0.8rem; color:#888;">Zalogowany jako Manager</div>
+            <h1 class="team-name" id="displayTeamName">Ładowanie...</h1>
+        </div>
+        <button class="btn btn-logout" onclick="logout()">Wyloguj</button>
+    </div>
+
+    <div class="card" style="border-color: var(--success);">
+        <h3 style="margin-top:0; color:var(--success);"><i class="fas fa-user-plus"></i> Dodaj Zawodnika</h3>
+        <div class="add-form">
+            <input type="number" id="newNum" placeholder="Nr">
+            <input type="text" id="newName" placeholder="Imię i Nazwisko">
+        </div>
+        <button class="btn btn-add" onclick="addPlayer()">Dodaj do Składu</button>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0;"><i class="fas fa-users"></i> Aktualny Skład</h3>
+        <div id="playersList">
+            <p style="text-align:center; color:#888;">Pobieranie danych...</p>
         </div>
     </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            databaseURL: "https://puchargwiazd-bdaa4-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "puchargwiazd-bdaa4",
-            appId: "1:890734185883:web:75e8df76127397b913612d"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        firebase.auth().onAuthStateChanged(user => {
-            const teamId = localStorage.getItem('teamId');
-            if (user && teamId) {
-                db.ref('teams/' + teamId).on('value', snap => {
-                    const data = snap.val();
-                    document.getElementById('team-name-display').innerText = data.name;
-                    const container = document.getElementById('players-container');
-                    container.innerHTML = '';
-                    const players = data.players || {};
-                    for(let i=0; i<12; i++) {
-                        const p = Object.values(players)[i] || {name: '', number: ''};
-                        container.innerHTML += `
-                            <div class="player-row">
-                                <input type="number" placeholder="Nr" style="width:50px" class="p-num" value="${p.number}">
-                                <input type="text" placeholder="Imię i Nazwisko" style="flex:1" class="p-name" value="${p.name}">
-                            </div>`;
-                    }
-                });
-            } else { window.location.href = "login_kapitana.html"; }
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+        authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+        projectId: "puchargwiazd-bdaa4",
+        storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+        messagingSenderId: "890734185883",
+        appId: "1:890734185883:web:75e8df76127397b913612d"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let myTeamId = localStorage.getItem('managerTeamId');
+    let myTeamName = localStorage.getItem('managerTeamName');
+
+    // 1. Sprawdzenie sesji
+    auth.onAuthStateChanged(user => {
+        if (!user || !myTeamId) {
+            window.location.href = 'login_kapitana.html';
+        } else {
+            document.getElementById('displayTeamName').innerText = myTeamName || "Moja Drużyna";
+            loadPlayers();
+        }
+    });
+
+    function logout() {
+        auth.signOut().then(() => {
+            localStorage.clear();
+            window.location.href = 'login_kapitana.html';
         });
+    }
 
-        document.getElementById('team-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const teamId = localStorage.getItem('teamId');
-            const rows = document.querySelectorAll('.player-row');
-            let newPlayers = {};
-            rows.forEach((row, idx) => {
-                const n = row.querySelector('.p-name').value;
-                const num = row.querySelector('.p-num').value;
-                if(n) newPlayers['p'+idx] = { name: n, number: num };
+    // 2. Ładowanie graczy (Realtime Listener)
+    function loadPlayers() {
+        db.collection('teams').doc(myTeamId).collection('players')
+          .orderBy('number', 'asc') // Sortowanie po numerze
+          .onSnapshot(snapshot => {
+            const list = document.getElementById('playersList');
+            list.innerHTML = '';
+
+            if (snapshot.empty) {
+                list.innerHTML = '<p style="text-align:center; color:#888;">Brak zawodników. Dodaj kogoś!</p>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const p = doc.data();
+                const id = doc.id;
+
+                list.innerHTML += `
+                    <div class="player-row">
+                        <input type="number" class="inp-num" value="${p.number}" 
+                               onchange="updatePlayer('${id}', 'number', this.value)">
+                        
+                        <input type="text" class="inp-name" value="${p.name}" 
+                               onchange="updatePlayer('${id}', 'name', this.value)">
+                        
+                        <button class="btn-icon" onclick="deletePlayer('${id}')" title="Usuń zawodnika">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
             });
-            db.ref('teams/'+teamId+'/players').set(newPlayers)
-                .then(() => alert("Zapisano pomyślnie!"));
         });
-    </script>
+    }
+
+    // 3. Dodawanie
+    window.addPlayer = () => {
+        const name = document.getElementById('newName').value;
+        const num = document.getElementById('newNum').value;
+
+        if (!name || !num) return alert("Wpisz imię i numer!");
+
+        db.collection('teams').doc(myTeamId).collection('players').add({
+            name: name,
+            number: parseInt(num),
+            goals: 0,
+            teamName: myTeamName // Przydatne do statystyk ogólnych
+        }).then(() => {
+            // Wyczyść pola
+            document.getElementById('newName').value = '';
+            document.getElementById('newNum').value = '';
+        }).catch(err => {
+            console.error(err);
+            alert("Błąd: " + err.message);
+        });
+    };
+
+    // 4. Aktualizacja (Automatyczna po zmianie pola)
+    window.updatePlayer = (id, field, value) => {
+        let val = value;
+        if(field === 'number') val = parseInt(value);
+        
+        db.collection('teams').doc(myTeamId).collection('players').doc(id).update({
+            [field]: val
+        }).catch(err => alert("Błąd edycji: " + err.message));
+    };
+
+    // 5. Usuwanie
+    window.deletePlayer = (id) => {
+        if(confirm("Czy na pewno usunąć tego zawodnika?")) {
+            db.collection('teams').doc(myTeamId).collection('players').doc(id).delete()
+              .catch(err => alert("Błąd usuwania: " + err.message));
+        }
+    };
+
+</script>
+
 </body>
 </html>
