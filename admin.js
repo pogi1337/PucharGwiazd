@@ -62,7 +62,7 @@ function initApp() {
     document.getElementById('matchDate').value = new Date().toISOString().slice(0,10);
 }
 
-// --- FUNKCJA TWORZENIA KONTA I DRUŻYNY ---
+// --- FUNKCJA TWORZENIA KONTA TEAM MANAGERA I DRUŻYNY ---
 window.createAccountAndTeam = async () => {
     const email = document.getElementById('accEmail').value;
     const pass = document.getElementById('accPass').value;
@@ -79,7 +79,7 @@ window.createAccountAndTeam = async () => {
         return;
     }
 
-    if (!confirm(`Potwierdź utworzenie:\nUser: ${email}\nDrużyna: ${teamName} (ID: ${teamId})`)) return;
+    if (!confirm(`Potwierdź utworzenie:\nManager: ${email}\nDrużyna: ${teamName} (ID: ${teamId})`)) return;
 
     // Używamy tymczasowej "drugiej aplikacji", żeby stworzyć usera bez wylogowywania admina
     let secondaryApp = null;
@@ -104,7 +104,7 @@ window.createAccountAndTeam = async () => {
         const userRef = db.collection('users').doc(uid);
         batch.set(userRef, {
             email: email,
-            role: 'captain',
+            role: 'TeamManager', // <--- ZMIANA ROLI
             teamId: teamId,
             teamName: teamName,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -115,7 +115,7 @@ window.createAccountAndTeam = async () => {
         batch.set(teamRef, {
             name: teamName,
             logo: "",
-            captainId: uid, // Ważne dla reguł
+            captainId: uid, // Nadal używamy pola 'captainId' do powiązania uprawnień
             wins: 0, draws: 0, losses: 0, 
             goals_scored: 0, goals_lost: 0, points: 0
         });
@@ -123,8 +123,8 @@ window.createAccountAndTeam = async () => {
         // C. Kolekcja players (musi mieć dokument, żeby istnieć)
         const playerRef = teamRef.collection('players').doc();
         batch.set(playerRef, {
-            name: "Kapitan (Edytuj)",
-            number: 10,
+            name: "Manager (Edytuj)",
+            number: 0,
             goals: 0,
             teamName: teamName
         });
@@ -132,7 +132,7 @@ window.createAccountAndTeam = async () => {
         console.log("4. Wysyłanie batch.commit()...");
         await batch.commit();
         
-        alert("SUKCES! \nKonto i drużyna utworzone.\nSprawdź bazę danych.");
+        alert("SUKCES! \nKonto Team Managera i drużyna utworzone.\nSprawdź bazę danych.");
         window.location.reload();
 
     } catch (error) {
