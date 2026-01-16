@@ -137,7 +137,7 @@
         </header>
 
         <div id="tables-container">
-            <p style="text-align:center; opacity: 0.5;">Wczytywanie statystyk z bazy danych...</p>
+            <p style="text-align:center; opacity: 0.5;">Wczytywanie statystyk...</p>
         </div>
     </main>
 
@@ -156,12 +156,17 @@
         const app = initializeApp(CONFIG);
         const db = getFirestore(app);
 
-        // --- 1. POBIERZ DRUŻYNY ---
-        let teamsData = {};
+        // --- 1. DEFINICJA GRUP NA SZTYWNO ---
+        const FIXED_GROUPS = {
+            "A": ["Boys", "Down The Road", "Łobuzy", "SławBud"],
+            "B": ["Nam strzelać nie kazano", "Fc Hetman", "Coco Jumbos", "Valentino Royal"],
+            "C": ["Łobuzy 2", "Dżołki Fc", "Pasjonaci Footballu", "PGR Team"],
+            "D": ["Piłkarskie Koty", "Czarne Perły Mozambiku", "Goon FC", "PKS Mięsne"]
+        };
 
-        // Funkcja pomocnicza do tworzenia struktury tabeli
+        // --- FUNKCJA RENDERUJĄCA JEDNĄ TABELĘ ---
         function createTable(groupName, teams) {
-            // Sortowanie: Punkty > Bilans > Bramki Strzelone
+            // Sortowanie: Punkty > Bilans bramek > Bramki strzelone
             teams.sort((a, b) => {
                 if (b.stats.points !== a.stats.points) return b.stats.points - a.stats.points;
                 const goalDiffA = a.stats.goalsScored - a.stats.goalsLost;
@@ -172,12 +177,12 @@
 
             let rows = '';
             teams.forEach((t, index) => {
-                const posClass = (index < 2) ? 'pos-1' : 'pos-3'; // Top 2 awansują
+                const posClass = (index < 2) ? 'pos-1' : 'pos-3'; // 1-2 awans (zielony), 3-4 odpad (czerwony)
                 rows += `
                     <tr>
                         <td class="${posClass}">${index + 1}.</td>
                         <td class="t-club">
-                            <img src="${t.logo || 'logo.png'}"> ${t.name}
+                            <img src="${t.logo || 'logo.png'}" onerror="this.src='logo.png'"> ${t.name}
                         </td>
                         <td>${t.stats.matches}</td>
                         <td>${t.stats.wins}</td>
@@ -205,98 +210,104 @@
         }
 
         async function loadData() {
-            // Pobierz drużyny
-            const qTeams = query(collection(db, "teams"));
-            const snapTeams = await getDocs(qTeams);
-            
-            // Inicjalizacja danych (zerowanie statystyk)
-            snapTeams.forEach(doc => {
-                const d = doc.data();
-                // Jeśli nazwa grupy nie jest wpisana, daj "Inne"
-                const g = d.group ? d.group.toUpperCase() : "BRAK"; 
-                
-                if(!teamsData[g]) teamsData[g] = [];
+            // 1. Inicjalizacja pustej struktury na bazie FIXED_GROUPS
+            let teamsMap = {}; // Mapa: "Nazwa Drużyny" -> Obiekt Drużyny
+            let groupsData = {}; // Mapa: "A" -> [Drużyny...]
 
-                teamsData[g].push({
-                    id: d.name, // używamy nazwy jako ID do łączenia z meczami
-                    name: d.name,
-                    logo: d.logo,
-                    stats: { points: 0, matches: 0, wins: 0, draws: 0, losses: 0, goalsScored: 0, goalsLost: 0 }
+            // Tworzymy strukturę w pamięci
+            for (const [groupName, teamNames] of Object.entries(FIXED_GROUPS)) {
+                groupsData[groupName] = [];
+                teamNames.forEach(name => {
+                    const newTeam = {
+                        name: name,
+                        group: groupName,
+                        logo: 'logo.png', // Domyślne logo, zaraz spróbujemy pobrać prawdziwe
+                        stats: { points: 0, matches: 0, wins: 0, draws: 0, losses: 0, goalsScored: 0, goalsLost: 0 }
+                    };
+                    groupsData[groupName].push(newTeam);
+                    teamsMap[name] = newTeam; // Referencja dla łatwego dostępu
                 });
-            });
-
-            // Pobierz mecze i oblicz punkty
-            const qMatches = query(collection(db, "matches"));
-            const snapMatches = await getDocs(qMatches);
-
-            snapMatches.forEach(doc => {
-                const m = doc.data();
-                
-                // Szukamy drużyn w naszej strukturze teamsData
-                // Musimy przeszukać wszystkie grupy
-                let t1 = null, t2 = null;
-
-                for(const g in teamsData) {
-                    const found1 = teamsData[g].find(t => t.name === m.team1);
-                    if(found1) t1 = found1;
-                    
-                    const found2 = teamsData[g].find(t => t.name === m.team2);
-                    if(found2) t2 = found2;
-                }
-
-                // Jeśli mecz się odbył (ma wynik)
-                if(t1 && t2 && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== "" && m.score2 !== "") {
-                    const s1 = parseInt(m.score1);
-                    const s2 = parseInt(m.score2);
-
-                    // Aktualizacja statystyk T1
-                    t1.stats.matches++;
-                    t1.stats.goalsScored += s1;
-                    t1.stats.goalsLost += s2;
-
-                    // Aktualizacja statystyk T2
-                    t2.stats.matches++;
-                    t2.stats.goalsScored += s2;
-                    t2.stats.goalsLost += s1;
-
-                    if(s1 > s2) {
-                        t1.stats.wins++;
-                        t1.stats.points += 3;
-                        t2.stats.losses++;
-                    } else if(s2 > s1) {
-                        t2.stats.wins++;
-                        t2.stats.points += 3;
-                        t1.stats.losses++;
-                    } else {
-                        t1.stats.draws++;
-                        t1.stats.points += 1;
-                        t2.stats.draws++;
-                        t2.stats.points += 1;
-                    }
-                }
-            });
-
-            // Generowanie HTML
-            const container = document.getElementById('tables-container');
-            container.innerHTML = '';
-            
-            // Kolejność grup: A, B, C, D...
-            const sortedGroups = Object.keys(teamsData).sort();
-
-            if(sortedGroups.length === 0) {
-                container.innerHTML = '<p style="text-align:center;">Brak drużyn i grup.</p>';
             }
 
-            sortedGroups.forEach(g => {
-                if(teamsData[g].length > 0) {
-                    container.innerHTML += createTable(g, teamsData[g]);
-                }
-            });
+            try {
+                // 2. Pobierz logotypy z Firebase (jeśli istnieją w kolekcji 'teams')
+                // Robimy to tylko po to, żeby tabelki ładnie wyglądały
+                const qTeams = query(collection(db, "teams"));
+                const snapTeams = await getDocs(qTeams);
+                
+                snapTeams.forEach(doc => {
+                    const data = doc.data();
+                    if (data.name && teamsMap[data.name]) {
+                        teamsMap[data.name].logo = data.logo || 'logo.png';
+                    }
+                });
+
+                // 3. Pobierz mecze i policz punkty
+                const qMatches = query(collection(db, "matches"));
+                const snapMatches = await getDocs(qMatches);
+
+                snapMatches.forEach(doc => {
+                    const m = doc.data();
+                    
+                    // Znajdź drużyny w naszej mapie po nazwie
+                    const t1 = teamsMap[m.team1];
+                    const t2 = teamsMap[m.team2];
+
+                    // Obliczaj tylko jeśli obie drużyny są w naszych grupach i mecz ma wynik
+                    if(t1 && t2 && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== "" && m.score2 !== "") {
+                        const s1 = parseInt(m.score1);
+                        const s2 = parseInt(m.score2);
+
+                        // Statystyki T1
+                        t1.stats.matches++;
+                        t1.stats.goalsScored += s1;
+                        t1.stats.goalsLost += s2;
+
+                        // Statystyki T2
+                        t2.stats.matches++;
+                        t2.stats.goalsScored += s2;
+                        t2.stats.goalsLost += s1;
+
+                        if(s1 > s2) {
+                            t1.stats.wins++;
+                            t1.stats.points += 3;
+                            t2.stats.losses++;
+                        } else if(s2 > s1) {
+                            t2.stats.wins++;
+                            t2.stats.points += 3;
+                            t1.stats.losses++;
+                        } else {
+                            t1.stats.draws++;
+                            t1.stats.points += 1;
+                            t2.stats.draws++;
+                            t2.stats.points += 1;
+                        }
+                    }
+                });
+
+                // 4. Wygeneruj HTML
+                const container = document.getElementById('tables-container');
+                container.innerHTML = '';
+
+                // Iterujemy po grupach A, B, C, D
+                const groupOrder = ["A", "B", "C", "D"];
+                
+                groupOrder.forEach(gName => {
+                    if (groupsData[gName]) {
+                        container.innerHTML += createTable(gName, groupsData[gName]);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Błąd pobierania danych:", error);
+                document.getElementById('tables-container').innerHTML = '<p style="text-align:center; color:red;">Wystąpił błąd podczas ładowania danych.</p>';
+            }
         }
 
+        // Uruchom ładowanie
         loadData();
 
-        // Nasłuchiwanie zmian w meczach (Live update)
+        // Nasłuchiwanie zmian w wynikach na żywo
         onSnapshot(collection(db, "matches"), () => {
             loadData();
         });
