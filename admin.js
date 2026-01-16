@@ -16,6 +16,14 @@ const db = firebase.firestore();
 
 const ADMINS = ["kacpernwm77@gmail.com", "krzysztof.lodzinski@interia.pl"];
 
+// --- KONFIGURACJA GRUP ---
+const FIXED_GROUPS = {
+    "A": ["Boys", "Down The Road", "Łobuzy", "SławBud"],
+    "B": ["Nam strzelać nie kazano", "Fc Hetman", "Coco Jumbos", "Valentino Royal"],
+    "C": ["Łobuzy 2", "Dżołki Fc", "Pasjonaci Footballu", "PGR Team"],
+    "D": ["Piłkarskie Koty", "Czarne Perły Mozambiku", "Goon FC", "PKS Mięsne"]
+};
+
 // --- INIT & AUTH ---
 document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
@@ -41,8 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.login = () => {
     const e = document.getElementById('login-email').value;
     const p = document.getElementById('login-password').value;
-    // Lokalne sprawdzenie (dla UX), właściwe zabezpieczenie jest w Rules
-    if(!ADMINS.includes(e.toLowerCase())) return document.getElementById('login-msg').innerText = "Brak uprawnień admina (sprawdź listę ADMINS w js).";
+    if(!ADMINS.includes(e.toLowerCase())) return document.getElementById('login-msg').innerText = "Brak uprawnień admina.";
     
     auth.signInWithEmailAndPassword(e, p)
         .catch(err => document.getElementById('login-msg').innerText = err.message);
@@ -57,94 +64,12 @@ function initApp() {
     listenTeams();
     listenNews();
     loadSettings();
-    calculateStandings();
+    calculateStandings(); // Nowa funkcja tabel
     calculateTopScorers();
     document.getElementById('matchDate').value = new Date().toISOString().slice(0,10);
 }
 
-// --- FUNKCJA TWORZENIA KONTA TEAM MANAGERA I DRUŻYNY ---
-window.createAccountAndTeam = async () => {
-    const email = document.getElementById('accEmail').value;
-    const pass = document.getElementById('accPass').value;
-    const teamName = document.getElementById('accTeamName').value;
-    let teamId = document.getElementById('accTeamId').value;
-    
-    // Auto-ID: usuń spacje, zrób wielkie litery
-    if (!teamId && teamName) {
-        teamId = teamName.replace(/\s+/g, '').toUpperCase();
-    }
-
-    if (!email || !pass || !teamName || !teamId) {
-        alert("BŁĄD: Wypełnij wszystkie pola!");
-        return;
-    }
-
-    if (!confirm(`Potwierdź utworzenie:\nManager: ${email}\nDrużyna: ${teamName} (ID: ${teamId})`)) return;
-
-    // Używamy tymczasowej "drugiej aplikacji", żeby stworzyć usera bez wylogowywania admina
-    let secondaryApp = null;
-    const tempAppName = "SecondaryApp" + new Date().getTime();
-
-    try {
-        console.log("1. Tworzenie drugiej instancji Firebase...");
-        secondaryApp = firebase.initializeApp(firebaseConfig, tempAppName);
-        
-        console.log("2. Tworzenie użytkownika w Auth...");
-        const userCred = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
-        const uid = userCred.user.uid;
-        console.log("   -> Sukces! UID:", uid);
-
-        // Wyloguj z drugiej apki, żeby nie mieszało w sesji
-        await secondaryApp.auth().signOut();
-
-        console.log("3. Przygotowanie zapisu do Firestore (jako Admin)...");
-        const batch = db.batch();
-
-        // A. Dokument Usera
-        const userRef = db.collection('users').doc(uid);
-        batch.set(userRef, {
-            email: email,
-            role: 'TeamManager', // <--- ZMIANA ROLI
-            teamId: teamId,
-            teamName: teamName,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // B. Dokument Drużyny
-        const teamRef = db.collection('teams').doc(teamId);
-        batch.set(teamRef, {
-            name: teamName,
-            logo: "",
-            captainId: uid, // Nadal używamy pola 'captainId' do powiązania uprawnień
-            wins: 0, draws: 0, losses: 0, 
-            goals_scored: 0, goals_lost: 0, points: 0
-        });
-
-        // C. Kolekcja players (musi mieć dokument, żeby istnieć)
-        const playerRef = teamRef.collection('players').doc();
-        batch.set(playerRef, {
-            name: "Manager (Edytuj)",
-            number: 0,
-            goals: 0,
-            teamName: teamName
-        });
-
-        console.log("4. Wysyłanie batch.commit()...");
-        await batch.commit();
-        
-        alert("SUKCES! \nKonto Team Managera i drużyna utworzone.\nSprawdź bazę danych.");
-        window.location.reload();
-
-    } catch (error) {
-        console.error("Błąd krytyczny:", error);
-        alert("BŁĄD: " + error.message + "\n(Sprawdź konsolę F12 i Reguły Firestore)");
-    } finally {
-        // Sprzątanie
-        if (secondaryApp) secondaryApp.delete();
-    }
-};
-
-// --- POZOSTAŁE FUNKCJE ---
+// --- ZARZĄDZANIE MECZAMI (Z DODANĄ GODZINĄ I GRUPĄ) ---
 
 window.toggleScoreInputs = () => {
     const status = document.getElementById('matchStatus').value;
@@ -156,6 +81,8 @@ window.saveMatch = () => {
     const home = document.getElementById('homeTeamSelect').value;
     const away = document.getElementById('awayTeamSelect').value;
     const date = document.getElementById('matchDate').value;
+    const time = document.getElementById('matchTime').value; // NOWE
+    const group = document.getElementById('matchGroup').value; // NOWE
     const status = document.getElementById('matchStatus').value;
     const hScore = parseInt(document.getElementById('homeScore').value) || 0;
     const aScore = parseInt(document.getElementById('awayScore').value) || 0;
@@ -163,7 +90,7 @@ window.saveMatch = () => {
     if(!home || !away || home === away) return alert("Wybierz poprawne drużyny.");
 
     const data = { 
-        home, away, date, status, 
+        home, away, date, time, group, status, 
         homeScore: hScore, awayScore: aScore,
         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
     };
@@ -175,6 +102,8 @@ window.saveMatch = () => {
 window.resetMatchForm = () => {
     document.getElementById('matchId').value = '';
     document.getElementById('matchStatus').value = 'planned';
+    document.getElementById('matchTime').value = ''; // RESET
+    document.getElementById('matchGroup').value = 'A'; // RESET
     document.getElementById('homeScore').value = 0;
     document.getElementById('awayScore').value = 0;
     toggleScoreInputs();
@@ -182,11 +111,13 @@ window.resetMatchForm = () => {
     document.getElementById('cancelMatchBtn').style.display = 'none';
 };
 
-window.editMatch = (id, h, a, d, s, hs, as) => {
+window.editMatch = (id, h, a, d, t, g, s, hs, as) => {
     document.getElementById('matchId').value = id;
     document.getElementById('homeTeamSelect').value = h;
     document.getElementById('awayTeamSelect').value = a;
     document.getElementById('matchDate').value = d;
+    document.getElementById('matchTime').value = t || ''; // Edycja czasu
+    document.getElementById('matchGroup').value = g || 'A'; // Edycja grupy
     document.getElementById('matchStatus').value = s;
     document.getElementById('homeScore').value = hs;
     document.getElementById('awayScore').value = as;
@@ -199,20 +130,27 @@ window.editMatch = (id, h, a, d, s, hs, as) => {
 window.deleteMatch = (id) => { if(confirm("Usunąć mecz?")) db.collection('matches').doc(id).delete(); };
 
 function listenMatches() {
-    db.collection('matches').orderBy('timestamp', 'desc').onSnapshot(snap => {
+    db.collection('matches').orderBy('date', 'desc').orderBy('time', 'asc').onSnapshot(snap => {
         const div = document.getElementById('matchesContainer');
         div.innerHTML = '';
         snap.forEach(doc => {
             const m = doc.data();
             const color = m.status === 'live' ? '#ff4d4d' : (m.status === 'finished' ? '#a0aec0' : '#00d4ff');
+            
+            // Bezpieczne przekazywanie stringów do onclick
+            const safeEdit = `editMatch('${doc.id}','${m.home}','${m.away}','${m.date}','${m.time || ''}','${m.group || 'A'}','${m.status}',${m.homeScore},${m.awayScore})`;
+
             div.innerHTML += `
                 <div class="match-card" style="border-left: 4px solid ${color};">
                     <div>
+                        <div style="font-size:0.75rem; color:#888; margin-bottom:5px;">
+                            ${m.date} ${m.time ? '| ' + m.time : ''} | GRUPA ${m.group || '-'}
+                        </div>
                         <strong style="color:white; font-size:1.1rem;">${m.home} ${m.homeScore}:${m.awayScore} ${m.away}</strong>
                         <div style="font-size:0.8rem; color:${color}; text-transform:uppercase; font-weight:bold; margin-top:5px;">${m.status}</div>
                     </div>
                     <div>
-                        <button class="btn-warning" style="padding:5px 10px;" onclick="editMatch('${doc.id}','${m.home}','${m.away}','${m.date}','${m.status}',${m.homeScore},${m.awayScore})">✎</button>
+                        <button class="btn-warning" style="padding:5px 10px;" onclick="${safeEdit}">✎</button>
                         <button class="btn-danger" style="padding:5px 10px;" onclick="deleteMatch('${doc.id}')">🗑</button>
                     </div>
                 </div>`;
@@ -220,29 +158,99 @@ function listenMatches() {
     });
 }
 
+// --- NOWA LOGIKA TABEL (GRUPY A, B, C, D) ---
 function calculateStandings() {
-    Promise.all([db.collection('teams').get(), db.collection('matches').get()]).then(([tSnap, mSnap]) => {
-        let stats = {};
-        tSnap.forEach(d => stats[d.data().name] = { m:0, pts:0 });
-        
-        mSnap.forEach(d => {
-            const m = d.data();
-            if(m.status === 'finished' && stats[m.home] && stats[m.away]) {
-                stats[m.home].m++; stats[m.away].m++;
-                if(m.homeScore > m.awayScore) stats[m.home].pts += 3;
-                else if(m.homeScore < m.awayScore) stats[m.away].pts += 3;
-                else { stats[m.home].pts++; stats[m.away].pts++; }
+    // 1. Inicjalizacja struktury danych
+    let groupsData = {};
+    for (const [groupName, teamNames] of Object.entries(FIXED_GROUPS)) {
+        groupsData[groupName] = teamNames.map(name => ({
+            name: name,
+            stats: { points: 0, matches: 0, wins: 0, draws: 0, losses: 0, goalsScored: 0, goalsLost: 0 }
+        }));
+    }
+
+    // 2. Pobranie meczów i przeliczenie
+    db.collection('matches').get().then(snapMatches => {
+        snapMatches.forEach(doc => {
+            const m = doc.data();
+            
+            // Liczymy tylko zakończone mecze
+            if(m.status === 'finished' && m.homeScore !== undefined && m.awayScore !== undefined) {
+                // Znajdź drużynę w naszych grupach (przeszukujemy wszystkie grupy)
+                let t1 = null, t2 = null;
+
+                for(const gName in groupsData) {
+                    const found1 = groupsData[gName].find(t => t.name === m.home);
+                    if(found1) t1 = found1;
+
+                    const found2 = groupsData[gName].find(t => t.name === m.away);
+                    if(found2) t2 = found2;
+                }
+
+                // Jeśli obie drużyny są w systemie grup
+                if(t1 && t2) {
+                    const s1 = parseInt(m.homeScore);
+                    const s2 = parseInt(m.awayScore);
+
+                    t1.stats.matches++; t1.stats.goalsScored += s1; t1.stats.goalsLost += s2;
+                    t2.stats.matches++; t2.stats.goalsScored += s2; t2.stats.goalsLost += s1;
+
+                    if(s1 > s2) {
+                        t1.stats.wins++; t1.stats.points += 3; t2.stats.losses++;
+                    } else if(s2 > s1) {
+                        t2.stats.wins++; t2.stats.points += 3; t1.stats.losses++;
+                    } else {
+                        t1.stats.draws++; t1.stats.points += 1; t2.stats.draws++; t2.stats.points += 1;
+                    }
+                }
             }
         });
 
-        const sorted = Object.keys(stats).sort((a,b) => stats[b].pts - stats[a].pts);
-        const tbody = document.getElementById('standingsBody');
-        tbody.innerHTML = '';
-        sorted.forEach((team, i) => {
-            tbody.innerHTML += `<tr><td>${i+1}</td><td style="color:white; font-weight:bold;">${team}</td><td>${stats[team].m}</td><td style="color:var(--accent); font-weight:bold;">${stats[team].pts}</td></tr>`;
+        // 3. Renderowanie tabel
+        const container = document.getElementById('tables-wrapper');
+        container.innerHTML = '';
+
+        const groupOrder = ["A", "B", "C", "D"];
+        groupOrder.forEach(gName => {
+            const teams = groupsData[gName];
+            
+            // Sortowanie
+            teams.sort((a, b) => {
+                if (b.stats.points !== a.stats.points) return b.stats.points - a.stats.points;
+                const gdA = a.stats.goalsScored - a.stats.goalsLost;
+                const gdB = b.stats.goalsScored - b.stats.goalsLost;
+                if (gdB !== gdA) return gdB - gdA;
+                return b.stats.goalsScored - a.stats.goalsScored;
+            });
+
+            // Generowanie HTML
+            let rows = '';
+            teams.forEach((t, index) => {
+                const posClass = (index < 2) ? 'pos-1' : 'pos-3';
+                rows += `
+                    <tr>
+                        <td class="${posClass}">${index + 1}.</td>
+                        <td style="font-weight:bold; color:white;">${t.name}</td>
+                        <td>${t.stats.matches}</td>
+                        <td style="color:var(--accent); font-weight:bold;">${t.stats.points}</td>
+                    </tr>
+                `;
+            });
+
+            container.innerHTML += `
+                <div class="card">
+                    <div class="card-title">GRUPA ${gName}</div>
+                    <table class="styled-table">
+                        <thead><tr><th>#</th><th>DRUŻYNA</th><th>M</th><th>PKT</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
         });
     });
 }
+
+// --- POZOSTAŁE FUNKCJE ---
 
 function calculateTopScorers() {
     db.collectionGroup('players').orderBy('goals', 'desc').limit(10).onSnapshot(snap => {
@@ -353,3 +361,56 @@ function loadSettings() {
     db.collection('settings').doc('config').onSnapshot(d => { if(d.exists) document.getElementById('lockSquads').checked = d.data().squadsLocked; });
 }
 window.toggleLock = () => db.collection('settings').doc('config').set({squadsLocked: document.getElementById('lockSquads').checked}, {merge:true});
+
+// --- FUNKCJA TWORZENIA KONTA TEAM MANAGERA (BEZ ZMIAN) ---
+window.createAccountAndTeam = async () => {
+    const email = document.getElementById('accEmail').value;
+    const pass = document.getElementById('accPass').value;
+    const teamName = document.getElementById('accTeamName').value;
+    let teamId = document.getElementById('accTeamId').value;
+    
+    if (!teamId && teamName) {
+        teamId = teamName.replace(/\s+/g, '').toUpperCase();
+    }
+
+    if (!email || !pass || !teamName || !teamId) {
+        alert("BŁĄD: Wypełnij wszystkie pola!");
+        return;
+    }
+
+    if (!confirm(`Potwierdź utworzenie:\nManager: ${email}\nDrużyna: ${teamName} (ID: ${teamId})`)) return;
+
+    let secondaryApp = null;
+    const tempAppName = "SecondaryApp" + new Date().getTime();
+
+    try {
+        secondaryApp = firebase.initializeApp(firebaseConfig, tempAppName);
+        const userCred = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
+        const uid = userCred.user.uid;
+        await secondaryApp.auth().signOut();
+
+        const batch = db.batch();
+        const userRef = db.collection('users').doc(uid);
+        batch.set(userRef, {
+            email: email, role: 'TeamManager', teamId: teamId, teamName: teamName,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        const teamRef = db.collection('teams').doc(teamId);
+        batch.set(teamRef, {
+            name: teamName, logo: "", captainId: uid,
+            wins: 0, draws: 0, losses: 0, goals_scored: 0, goals_lost: 0, points: 0
+        });
+        const playerRef = teamRef.collection('players').doc();
+        batch.set(playerRef, { name: "Manager (Edytuj)", number: 0, goals: 0, teamName: teamName });
+
+        await batch.commit();
+        alert("SUKCES! Konto Team Managera utworzone.");
+        window.location.reload();
+
+    } catch (error) {
+        console.error("Błąd:", error);
+        alert("BŁĄD: " + error.message);
+    } finally {
+        if (secondaryApp) secondaryApp.delete();
+    }
+};
