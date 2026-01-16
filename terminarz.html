@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puchar Gwiazd | Terminarz</title>
+    <title>Terminarz | Puchar Gwiazd</title>
     
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="logo.png">
@@ -13,267 +13,221 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
 
     <style>
-        /* --- NAVBAR FIX (Menu Mobilne) --- */
-        .navbar {
-            position: sticky; top: 0; z-index: 999999;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 5%; background: rgba(15, 23, 42, 0.98);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-weight: 800; }
-        .logo-img { height: 40px; }
-        .menu-toggle { display: none; font-size: 2rem; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
-        .nav-links { display: flex; gap: 20px; align-items: center; }
+        /* STYLE TYLKO DLA ELEMENTÓW GENEROWANYCH PRZEZ JS (Mecze) */
+        /* Żeby nie psuć Twojego style.css, ale żeby mecze wyglądały czytelnie */
         
-        @media (max-width: 900px) {
-            .menu-toggle { display: block; }
-            .nav-links { 
-                display: none; 
-                position: absolute; top: 100%; left: 0; width: 100%; 
-                background: #0f172a; flex-direction: column; padding: 20px 0; 
-                border-bottom: 1px solid rgba(255,255,255,0.2); 
-                box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            }
-            .nav-links.active { display: flex !important; }
-            .nav-links a { 
-                padding: 15px; width: 100%; text-align: center; 
-                border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 1.2rem; 
-            }
-        }
-
-        /* --- STYLE DLA TERMINARZA --- */
-        .group-card {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px; margin-bottom: 20px; overflow: hidden;
-            transition: 0.3s;
-        }
-        .group-header {
-            padding: 20px; background: rgba(255,255,255,0.03);
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; font-weight: 800; font-size: 1.1rem;
-        }
-        .group-header:hover { background: rgba(255,255,255,0.06); color: #00d4ff; }
-        
-        .group-content { display: none; padding: 0; animation: fadeIn 0.3s; }
-        .group-content.active { display: block; }
-
         .match-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: grid; 
+            grid-template-columns: 1fr auto 1fr; 
+            gap: 15px; 
+            align-items: center;
+            padding: 15px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: 0.2s;
         }
         .match-row:last-child { border-bottom: none; }
+        .match-row:hover { background: rgba(255,255,255,0.03); }
+
+        .team-left { text-align: right; font-weight: 600; color: #fff; }
+        .team-right { text-align: left; font-weight: 600; color: #fff; }
         
-        .match-date { font-size: 0.8rem; color: #888; width: 80px; }
-        .match-teams { flex: 1; text-align: center; font-weight: 600; display: flex; justify-content: center; gap: 15px; }
-        .match-score { color: #00d4ff; font-weight: 800; min-width: 40px; text-align: center; }
-
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-
-        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 40px; }
-        .tab-btn {
-            background: transparent; border: 1px solid rgba(255,255,255,0.2);
-            color: #ccc; padding: 10px 25px; border-radius: 30px; cursor: pointer;
-            font-weight: 700; transition: 0.3s;
+        .score-badge {
+            background: rgba(0,0,0,0.4); 
+            padding: 5px 15px; 
+            border-radius: 8px;
+            font-weight: 800; 
+            color: #00d4ff; 
+            min-width: 60px; 
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .tab-btn.active, .tab-btn:hover {
-            background: #00d4ff; color: #000; border-color: #00d4ff;
-        }
+        
+        /* Status Live */
+        .match-live .score-badge { color: #ff4d4d; border-color: #ff4d4d; animation: pulse 2s infinite; }
+        
+        /* Ukrywanie/Pokazywanie grup (Akordeon) */
+        .group-content { display: none; }
+        .group-content.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
     </style>
 </head>
 <body>
 
     <nav class="navbar">
-        <a href="index.html" class="brand">
-            <img src="logo.png" alt="Logo" class="logo-img">
-            <span class="logo-text">PUCHAR GWIAZD</span>
-        </a>
-
-        <div class="menu-toggle" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i>
+        <div class="logo">
+            <img src="logo.png" alt="Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
+            PUCHAR GWIAZD
         </div>
-
-        <div class="nav-links" id="navLinks">
-            <a href="index.html">STRONA GŁÓWNA</a>
-            <a href="druzyny.html">DRUŻYNY</a>
-            <a href="terminarz.html" class="active-link" style="color:#00d4ff;">TERMINARZ</a>
-            <a href="tabela.html">TABELE</a>
-            <a href="regulamin.html">REGULAMIN</a>
-            <a href="onas.html">O NAS</a>
-            <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
-            <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
+        <div class="nav-links">
+            <a href="index.html">Start</a>
+            <a href="terminarz.html" class="active">Terminarz</a>
+            <a href="tabela.html">Tabele</a>
         </div>
     </nav>
 
-    <script>
-        function toggleMenu() {
-            var nav = document.getElementById("navLinks");
-            if (nav.style.display === "flex") {
-                nav.style.display = "";
-                nav.classList.remove("active");
-            } else {
-                nav.classList.toggle("active");
-            }
-        }
-    </script>
+    <div class="container" style="max-width: 900px; margin: 40px auto; padding: 0 20px;">
+        
+        <div style="text-align: center; margin-bottom: 30px;" data-aos="fade-down">
+            <h1>TERMINARZ</h1>
+        </div>
 
-    <main class="container">
-        <header class="page-header" data-aos="fade-down" style="text-align:center; margin: 50px 0 30px;">
-            <h2 style="font-size:2rem; font-weight:800; margin:0;">TERMINARZ</h2>
-            <p style="color:#00d4ff; letter-spacing:2px; font-size:0.9rem; font-weight:700;">HARMONOGRAM GRY</p>
-        </header>
-
-        <div class="tabs" data-aos="fade-up">
-            <button class="tab-btn active" onclick="showStage('group')">FAZA GRUPOWA</button>
-            <button class="tab-btn" onclick="showStage('knockout')">FAZA PUCHAROWA</button>
+        <div class="tabs" style="display:flex; justify-content:center; gap:15px; margin-bottom:30px;" data-aos="fade-up">
+            <button class="btn" onclick="showStage('group', this)" style="background:#00d4ff; color:#000; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer;">Faza Grupowa</button>
+            <button class="btn" onclick="showStage('knockout', this)" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid #444; padding:10px 20px; border-radius:20px; font-weight:bold; cursor:pointer;">Faza Pucharowa</button>
         </div>
 
         <div id="group-stage-view">
-            <div class="group-card" id="card-a" data-aos="fade-up">
-                <div class="group-header" onclick="toggleGroup('a')">
-                    <span>GRUPA A</span>
-                    <i class="fas fa-chevron-down" style="transition:0.3s"></i>
+            
+            <div class="card" id="card-A" style="background:rgba(20, 30, 50, 0.8); border:1px solid #333; border-radius:15px; margin-bottom:20px; overflow:hidden;" data-aos="fade-up">
+                <div onclick="toggleGroup('A')" style="padding:20px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05);">
+                    <h3 style="margin:0; color:#00d4ff;">GRUPA A</h3> <i class="fas fa-chevron-down"></i>
                 </div>
-                <div id="list-group-a" class="group-content">Wczytywanie...</div>
+                <div class="group-content active" id="list-group-A">
+                    <div style="padding:20px; text-align:center; color:#888;">Ładowanie meczów...</div>
+                </div>
             </div>
 
-            <div class="group-card" id="card-b" data-aos="fade-up" data-aos-delay="100">
-                <div class="group-header" onclick="toggleGroup('b')">
-                    <span>GRUPA B</span>
-                    <i class="fas fa-chevron-down" style="transition:0.3s"></i>
+            <div class="card" id="card-B" style="background:rgba(20, 30, 50, 0.8); border:1px solid #333; border-radius:15px; margin-bottom:20px; overflow:hidden;" data-aos="fade-up">
+                <div onclick="toggleGroup('B')" style="padding:20px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05);">
+                    <h3 style="margin:0; color:#00d4ff;">GRUPA B</h3> <i class="fas fa-chevron-down"></i>
                 </div>
-                <div id="list-group-b" class="group-content">Wczytywanie...</div>
+                <div class="group-content active" id="list-group-B">
+                    <div style="padding:20px; text-align:center; color:#888;">Ładowanie meczów...</div>
+                </div>
             </div>
 
-            <div class="group-card" id="card-c" data-aos="fade-up" data-aos-delay="200">
-                <div class="group-header" onclick="toggleGroup('c')">
-                    <span>GRUPA C</span>
-                    <i class="fas fa-chevron-down" style="transition:0.3s"></i>
+            <div class="card" id="card-C" style="background:rgba(20, 30, 50, 0.8); border:1px solid #333; border-radius:15px; margin-bottom:20px; overflow:hidden;" data-aos="fade-up">
+                <div onclick="toggleGroup('C')" style="padding:20px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05);">
+                    <h3 style="margin:0; color:#00d4ff;">GRUPA C</h3> <i class="fas fa-chevron-down"></i>
                 </div>
-                <div id="list-group-c" class="group-content">Wczytywanie...</div>
+                <div class="group-content active" id="list-group-C">
+                    <div style="padding:20px; text-align:center; color:#888;">Ładowanie meczów...</div>
+                </div>
             </div>
 
-            <div class="group-card" id="card-d" data-aos="fade-up" data-aos-delay="300">
-                <div class="group-header" onclick="toggleGroup('d')">
-                    <span>GRUPA D</span>
-                    <i class="fas fa-chevron-down" style="transition:0.3s"></i>
+            <div class="card" id="card-D" style="background:rgba(20, 30, 50, 0.8); border:1px solid #333; border-radius:15px; margin-bottom:20px; overflow:hidden;" data-aos="fade-up">
+                <div onclick="toggleGroup('D')" style="padding:20px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.05);">
+                    <h3 style="margin:0; color:#00d4ff;">GRUPA D</h3> <i class="fas fa-chevron-down"></i>
                 </div>
-                <div id="list-group-d" class="group-content">Wczytywanie...</div>
+                <div class="group-content active" id="list-group-D">
+                    <div style="padding:20px; text-align:center; color:#888;">Ładowanie meczów...</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="knockout-stage-view" style="display:none;">
+            <div class="card" style="background:rgba(20, 30, 50, 0.8); border:1px solid #333; border-radius:15px;" data-aos="fade-up">
+                <div style="padding:20px; border-bottom:1px solid #333; color:gold;">
+                    <h3 style="margin:0;"><i class="fas fa-trophy"></i> FINAŁY</h3>
+                </div>
+                <div class="group-content active" id="list-faza_pucharowa">
+                    <div style="padding:20px; text-align:center; color:#888;">Brak meczów</div>
+                </div>
             </div>
         </div>
 
-        <div id="knockout-stage-view" style="display: none;">
-            <div class="group-card" style="border-color: var(--primary);">
-                <div class="group-header" style="cursor: default; background: rgba(0, 85, 255, 0.1);">
-                    <span>DRABINKA TURNIEJOWA</span>
-                    <i class="fas fa-trophy" style="color: gold;"></i>
-                </div>
-                <div id="knockout-list" style="padding: 20px;">Wczytywanie...</div>
-            </div>
-        </div>
-
-    </main>
-
-    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid rgba(255,255,255,0.1);">
-        &copy; 2025 PUCHAR GWIAZD
-    </footer>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script> AOS.init({ duration: 600, once: true }); </script>
+    <script> AOS.init(); </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:75e8df76127397b913612d"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        const CONFIG = { apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo", authDomain: "puchargwiazd-bdaa4.firebaseapp.com", projectId: "puchargwiazd-bdaa4", storageBucket: "puchargwiazd-bdaa4.firebasestorage.app", messagingSenderId: "890734185883", appId: "1:890734185883:web:75e8df76127397b913612d" };
-        const app = initializeApp(CONFIG);
-        const db = getFirestore(app);
+        // POBIERANIE MECZÓW
+        db.collection('matches').orderBy('date', 'asc').onSnapshot(snap => {
+            const containers = {
+                'A': document.getElementById('list-group-A'),
+                'B': document.getElementById('list-group-B'),
+                'C': document.getElementById('list-group-C'),
+                'D': document.getElementById('list-group-D'),
+                'faza_pucharowa': document.getElementById('list-faza_pucharowa')
+            };
 
-        // --- POBIERANIE MECZÓW ---
-        const q = query(collection(db, "matches"), orderBy("date"), orderBy("time"));
+            // Czyścimy widok
+            for(let k in containers) if(containers[k]) containers[k].innerHTML = '';
 
-        onSnapshot(q, (snap) => {
-            const groups = { a: [], b: [], c: [], d: [], knockout: [] };
+            const matches = [];
+            snap.forEach(doc => matches.push(doc.data()));
 
-            snap.forEach(doc => {
-                const m = doc.data();
-                const type = m.group ? m.group.toLowerCase() : 'knockout';
-                
-                if(['a','b','c','d'].includes(type)) {
-                    groups[type].push(m);
-                } else {
-                    groups.knockout.push(m);
-                }
+            // Sortowanie: Data, potem Godzina
+            matches.sort((a,b) => {
+                if(a.date !== b.date) return a.date.localeCompare(b.date);
+                return (a.time || '').localeCompare(b.time || '');
             });
 
-            // Renderuj Grupy
-            ['a','b','c','d'].forEach(g => {
-                const container = document.getElementById(`list-group-${g}`);
-                if(!container) return;
-                
-                if(groups[g].length === 0) {
-                    container.innerHTML = '<div style="padding:15px; text-align:center; color:#666;">Brak meczów.</div>';
-                } else {
-                    let html = '';
-                    groups[g].forEach(m => {
-                        html += `
-                            <div class="match-row">
-                                <div class="match-date">
-                                    ${m.date}<br><span style="color:#555">${m.time}</span>
-                                </div>
-                                <div class="match-teams">
-                                    <span>${m.team1}</span>
-                                    <span class="match-score">${m.score1} : ${m.score2}</span>
-                                    <span>${m.team2}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    container.innerHTML = html;
-                }
-            });
+            matches.forEach(m => {
+                const gr = m.group || 'A';
+                let score = m.time || '-:-';
+                let rowClass = '';
 
-            // Renderuj Pucharową
-            const kContainer = document.getElementById('knockout-list');
-            if(groups.knockout.length === 0) {
-                kContainer.innerHTML = '<p style="text-align:center; opacity:0.5;">Faza pucharowa jeszcze się nie rozpoczęła.</p>';
-            } else {
-                let html = '';
-                groups.knockout.forEach(m => {
-                    html += `
-                        <div class="match-row">
-                            <div class="match-date">
-                                <b>${m.group || 'Mecz'}</b><br>${m.date} | ${m.time}
-                            </div>
-                            <div class="match-teams">
-                                <span>${m.team1}</span>
-                                <span class="match-score">${m.score1} : ${m.score2}</span>
-                                <span>${m.team2}</span>
-                            </div>
+                if(m.status === 'live') {
+                    score = `${m.homeScore}:${m.awayScore}`;
+                    rowClass = 'match-live';
+                } else if(m.status === 'finished') {
+                    score = `${m.homeScore}:${m.awayScore}`;
+                }
+
+                // TWORZENIE ELEMENTU MECZU
+                const html = `
+                    <div class="match-row ${rowClass}">
+                        <div class="team-left">${m.home}</div>
+                        <div style="text-align:center;">
+                            <div class="score-badge">${score}</div>
+                            <div style="font-size:0.7rem; color:#888; margin-top:3px;">${m.date}</div>
                         </div>
-                    `;
-                });
-                kContainer.innerHTML = html;
+                        <div class="team-right">${m.away}</div>
+                    </div>
+                `;
+
+                if(containers[gr]) containers[gr].innerHTML += html;
+            });
+
+            // Komunikat o braku meczów
+            for(let k in containers) {
+                if(containers[k] && containers[k].innerHTML === '') {
+                    containers[k].innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Brak zaplanowanych meczów</div>';
+                }
             }
         });
 
-        // --- FUNKCJE WIDOKU ---
-        window.toggleGroup = function(group) {
-            const content = document.getElementById(`list-group-${group}`);
-            const icon = document.querySelector(`#card-${group} .fa-chevron-down`);
-            
-            if(content.classList.contains('active')) {
-                content.classList.remove('active');
-                icon.style.transform = 'rotate(0deg)';
+        // NAWIGACJA
+        window.toggleGroup = function(g) {
+            const el = document.getElementById(`list-group-${g}`);
+            const icon = document.querySelector(`#card-${g} .fa-chevron-down`);
+            if(el.classList.contains('active')) {
+                el.classList.remove('active');
+                if(icon) icon.style.transform = 'rotate(0deg)';
             } else {
-                content.classList.add('active');
-                icon.style.transform = 'rotate(180deg)';
+                el.classList.add('active');
+                if(icon) icon.style.transform = 'rotate(180deg)';
             }
         };
 
-        window.showStage = function(stage) {
-            const btns = document.querySelectorAll('.tab-btn');
-            btns.forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+        window.showStage = function(stage, btn) {
+            // Zmiana kolorów guzików (prosta, inline żeby nie psuć CSS)
+            const btns = document.querySelectorAll('.tabs button');
+            btns.forEach(b => {
+                b.style.background = 'rgba(255,255,255,0.1)';
+                b.style.color = '#fff';
+            });
+            btn.style.background = '#00d4ff';
+            btn.style.color = '#000';
 
             if(stage === 'group') {
                 document.getElementById('group-stage-view').style.display = 'block';
@@ -284,6 +238,5 @@
             }
         };
     </script>
-
 </body>
 </html>
