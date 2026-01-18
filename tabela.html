@@ -13,304 +13,274 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
 
     <style>
-        /* --- NAVBAR FIX (Menu Mobilne) --- */
-        .navbar {
-            position: sticky; top: 0; z-index: 999999;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 5%; background: rgba(15, 23, 42, 0.98);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-weight: 800; }
-        .logo-img { height: 40px; }
-        .menu-toggle { display: none; font-size: 2rem; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        
-        @media (max-width: 900px) {
-            .menu-toggle { display: block; }
-            .nav-links { 
-                display: none; 
-                position: absolute; top: 100%; left: 0; width: 100%; 
-                background: #0f172a; flex-direction: column; padding: 20px 0; 
-                border-bottom: 1px solid rgba(255,255,255,0.2); 
-                box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            }
-            .nav-links.active { display: flex !important; }
-            .nav-links a { 
-                padding: 15px; width: 100%; text-align: center; 
-                border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 1.2rem; 
-            }
-        }
-
-        /* --- STYLE TABEL --- */
+        /* Układ tabel */
         #tables-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
-            gap: 40px;
-        }
-
-        /* Responsywność dla małych ekranów (telefony) */
-        @media (max-width: 600px) {
-            #tables-container {
-                grid-template-columns: 1fr;
-            }
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
         }
 
         .table-wrapper {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(30, 41, 59, 0.6); /* Glassmorphism */
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 12px;
             overflow: hidden;
+            backdrop-filter: blur(5px);
             transition: 0.3s;
         }
-        .table-wrapper:hover { border-color: #00d4ff; transform: translateY(-5px); }
+        .table-wrapper:hover { transform: translateY(-5px); }
 
-        .table-header {
-            background: rgba(0, 212, 255, 0.1);
-            padding: 15px; text-align: center;
-            font-weight: 800; font-size: 1.2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            color: #fff;
-        }
-
-        .standings-table {
-            width: 100%; border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        .standings-table th {
-            background: rgba(0,0,0,0.3); color: #888;
-            font-weight: 600; padding: 12px 10px; text-align: center;
-            font-size: 0.75rem; text-transform: uppercase;
-        }
-        .standings-table td {
-            padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
+        .group-header {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
             text-align: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #00d4ff; /* Akcent */
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-transform: uppercase;
         }
-        .standings-table tr:last-child td { border-bottom: none; }
+
+        table { width: 100%; border-collapse: collapse; color: #fff; font-size: 0.9rem; }
+        th { background: rgba(0,0,0,0.3); padding: 12px 8px; font-weight: 700; color: #aaa; text-align: center; font-size: 0.8rem; }
+        td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
         
-        .t-club { text-align: left !important; display: flex; align-items: center; gap: 10px; }
-        .t-club img { width: 30px; height: 30px; object-fit: contain; }
-        .pos-1, .pos-2 { color: #00ff88; font-weight: bold; } /* Awans */
-        .pos-3, .pos-4 { color: #ff4d4d; } /* Odpadnięcie */
+        td:nth-child(2) { text-align: left; font-weight: 600; color: #fff; width: 40%; } /* Nazwa drużyny */
+        tr:last-child td { border-bottom: none; }
+        
+        /* Kolorowanie pierwszej trójki */
+        tbody tr:nth-child(1) td:nth-child(1) { color: gold; font-weight: bold; }
+        tbody tr:nth-child(2) td:nth-child(1) { color: silver; font-weight: bold; }
+        tbody tr:nth-child(3) td:nth-child(1) { color: #cd7f32; font-weight: bold; }
+
+        /* Responsywność */
+        @media(max-width: 600px) {
+            #tables-container { grid-template-columns: 1fr; }
+            td, th { padding: 10px 5px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar">
-        <a href="index.html" class="brand">
-            <img src="logo.png" alt="Logo" class="logo-img">
-            <span class="logo-text">PUCHAR GWIAZD</span>
-        </a>
-
-        <div class="menu-toggle" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i>
+    <nav class="navbar" style="position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div class="logo" style="display:flex; align-items:center;">
+            <img src="logo.png" alt="PG" style="height:40px; margin-right:10px;">
+            <span style="font-weight:800; color:#00d4ff;">PUCHAR GWIAZD</span>
         </div>
-
-        <div class="nav-links" id="navLinks">
-            <a href="index.html">STRONA GŁÓWNA</a>
-            <a href="druzyny.html">DRUŻYNY</a>
-            <a href="terminarz.html">TERMINARZ</a>
-            <a href="tabela.html" class="active-link" style="color:#00d4ff;">TABELE</a>
-            <a href="regulamin.html">REGULAMIN</a>
-            <a href="onas.html">O NAS</a>
-            <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
-            <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
+        <div class="nav-links">
+            <a href="index.html" style="color:#ccc; text-decoration:none; margin-left:20px; font-weight:600;">START</a>
+            <a href="terminarz.html" style="color:#ccc; text-decoration:none; margin-left:20px; font-weight:600;">TERMINARZ</a>
+            <a href="tabela.html" style="color:#00d4ff; text-decoration:none; margin-left:20px; font-weight:600;">TABELE</a>
         </div>
     </nav>
 
-    <script>
-        function toggleMenu() {
-            var nav = document.getElementById("navLinks");
-            if (nav.style.display === "flex") {
-                nav.style.display = "";
-                nav.classList.remove("active");
-            } else {
-                nav.classList.toggle("active");
-            }
-        }
-    </script>
-
-    <main class="container">
-        <header class="page-header" data-aos="fade-down" style="text-align:center; margin: 50px 0 30px;">
-            <p style="color:#00d4ff; letter-spacing:2px; font-size:0.9rem; font-weight:700;">KLASYFIKACJA DRUŻYN</p>
-            <h2 style="font-size:2rem; font-weight:800; margin:0;">TABELE GRUPOWE</h2>
-        </header>
-
-        <div id="tables-container">
-            <p style="text-align:center; opacity: 0.5;">Wczytywanie statystyk...</p>
+    <div class="container" style="max-width: 1100px; margin: 40px auto; padding: 0 20px;">
+        
+        <div style="text-align: center; margin-bottom: 40px;" data-aos="fade-down">
+            <p style="color: #aaa; margin:0;">Klasyfikacja Generalna</p>
+            <h2 style="font-size: 2.5rem; margin: 5px 0 0 0; color: #fff;">TABELE GRUPOWE</h2>
         </div>
-    </main>
 
-    <footer style="text-align:center; padding: 60px; opacity: 0.4; font-size: 0.8rem; margin-top:50px; border-top: 1px solid rgba(255,255,255,0.1);">
-        &copy; 2025 PUCHAR GWIAZD
-    </footer>
+        <div id="tables-container" data-aos="fade-up">
+            <p style="text-align:center; width:100%; color:#888;">Ładowanie tabel...</p>
+        </div>
+
+        <div style="text-align: center; margin: 60px 0 30px 0;" data-aos="fade-down">
+            <p style="color: #aaa; margin:0;">Indywidualne Osiągnięcia</p>
+            <h2 style="font-size: 2rem; margin: 5px 0 0 0; color: #fff;">TOP STRZELCY</h2>
+        </div>
+
+        <div class="table-wrapper" style="max-width: 800px; margin: 0 auto;" data-aos="fade-up">
+            <div class="group-header" style="color: gold;">KRÓL STRZELCÓW</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:10%;">#</th>
+                        <th style="width:40%; text-align:left;">ZAWODNIK</th>
+                        <th style="width:30%;">DRUŻYNA</th>
+                        <th style="width:20%; color:#00d4ff;">GOLE</th>
+                    </tr>
+                </thead>
+                <tbody id="top-scorers-body">
+                    <tr><td colspan="4" style="color:#888;">Ładowanie strzelców...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script> AOS.init({ duration: 600, once: true }); </script>
+    <script> AOS.init(); </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, query, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-        const CONFIG = { apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo", authDomain: "puchargwiazd-bdaa4.firebaseapp.com", projectId: "puchargwiazd-bdaa4", storageBucket: "puchargwiazd-bdaa4.firebasestorage.app", messagingSenderId: "890734185883", appId: "1:890734185883:web:75e8df76127397b913612d" };
-        const app = initializeApp(CONFIG);
-        const db = getFirestore(app);
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:75e8df76127397b913612d"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        // --- 1. DEFINICJA GRUP NA SZTYWNO ---
-        const FIXED_GROUPS = {
+        // DEFINICJA GRUP (Dla porządku w tabelach)
+        const GROUPS_DEF = {
             "A": ["Boys", "Down The Road", "Łobuzy", "SławBud"],
             "B": ["Nam strzelać nie kazano", "Fc Hetman", "Coco Jumbos", "Valentino Royal"],
             "C": ["Łobuzy 2", "Dżołki Fc", "Pasjonaci Footballu", "PGR Team"],
             "D": ["Piłkarskie Koty", "Czarne Perły Mozambiku", "Goon FC", "PKS Mięsne"]
         };
 
-        // --- FUNKCJA RENDERUJĄCA JEDNĄ TABELĘ ---
-        function createTable(groupName, teams) {
-            // Sortowanie: Punkty > Bilans bramek > Bramki strzelone
-            teams.sort((a, b) => {
-                if (b.stats.points !== a.stats.points) return b.stats.points - a.stats.points;
-                const goalDiffA = a.stats.goalsScored - a.stats.goalsLost;
-                const goalDiffB = b.stats.goalsScored - b.stats.goalsLost;
-                if (goalDiffB !== goalDiffA) return goalDiffB - goalDiffA;
-                return b.stats.goalsScored - a.stats.goalsScored;
+        // --- FUNKCJA NORMALIZUJĄCA (Naprawia liczenie punktów) ---
+        function normalizeTeamName(inputName) {
+            if(!inputName) return "Nieznana";
+            const lowerInput = inputName.trim().toLowerCase();
+            for (const group in GROUPS_DEF) {
+                for (const team of GROUPS_DEF[group]) {
+                    if (team.toLowerCase() === lowerInput) return team;
+                }
+            }
+            return inputName;
+        }
+
+        // --- 1. GENEROWANIE TABEL GRUPOWYCH ---
+        db.collection('matches').onSnapshot(snap => {
+            const matches = [];
+            snap.forEach(doc => matches.push(doc.data()));
+
+            // Inicjalizacja pustych statystyk
+            let stats = {};
+            Object.keys(GROUPS_DEF).forEach(g => {
+                GROUPS_DEF[g].forEach(t => {
+                    stats[t] = { m:0, w:0, d:0, l:0, goals:0, pts:0 };
+                });
             });
 
-            let rows = '';
-            teams.forEach((t, index) => {
-                const posClass = (index < 2) ? 'pos-1' : 'pos-3'; // 1-2 awans (zielony), 3-4 odpad (czerwony)
-                rows += `
+            // Liczenie (tylko zakończone mecze)
+            matches.forEach(m => {
+                if(m.status === 'finished') {
+                    // Normalizacja nazw (Case Insensitive)
+                    const home = normalizeTeamName(m.home);
+                    const away = normalizeTeamName(m.away);
+
+                    // Jeśli drużyny nie ma w definicji (np. błąd w bazie), dodajemy ją
+                    if(!stats[home]) stats[home] = { m:0, w:0, d:0, l:0, goals:0, pts:0 };
+                    if(!stats[away]) stats[away] = { m:0, w:0, d:0, l:0, goals:0, pts:0 };
+
+                    const h = stats[home];
+                    const a = stats[away];
+
+                    h.m++; a.m++;
+                    h.goals += (m.homeScore || 0);
+                    a.goals += (m.awayScore || 0);
+
+                    if(m.homeScore > m.awayScore) {
+                        h.pts += 3; h.w++; a.l++;
+                    } else if (m.homeScore < m.awayScore) {
+                        a.pts += 3; a.w++; h.l++;
+                    } else {
+                        h.pts += 1; a.pts += 1; h.d++; a.d++;
+                    }
+                }
+            });
+
+            // Renderowanie HTML
+            const container = document.getElementById('tables-container');
+            container.innerHTML = '';
+
+            Object.keys(GROUPS_DEF).forEach(groupName => {
+                const teams = GROUPS_DEF[groupName];
+                
+                // Sortowanie: Punkty > Bramki (malejąco)
+                teams.sort((t1, t2) => {
+                    const s1 = stats[t1];
+                    const s2 = stats[t2];
+                    if(s2.pts !== s1.pts) return s2.pts - s1.pts;
+                    return s2.goals - s1.goals;
+                });
+
+                let rows = '';
+                teams.forEach((team, idx) => {
+                    const s = stats[team];
+                    rows += `
+                        <tr>
+                            <td>${idx+1}</td>
+                            <td>${team}</td>
+                            <td>${s.m}</td>
+                            <td>${s.w}</td>
+                            <td>${s.d}</td>
+                            <td>${s.l}</td>
+                            <td>${s.goals}</td>
+                            <td><strong>${s.pts}</strong></td>
+                        </tr>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="table-wrapper">
+                        <div class="group-header">GRUPA ${groupName}</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th title="Miejsce">#</th>
+                                    <th title="Drużyna">DRUŻYNA</th>
+                                    <th title="Mecze">M</th>
+                                    <th title="Wygrane">W</th>
+                                    <th title="Remisy">R</th>
+                                    <th title="Przegrane">P</th>
+                                    <th title="Gole">B</th>
+                                    <th title="Punkty">PKT</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            });
+        });
+
+        // --- 2. GENEROWANIE TOP STRZELCÓW (Bezpieczne sortowanie) ---
+        db.collectionGroup('players').onSnapshot(snap => {
+            let players = [];
+            snap.forEach(doc => {
+                const p = doc.data();
+                const g = parseInt(p.goals) || 0;
+                if(g > 0) {
+                    players.push({ name: p.name, team: p.teamName || '', goals: g });
+                }
+            });
+
+            // Sortowanie w przeglądarce
+            players.sort((a,b) => b.goals - a.goals);
+
+            // Wyświetl Top 20
+            const topList = players.slice(0, 20);
+            const tbody = document.getElementById('top-scorers-body');
+            tbody.innerHTML = '';
+
+            if(topList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="color:#888;">Brak danych o strzelcach</td></tr>';
+                return;
+            }
+
+            topList.forEach((p, idx) => {
+                tbody.innerHTML += `
                     <tr>
-                        <td class="${posClass}">${index + 1}.</td>
-                        <td class="t-club">
-                            <img src="${t.logo || 'logo.png'}" onerror="this.src='logo.png'"> ${t.name}
-                        </td>
-                        <td>${t.stats.matches}</td>
-                        <td>${t.stats.wins}</td>
-                        <td>${t.stats.draws}</td>
-                        <td>${t.stats.losses}</td>
-                        <td>${t.stats.goalsScored}:${t.stats.goalsLost}</td>
-                        <td style="font-weight:bold; color:#fff;">${t.stats.points}</td>
+                        <td>${idx+1}</td>
+                        <td style="text-align:left;">${p.name}</td>
+                        <td>${p.team}</td>
+                        <td style="color:#00d4ff; font-weight:bold;">${p.goals}</td>
                     </tr>
                 `;
             });
-
-            return `
-                <div class="table-wrapper" data-aos="fade-up">
-                    <div class="table-header">GRUPA ${groupName}</div>
-                    <table class="standings-table">
-                        <thead>
-                            <tr>
-                                <th>#</th> <th>DRUŻYNA</th> <th>M</th> <th>W</th> <th>R</th> <th>P</th> <th>BRAMKI</th> <th>PKT</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>
-            `;
-        }
-
-        async function loadData() {
-            // 1. Inicjalizacja pustej struktury na bazie FIXED_GROUPS
-            let teamsMap = {}; // Mapa: "Nazwa Drużyny" -> Obiekt Drużyny
-            let groupsData = {}; // Mapa: "A" -> [Drużyny...]
-
-            // Tworzymy strukturę w pamięci
-            for (const [groupName, teamNames] of Object.entries(FIXED_GROUPS)) {
-                groupsData[groupName] = [];
-                teamNames.forEach(name => {
-                    const newTeam = {
-                        name: name,
-                        group: groupName,
-                        logo: 'logo.png', // Domyślne logo, zaraz spróbujemy pobrać prawdziwe
-                        stats: { points: 0, matches: 0, wins: 0, draws: 0, losses: 0, goalsScored: 0, goalsLost: 0 }
-                    };
-                    groupsData[groupName].push(newTeam);
-                    teamsMap[name] = newTeam; // Referencja dla łatwego dostępu
-                });
-            }
-
-            try {
-                // 2. Pobierz logotypy z Firebase (jeśli istnieją w kolekcji 'teams')
-                // Robimy to tylko po to, żeby tabelki ładnie wyglądały
-                const qTeams = query(collection(db, "teams"));
-                const snapTeams = await getDocs(qTeams);
-                
-                snapTeams.forEach(doc => {
-                    const data = doc.data();
-                    if (data.name && teamsMap[data.name]) {
-                        teamsMap[data.name].logo = data.logo || 'logo.png';
-                    }
-                });
-
-                // 3. Pobierz mecze i policz punkty
-                const qMatches = query(collection(db, "matches"));
-                const snapMatches = await getDocs(qMatches);
-
-                snapMatches.forEach(doc => {
-                    const m = doc.data();
-                    
-                    // Znajdź drużyny w naszej mapie po nazwie
-                    const t1 = teamsMap[m.team1];
-                    const t2 = teamsMap[m.team2];
-
-                    // Obliczaj tylko jeśli obie drużyny są w naszych grupach i mecz ma wynik
-                    if(t1 && t2 && m.score1 !== undefined && m.score2 !== undefined && m.score1 !== "" && m.score2 !== "") {
-                        const s1 = parseInt(m.score1);
-                        const s2 = parseInt(m.score2);
-
-                        // Statystyki T1
-                        t1.stats.matches++;
-                        t1.stats.goalsScored += s1;
-                        t1.stats.goalsLost += s2;
-
-                        // Statystyki T2
-                        t2.stats.matches++;
-                        t2.stats.goalsScored += s2;
-                        t2.stats.goalsLost += s1;
-
-                        if(s1 > s2) {
-                            t1.stats.wins++;
-                            t1.stats.points += 3;
-                            t2.stats.losses++;
-                        } else if(s2 > s1) {
-                            t2.stats.wins++;
-                            t2.stats.points += 3;
-                            t1.stats.losses++;
-                        } else {
-                            t1.stats.draws++;
-                            t1.stats.points += 1;
-                            t2.stats.draws++;
-                            t2.stats.points += 1;
-                        }
-                    }
-                });
-
-                // 4. Wygeneruj HTML
-                const container = document.getElementById('tables-container');
-                container.innerHTML = '';
-
-                // Iterujemy po grupach A, B, C, D
-                const groupOrder = ["A", "B", "C", "D"];
-                
-                groupOrder.forEach(gName => {
-                    if (groupsData[gName]) {
-                        container.innerHTML += createTable(gName, groupsData[gName]);
-                    }
-                });
-
-            } catch (error) {
-                console.error("Błąd pobierania danych:", error);
-                document.getElementById('tables-container').innerHTML = '<p style="text-align:center; color:red;">Wystąpił błąd podczas ładowania danych.</p>';
-            }
-        }
-
-        // Uruchom ładowanie
-        loadData();
-
-        // Nasłuchiwanie zmian w wynikach na żywo
-        onSnapshot(collection(db, "matches"), () => {
-            loadData();
         });
+
     </script>
+
 </body>
 </html>

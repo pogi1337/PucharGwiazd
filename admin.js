@@ -1,4 +1,4 @@
-/* admin.js - WERSJA Z 4 GRUPAMI, TABELAMI I PEŁNĄ EDYCJĄ */
+/* admin.js - NAPRAWIONY: STRZELCY (BRUTE FORCE) + CASE INSENSITIVE + MOBILE */
 
 const firebaseConfig = {
     apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
@@ -14,7 +14,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const ADMINS = ["kacpernwm77@gmail.com", "krzysztof.lodzinski@interia.pl"];
 
-// --- DEFINICJA GRUP (NAZWY DRUŻYN MUSZĄ BYĆ IDENTYCZNE W EDYTORZE) ---
+// GRUPY - SŁOWNIK POPRAWNYCH NAZW
 const GROUPS_DEF = {
     "A": ["Boys", "Down The Road", "Łobuzy", "SławBud"],
     "B": ["Nam strzelać nie kazano", "Fc Hetman", "Coco Jumbos", "Valentino Royal"],
@@ -54,6 +54,25 @@ function initApp() {
     listenTeamsList();
     loadSettings();
     document.getElementById('mDate').value = new Date().toISOString().slice(0,10);
+    
+    // Oblicz strzelców
+    calculateTopScorers();
+}
+
+// --- FUNKCJA NAPRAWIAJĄCA NAZWY DRUŻYN (Case Insensitive) ---
+function normalizeTeamName(inputName) {
+    if(!inputName) return "Nieznana";
+    const lowerInput = inputName.trim().toLowerCase();
+    
+    // Szukamy w definicji grup
+    for (const group in GROUPS_DEF) {
+        for (const team of GROUPS_DEF[group]) {
+            if (team.toLowerCase() === lowerInput) {
+                return team; // Zwracamy "ładną" nazwę z dużej litery
+            }
+        }
+    }
+    return inputName; // Jak nie znajdzie, zwraca oryginał
 }
 
 // --- MECZE ---
@@ -78,7 +97,7 @@ function listenMatches() {
 
             con.innerHTML += `
             <div class="match-card" style="border-left:4px solid ${color}">
-                <div>
+                <div style="flex-grow:1;">
                     <div style="font-size:0.8rem; color:#888;">${m.date} | ${m.time} | Gr. ${m.group}</div>
                     <div style="font-size:1.1rem; margin:5px 0;">
                         <strong>${m.home}</strong> 
@@ -95,36 +114,38 @@ function listenMatches() {
                 </div>
             </div>`;
         });
-        calculateGroupTables(list); // Przelicz tabele
+        calculateGroupTables(list);
     });
 }
 
-// --- TABELE GRUPOWE (LOGIKA) ---
+// --- TABELE GRUPOWE (POPRAWIONE) ---
 function calculateGroupTables(matchesList) {
     const container = document.getElementById('groupsContainer');
-    container.innerHTML = ''; // Czyść
+    if(!container) return;
+    container.innerHTML = '';
 
-    // 1. Inicjalizacja pustych statystyk dla wszystkich drużyn z GROUPS_DEF
+    // 1. Puste statystyki
     let stats = {};
     Object.keys(GROUPS_DEF).forEach(groupName => {
         GROUPS_DEF[groupName].forEach(teamName => {
-            stats[teamName] = { 
-                group: groupName, 
-                m:0, w:0, d:0, l:0, goals:0, pts:0 
-            };
+            stats[teamName] = { group: groupName, m:0, w:0, d:0, l:0, goals:0, pts:0 };
         });
     });
 
-    // 2. Przeliczanie statystyk z meczów ZAKOŃCZONYCH
+    // 2. Liczenie (tylko zakończone)
     matchesList.forEach(m => {
         if(m.status !== 'finished') return;
 
-        // Jeśli drużyny nie ma w definicji (np. inna pisownia), dodaj ją dynamicznie
-        if(!stats[m.home]) stats[m.home] = { group: m.group || '?', m:0, w:0, d:0, l:0, goals:0, pts:0 };
-        if(!stats[m.away]) stats[m.away] = { group: m.group || '?', m:0, w:0, d:0, l:0, goals:0, pts:0 };
+        // Używamy normalizacji (boys -> Boys)
+        const homeFixed = normalizeTeamName(m.home);
+        const awayFixed = normalizeTeamName(m.away);
 
-        const h = stats[m.home];
-        const a = stats[m.away];
+        // Jeśli drużyna spoza listy (np. nowa), dodajemy ją dynamicznie
+        if(!stats[homeFixed]) stats[homeFixed] = { group: m.group || '?', m:0, w:0, d:0, l:0, goals:0, pts:0 };
+        if(!stats[awayFixed]) stats[awayFixed] = { group: m.group || '?', m:0, w:0, d:0, l:0, goals:0, pts:0 };
+
+        const h = stats[homeFixed];
+        const a = stats[awayFixed];
 
         h.m++; a.m++;
         h.goals += m.homeScore;
@@ -139,14 +160,14 @@ function calculateGroupTables(matchesList) {
         }
     });
 
-    // 3. Generowanie HTML dla każdej grupy (A, B, C, D)
+    // 3. Generowanie HTML
     Object.keys(GROUPS_DEF).forEach(groupName => {
         const teamsInGroup = GROUPS_DEF[groupName];
         
-        // Sortowanie: Punkty > Bramki
         teamsInGroup.sort((t1, t2) => {
             const s1 = stats[t1];
             const s2 = stats[t2];
+            // Sortowanie: Punkty > Bramki Strzelone
             if (s2.pts !== s1.pts) return s2.pts - s1.pts;
             return s2.goals - s1.goals;
         });
@@ -171,29 +192,67 @@ function calculateGroupTables(matchesList) {
         container.innerHTML += `
             <div class="card" style="margin-bottom:0;">
                 <h3 style="color:var(--accent); text-align:center;">GRUPA ${groupName}</h3>
-                <table class="styled-table">
-                    <thead>
-                        <tr><th>#</th><th>Drużyna</th><th>M</th><th>W</th><th>R</th><th>P</th><th>B</th><th>PKT</th></tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="styled-table">
+                        <thead>
+                            <tr><th>#</th><th>Drużyna</th><th>M</th><th>W</th><th>R</th><th>P</th><th>B</th><th>PKT</th></tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
             </div>
         `;
     });
+}
 
-    // Top Strzelcy (niezależnie)
-    db.collectionGroup('players').orderBy('goals', 'desc').limit(15).onSnapshot(snap => {
-        const ts = document.getElementById('topScorersBody');
-        ts.innerHTML = '';
-        let i = 1;
-        snap.forEach(d => {
-            const p = d.data();
-            if(p.goals > 0) ts.innerHTML += `<tr><td>${i++}</td><td>${p.name}</td><td>${p.teamName||'-'}</td><td>${p.goals}</td></tr>`;
+// --- TOP STRZELCY (BRUTE FORCE - BEZ INDEKSU) ---
+function calculateTopScorers() {
+    // Pobieramy kolekcję BEZ orderBy w bazie, żeby nie krzyczało o indeks
+    db.collectionGroup('players').onSnapshot(snap => {
+        const tbody = document.getElementById('topScorersBody');
+        if(!tbody) return;
+
+        let allPlayers = [];
+        snap.forEach(doc => {
+            const p = doc.data();
+            // Sprawdzamy czy ma gole i czy gole to liczba
+            const g = parseInt(p.goals) || 0;
+            if(g > 0) {
+                allPlayers.push({
+                    name: p.name,
+                    team: p.teamName || '(Brak)',
+                    goals: g
+                });
+            }
         });
+
+        // Sortujemy w przeglądarce (malejąco)
+        allPlayers.sort((a, b) => b.goals - a.goals);
+
+        // Bierzemy top 20
+        const topList = allPlayers.slice(0, 20);
+
+        tbody.innerHTML = '';
+        if(topList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4">Brak strzelców</td></tr>';
+            return;
+        }
+
+        topList.forEach((p, i) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${p.name}</td>
+                    <td>${p.team}</td>
+                    <td style="font-weight:bold; color:#38bdf8;">${p.goals}</td>
+                </tr>`;
+        });
+    }, err => {
+        console.error("Błąd strzelców:", err);
     });
 }
 
-// --- MODAL EDYCJI MECZU ---
+// --- MODAL MECZU ---
 window.openMatchModal = (id = null) => {
     document.getElementById('matchModal').classList.add('open');
     document.getElementById('editMatchId').value = '';
@@ -241,12 +300,16 @@ window.deleteMatch = (id) => { if(confirm("Usunąć?")) db.collection('matches')
 function listenNews() {
     db.collection('news').orderBy('createdAt', 'desc').onSnapshot(snap => {
         const div = document.getElementById('newsContainer');
+        if(!div) return;
         div.innerHTML = '';
         snap.forEach(doc => {
             const n = doc.data();
             div.innerHTML += `
                 <div class="card" style="margin-top:15px; border-left:3px solid var(--accent);">
-                    <div style="display:flex; justify-content:space-between;"><h4>${n.title}</h4><button class="btn-danger btn-sm" onclick="deleteNews('${doc.id}')">Usuń</button></div>
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+                        <h4>${n.title}</h4>
+                        <button class="btn-danger btn-sm" onclick="deleteNews('${doc.id}')">Usuń</button>
+                    </div>
                     <p>${n.content}</p><small style="color:gray;">${n.date}</small>
                 </div>`;
         });
@@ -265,6 +328,7 @@ window.deleteNews = (id) => { if(confirm("Usunąć?")) db.collection('news').doc
 function listenTeamsList() {
     db.collection('teams').orderBy('name').onSnapshot(snap => {
         const con = document.getElementById('teamsListContainer');
+        if(!con) return;
         con.innerHTML = '';
         snap.forEach(doc => {
             const t = doc.data();

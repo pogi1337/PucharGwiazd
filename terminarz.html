@@ -13,8 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
 
     <style>
-        /* STYLE TYLKO DLA ELEMENTÓW GENEROWANYCH PRZEZ JS (Mecze) */
-        /* Żeby nie psuć Twojego style.css, ale żeby mecze wyglądały czytelnie */
+        /* STYLE TYLKO DLA ELEMENTÓW GENEROWANYCH PRZEZ JS */
         
         .match-row {
             display: grid; 
@@ -45,7 +44,7 @@
         /* Status Live */
         .match-live .score-badge { color: #ff4d4d; border-color: #ff4d4d; animation: pulse 2s infinite; }
         
-        /* Ukrywanie/Pokazywanie grup (Akordeon) */
+        /* Ukrywanie/Pokazywanie grup */
         .group-content { display: none; }
         .group-content.active { display: block; animation: fadeIn 0.3s ease; }
         
@@ -56,10 +55,11 @@
 <body>
 
     <nav class="navbar">
-        <div class="logo">
+        <a href="index.html" class="logo" style="text-decoration: none; display: flex; align-items: center; color: inherit;">
             <img src="logo.png" alt="Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
             PUCHAR GWIAZD
-        </div>
+        </a>
+        
         <div class="nav-links">
             <a href="index.html">Start</a>
             <a href="terminarz.html" class="active">Terminarz</a>
@@ -220,7 +220,7 @@
         };
 
         window.showStage = function(stage, btn) {
-            // Zmiana kolorów guzików (prosta, inline żeby nie psuć CSS)
+            // Zmiana kolorów guzików
             const btns = document.querySelectorAll('.tabs button');
             btns.forEach(b => {
                 b.style.background = 'rgba(255,255,255,0.1)';
