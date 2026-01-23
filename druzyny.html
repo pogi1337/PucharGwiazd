@@ -11,7 +11,83 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     
     <style>
-        /* STYL LISTY (Kompaktowy) */
+        /* --- STYLE NAWIGACJI (DODANE DLA HAMBURGERA) --- */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .brand { text-decoration: none; display: flex; align-items: center; color: inherit; }
+        .logo-img { height: 35px; margin-right: 10px; }
+        .logo-text { font-weight: 800; color: #00d4ff; letter-spacing: 1px; }
+
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { 
+            color: #ccc; text-decoration: none; margin-left: 20px; 
+            font-weight: 600; text-transform: uppercase; font-size: 0.85rem; transition: 0.3s; 
+        }
+        .nav-links a:hover, .nav-links a.active-link { color: #00d4ff; }
+
+        /* Styl dla przycisków admina w menu */
+        .admin-btn {
+            border: 1px solid #00d4ff; padding: 8px 15px; border-radius: 6px; color: #00d4ff !important;
+        }
+        .admin-btn:hover { background: rgba(0, 212, 255, 0.1); box-shadow: 0 0 15px rgba(0, 212, 255, 0.3); }
+
+        /* HAMBURGER MENU (Domyślnie ukryty na PC) */
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .bar {
+            display: block;
+            width: 25px;
+            height: 3px;
+            margin: 5px auto;
+            transition: all 0.3s ease-in-out;
+            background-color: #fff;
+            border-radius: 3px;
+        }
+
+        /* MEDIA QUERIES - MENU MOBILNE */
+        @media(max-width:992px) {
+            .hamburger { display: block; }
+
+            /* Animacja X */
+            .hamburger.active .bar:nth-child(2) { opacity: 0; }
+            .hamburger.active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+            .hamburger.active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+            /* Menu mobilne */
+            .nav-links {
+                position: absolute;
+                top: 70px; /* Wysokość navbara */
+                left: 0;
+                width: 100%;
+                background: rgba(15, 23, 42, 0.98);
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                padding: 30px 0;
+                opacity: 0;
+                transform: translateY(-20px);
+                pointer-events: none;
+                transition: all 0.3s ease-in-out;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .nav-links.active {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+
+            .nav-links a { margin: 0; font-size: 1rem; }
+        }
+
+        /* --- POZOSTAŁE STYLE (LISTA DRUŻYN) --- */
         .teams-container {
             max-width: 900px;
             margin: 40px auto;
@@ -186,7 +262,7 @@
             });
         });
 
-        // --- 2. OBSŁUGA SKŁADU (POPRAWIONE NA SURNAME) ---
+        // --- 2. OBSŁUGA SKŁADU ---
         window.openSquad = async function(teamId, teamName) {
             const modal = document.getElementById('squadModal');
             const list = document.getElementById('squadList');
@@ -212,25 +288,16 @@
                     
                     // --- SORTOWANIE PO SURNAME ---
                     players.sort((a, b) => {
-                        // Zabezpieczenie: jeśli nie ma surname, użyj pustego stringa
                         const surA = a.surname ? a.surname.toString() : "";
                         const surB = b.surname ? b.surname.toString() : "";
-                        
-                        // Najpierw sortujemy po nazwisku
-                        if (surA !== surB) {
-                            return surA.localeCompare(surB);
-                        }
-                        
-                        // Jak nazwiska są te same, sortujemy po imieniu
+                        if (surA !== surB) return surA.localeCompare(surB);
                         const nameA = a.name ? a.name.toString() : "";
                         const nameB = b.name ? b.name.toString() : "";
                         return nameA.localeCompare(nameB);
                     });
 
                     players.forEach(p => {
-                        // Wyświetlanie: Imię + Nazwisko (używamy surname)
                         const fullName = `${p.name || ''} ${p.surname || ''}`.trim() || "Brak danych";
-                        
                         list.innerHTML += `
                             <li class="player-li">
                                 <span>${fullName}</span>
@@ -263,6 +330,13 @@
             <img src="logo.png" alt="Logo" class="logo-img">
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
+
+        <div class="hamburger">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+
         <div class="nav-links">
             <a href="index.html">STRONA GŁÓWNA</a>
             <a href="druzyny.html" class="active-link" style="color:#00d4ff; opacity:1;">DRUŻYNY</a>
@@ -303,6 +377,22 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script> AOS.init({ duration: 600, once: true }); </script>
+
+    <script>
+        const hamburger = document.querySelector(".hamburger");
+        const navMenu = document.querySelector(".nav-links");
+
+        hamburger.addEventListener("click", () => {
+            hamburger.classList.toggle("active");
+            navMenu.classList.toggle("active");
+        });
+
+        // Zamknij menu po kliknięciu w link
+        document.querySelectorAll(".nav-links a").forEach(n => n.addEventListener("click", () => {
+            hamburger.classList.remove("active");
+            navMenu.classList.remove("active");
+        }));
+    </script>
 
 </body>
 </html>
