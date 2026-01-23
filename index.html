@@ -52,6 +52,22 @@
         .nav-link-admin { color: #555 !important; font-size: 0.75rem !important; }
         .nav-link-admin:hover { color: #fff !important; }
 
+        /* HAMBURGER MENU (Domyślnie ukryty na PC) */
+        .hamburger {
+            display: none;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .bar {
+            display: block;
+            width: 25px;
+            height: 3px;
+            margin: 5px auto;
+            transition: all 0.3s ease-in-out;
+            background-color: #fff;
+            border-radius: 3px;
+        }
+
         /* HERO SECTION */
         .hero { 
             text-align: center; 
@@ -66,7 +82,7 @@
         .hero h1 { font-size: 3.5rem; margin: 10px 0; text-transform: uppercase; letter-spacing: 3px; font-weight: 800; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
         .hero p { color: #aaa; font-size: 1.2rem; margin-bottom: 30px; }
 
-        /* ODNOŚNIKI (SOCIALE) */
+        /* SOCIAL LINKS */
         .social-links { margin-bottom: 40px; display: flex; gap: 20px; justify-content: center; }
         .social-btn {
             width: 50px; height: 50px; border-radius: 50%;
@@ -86,7 +102,7 @@
         .time-val { font-size: 2.2rem; font-weight: 800; display: block; color: #fff; text-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
         .time-label { font-size: 0.75rem; color: #00d4ff; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
 
-        /* STATYSTYKI (NEON GLOW) */
+        /* STATYSTYKI */
         .stats-container {
             display: flex; justify-content: center; gap: 60px; margin: 20px auto 60px auto; flex-wrap: wrap;
             padding: 30px; background: rgba(0,0,0,0.3); border-radius: 20px; max-width: 900px;
@@ -95,11 +111,10 @@
         .stat-box { text-align: center; position: relative; min-width: 120px; }
         .stat-icon { 
             font-size: 2.5rem; margin-bottom: 10px; color: #00d4ff;
-            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6)); /* Glow ikony */
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6)); 
         }
         .stat-number { 
             font-size: 3.5rem; font-weight: 800; display: block; line-height: 1; color: #fff;
-            /* GLOW TEKSTU */
             text-shadow: 0 0 15px rgba(0, 212, 255, 0.8), 0 0 30px rgba(0, 212, 255, 0.4);
         }
         .stat-label { 
@@ -164,9 +179,44 @@
         @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
         @keyframes slideUp { from {transform:translateY(30px);} to {transform:translateY(0);} }
 
+        /* --- MEDIA QUERIES (RESPONSYWNOŚĆ) --- */
         @media(max-width:992px) {
-            .nav-links { display: none; } /* Uproszczenie dla mobile */
+            /* Pokaż hamburgera */
+            .hamburger { display: block; }
+
+            /* Zmiana przycisku hamburgera w X po aktywacji */
+            .hamburger.active .bar:nth-child(2) { opacity: 0; }
+            .hamburger.active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+            .hamburger.active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+            /* Ukryj menu domyślnie, pokaż jako kolumnę po aktywacji */
+            .nav-links {
+                position: absolute;
+                top: 70px; /* Wysokość navbara */
+                left: 0;
+                width: 100%;
+                background: rgba(15, 23, 42, 0.98);
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                padding: 30px 0;
+                /* Płynne pojawianie się */
+                opacity: 0;
+                transform: translateY(-20px);
+                pointer-events: none;
+                transition: all 0.3s ease-in-out;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .nav-links.active {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+
+            .nav-links a { margin: 0; font-size: 1rem; }
         }
+
         @media(max-width:768px) {
             .hero h1 { font-size: 2rem; }
             .hero-logo { height: 80px; }
@@ -184,6 +234,13 @@
             <img src="logo.png" alt="PG" style="height:35px; margin-right:10px;"> 
             <span style="font-weight:800; color:#00d4ff; letter-spacing:1px;">PUCHAR GWIAZD</span>
         </a>
+
+        <div class="hamburger">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+
         <div class="nav-links">
             <a href="index.html" class="active">Start</a>
             <a href="druzyny.html">Drużyny</a>
@@ -192,8 +249,8 @@
             <a href="regulamin.html">Regulamin</a>
             <a href="onas.html">O nas</a>
             
-            <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
-            <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
+            <a href="login_kapitana.html" class="nav-btn-captain">Panel Kapitana</a>
+            <a href="admin.html" class="nav-link-admin">Admin</a>
         </div>
     </nav>
 
@@ -237,6 +294,7 @@
             <span class="stat-label">SIATKÓWKA</span>
         </div>
     </div>
+
     <div class="dashboard-container" data-aos="fade-up">
         <h3 style="text-align:center; color:#fff; margin-bottom:25px; text-transform:uppercase; letter-spacing:2px; font-size:1rem; opacity:0.8;">Centrum Meczowe</h3>
         <div id="match-dashboard">
@@ -282,12 +340,27 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 1. ODLICZANIE LICZB (ANIMACJA STATYSTYK)
+        // --- OBSŁUGA HAMBURGER MENU ---
+        const hamburger = document.querySelector(".hamburger");
+        const navMenu = document.querySelector(".nav-links");
+
+        hamburger.addEventListener("click", () => {
+            hamburger.classList.toggle("active");
+            navMenu.classList.toggle("active");
+        });
+
+        // Zamknij menu po kliknięciu w link
+        document.querySelectorAll(".nav-links a").forEach(n => n.addEventListener("click", () => {
+            hamburger.classList.remove("active");
+            navMenu.classList.remove("active");
+        }));
+
+        // 1. ODLICZANIE LICZB
         function animateStats() {
             const counters = document.querySelectorAll('.count-up');
             counters.forEach(counter => {
                 const target = +counter.getAttribute('data-target');
-                const duration = 2000; // ms
+                const duration = 2000; 
                 const increment = target / (duration / 16); 
 
                 let current = 0;
@@ -303,7 +376,6 @@
                 updateCounter();
             });
         }
-        // Uruchom animację po załadowaniu
         window.addEventListener('load', animateStats);
 
 
