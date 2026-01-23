@@ -11,35 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     
     <style>
-        /* --- NAVBAR FIX (Dla obsługi hamburgera) --- */
-        .navbar {
-            position: sticky; top: 0; z-index: 999999;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 5%; background: rgba(15, 23, 42, 0.98);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-weight: 800; }
-        .logo-img { height: 40px; }
-        .menu-toggle { display: none; font-size: 2rem; color: #fff; cursor: pointer; padding: 10px; user-select: none; }
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        
-        @media (max-width: 900px) {
-            .menu-toggle { display: block; }
-            .nav-links { 
-                display: none; 
-                position: absolute; top: 100%; left: 0; width: 100%; 
-                background: #0f172a; flex-direction: column; padding: 20px 0; 
-                border-bottom: 1px solid rgba(255,255,255,0.2); 
-                box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            }
-            .nav-links.active { display: flex !important; }
-            .nav-links a { 
-                padding: 15px; width: 100%; text-align: center; 
-                border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 1.2rem; 
-            }
-        }
-
-        /* --- TWOJE ORYGINALNE STYLE --- */
+        /* STYL LISTY (Kompaktowy) */
         .teams-container {
             max-width: 900px;
             margin: 40px auto;
@@ -240,19 +212,23 @@
                     
                     // --- SORTOWANIE PO SURNAME ---
                     players.sort((a, b) => {
+                        // Zabezpieczenie: jeśli nie ma surname, użyj pustego stringa
                         const surA = a.surname ? a.surname.toString() : "";
                         const surB = b.surname ? b.surname.toString() : "";
                         
+                        // Najpierw sortujemy po nazwisku
                         if (surA !== surB) {
                             return surA.localeCompare(surB);
                         }
                         
+                        // Jak nazwiska są te same, sortujemy po imieniu
                         const nameA = a.name ? a.name.toString() : "";
                         const nameB = b.name ? b.name.toString() : "";
                         return nameA.localeCompare(nameB);
                     });
 
                     players.forEach(p => {
+                        // Wyświetlanie: Imię + Nazwisko (używamy surname)
                         const fullName = `${p.name || ''} ${p.surname || ''}`.trim() || "Brak danych";
                         
                         list.innerHTML += `
@@ -287,12 +263,7 @@
             <img src="logo.png" alt="Logo" class="logo-img">
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
-
-        <div class="menu-toggle" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i>
-        </div>
-
-        <div class="nav-links" id="navLinks">
+        <div class="nav-links">
             <a href="index.html">STRONA GŁÓWNA</a>
             <a href="druzyny.html" class="active-link" style="color:#00d4ff; opacity:1;">DRUŻYNY</a>
             <a href="terminarz.html">TERMINARZ</a>
@@ -303,18 +274,6 @@
             <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
         </div>
     </nav>
-
-    <script>
-        function toggleMenu() {
-            var nav = document.getElementById("navLinks");
-            if (nav.style.display === "flex") {
-                nav.style.display = "";
-                nav.classList.remove("active");
-            } else {
-                nav.classList.toggle("active");
-            }
-        }
-    </script>
 
     <main class="container">
         <header class="page-header" data-aos="fade-down" style="text-align:center; margin: 50px 0 30px;">

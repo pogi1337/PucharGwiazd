@@ -62,16 +62,21 @@
     </style>
 </head>
 <body>
-
-    <nav class="navbar" style="position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <div class="logo" style="display:flex; align-items:center;">
-            <img src="logo.png" alt="PG" style="height:40px; margin-right:10px;">
-            <span style="font-weight:800; color:#00d4ff;">PUCHAR GWIAZD</span>
-        </div>
+   <nav class="navbar">
+        <a href="index.html" class="logo-link">
+            <img src="logo.png" alt="PG" style="height:35px; margin-right:10px;"> 
+            <span style="font-weight:800; color:#00d4ff; letter-spacing:1px;">PUCHAR GWIAZD</span>
+        </a>
         <div class="nav-links">
-            <a href="index.html" style="color:#ccc; text-decoration:none; margin-left:20px; font-weight:600;">START</a>
-            <a href="terminarz.html" style="color:#ccc; text-decoration:none; margin-left:20px; font-weight:600;">TERMINARZ</a>
-            <a href="tabela.html" style="color:#00d4ff; text-decoration:none; margin-left:20px; font-weight:600;">TABELE</a>
+            <a href="index.html">Start</a>
+            <a href="druzyny.html">Drużyny</a>
+            <a href="terminarz.html">Terminarz</a>
+            <a href="tabela.html" class="active">Tabele</a>
+            <a href="regulamin.html">Regulamin</a>
+            <a href="onas.html">O nas</a>
+            
+            <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
+            <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: var(--danger);">ADMIN</a>
         </div>
     </nav>
 
