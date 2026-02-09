@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Głosowanie MVP | Puchar Gwiazd</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- STYLE Z INDEX.HTML (NAVBAR) --- */
+        body {
+            background: linear-gradient(rgba(5, 10, 24, 0.9), rgba(5, 10, 24, 0.95)), url('1.jpg');
+            background-size: cover; background-attachment: fixed;
+            color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0;
+        }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 5%; background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .logo-link { text-decoration: none; display: flex; align-items: center; color: inherit; }
+        
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { 
+            color: #ccc; text-decoration: none; margin-left: 20px; 
+            font-weight: 600; text-transform: uppercase; font-size: 0.85rem; transition: 0.3s; 
+        }
+        .nav-links a:hover, .nav-links a.active { color: #00d4ff; }
+        
+        .admin-btn {
+            border: 1px solid #00d4ff; padding: 8px 15px; border-radius: 6px; 
+            color: #00d4ff !important; margin-left: 20px; text-decoration: none;
+            font-weight: 600; text-transform: uppercase; font-size: 0.85rem; transition: 0.3s;
+        }
+        .admin-btn:hover { background: rgba(0, 212, 255, 0.1); box-shadow: 0 0 15px rgba(0, 212, 255, 0.3); }
+
+        /* --- STYLE GŁOSOWANIA --- */
+        .position-section { max-width: 1300px; margin: 40px auto; padding: 0 20px; }
+        .position-title {
+            font-size: 1.8rem; color: #00d4ff; text-transform: uppercase;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3); padding-bottom: 10px; margin-bottom: 25px;
+        }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; margin-bottom: 50px; }
+        .player-card {
+            background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; padding: 20px; text-align: center; transition: 0.3s;
+        }
+        .player-card:hover { border-color: #00d4ff; transform: translateY(-5px); }
+        .photo-square { width: 100%; aspect-ratio: 1/1; background: #0f172a; border-radius: 8px; object-fit: cover; margin-bottom: 15px; }
+        .vote-count {
+            display: inline-block; background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff; padding: 5px 15px; border-radius: 20px;
+            font-weight: 800; margin-bottom: 15px; font-size: 0.9rem;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        .vote-btn { width: 100%; padding: 12px; background: #00d4ff; color: #000; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+        .vote-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; opacity: 0.6; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 10000; }
+
+        @media(max-width:992px) { .nav-links { display: none; } }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo-link">
+            <img src="logo.png" alt="PG" style="height:35px; margin-right:10px;"> 
+            <span style="font-weight:800; color:#00d4ff; letter-spacing:1px;">PUCHAR GWIAZD</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Start</a>
+            <a href="druzyny.html">Drużyny</a>
+            <a href="terminarz.html">Terminarz</a>
+            <a href="tabela.html">Tabele</a>
+            <a href="regulamin.html">Regulamin</a>
+            <a href="onas.html">O nas</a>
+            <a href="glosowanie.html" class="active">Głosowanie</a>
+            
+            <a href="login_kapitana.html" class="admin-btn">KAPITAN</a>
+            <a href="admin.html" class="admin-btn" style="background: rgba(255, 77, 77, 0.15); border-color: #ff4d4d; color: #ff4d4d !important;">ADMIN</a>
+        </div>
+    </nav>
+
+    <div style="text-align:center; padding:40px 20px;">
+        <h1 style="text-transform:uppercase; letter-spacing:2px; margin-bottom:10px;">Głosowanie MVP</h1>
+        <p style="color:#aaa;">Możesz oddać po 1 głosie na każdą pozycję dziennie.</p>
+    </div>
+
+    <div id="voting-sections">
+        <div style="text-align:center; color:#aaa;">Ładowanie zawodników...</div>
+    </div>
+
+    <div id="success-modal" class="modal">
+        <div style="background:#1e293b; padding:40px; border-radius:16px; text-align:center; border:1px solid #00d4ff;">
+            <h2 style="margin-top:0;">Głos oddany!</h2>
+            <p id="modal-msg">Dziękujemy za oddanie głosu.</p>
+            <button onclick="closeModal()" style="padding:10px 20px; background:#00d4ff; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">OK</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        // KONFIGURACJA FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
+            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
+            projectId: "puchargwiazd-bdaa4",
+            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
+            messagingSenderId: "890734185883",
+            appId: "1:890734185883:web:75e8df76127397b913612d"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const positions = ["bramkarz", "obrońca", "pomocnik", "napastnik"];
+
+        // LOGIKA POBIERANIA ZAWODNIKÓW (POZOSTAJE BEZ ZMIAN)
+        db.collection('players_mvp').onSnapshot(snap => {
+            const mainContainer = document.getElementById('voting-sections');
+            mainContainer.innerHTML = '';
+            const today = new Date().toISOString().slice(0, 10);
+
+            positions.forEach(pos => {
+                const posPlayers = [];
+                snap.forEach(doc => {
+                    if (doc.data().position === pos) {
+                        posPlayers.push({id: doc.id, ...doc.data()});
+                    }
+                });
+
+                if (posPlayers.length > 0) {
+                    const hasVotedInPos = localStorage.getItem(`pg_voted_${pos}_${today}`);
+                    let sectionHTML = `<div class="position-section"><h2 class="position-title">${pos}</h2><div class="cards-grid">`;
+
+                    posPlayers.sort((a,b) => (b.votes || 0) - (a.votes || 0)).forEach(p => {
+                        const img = p.img || 'https://placehold.co/400x400/0f172a/FFFFFF?text=FOTO';
+                        const isDisabled = hasVotedInPos ? 'disabled' : '';
+                        const btnText = hasVotedInPos ? 'ZAGŁOSOWANO' : 'GŁOSUJ';
+
+                        sectionHTML += `
+                            <div class="player-card">
+                                <img src="${img}" class="photo-square">
+                                <div class="vote-count">${p.votes || 0} GŁOSÓW</div>
+                                <div style="font-size:1.3rem; font-weight:800; margin-bottom:5px; text-transform:uppercase;">${p.name}</div>
+                                <div style="color:#aaa; font-size:0.9rem; margin-bottom:20px;">${p.desc || ''}</div>
+                                <button class="vote-btn" ${isDisabled} onclick="castVote('${p.id}', '${p.name}', '${pos}')">${btnText}</button>
+                            </div>`;
+                    });
+                    sectionHTML += `</div></div>`;
+                    mainContainer.innerHTML += sectionHTML;
+                }
+            });
+        });
+
+        async function castVote(id, name, position) {
+            const today = new Date().toISOString().slice(0, 10);
+            if (localStorage.getItem(`pg_voted_${position}_${today}`)) return;
+
+            try {
+                await db.collection('players_mvp').doc(id).update({
+                    votes: firebase.firestore.FieldValue.increment(1)
+                });
+                await db.collection('glosy_mvp').add({
+                    playerName: name,
+                    playerId: id,
+                    position: position,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                localStorage.setItem(`pg_voted_${position}_${today}`, 'true');
+                document.getElementById('modal-msg').innerText = `Twój głos na zawodnika ${name} (${position}) został zapisany.`;
+                document.getElementById('success-modal').style.display = 'flex';
+            } catch (e) { alert("Błąd połączenia z bazą."); }
+        }
+
+        function closeModal() { document.getElementById('success-modal').style.display = 'none'; }
+    </script>
+</body>
+</html>
