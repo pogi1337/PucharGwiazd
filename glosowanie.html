@@ -36,7 +36,7 @@
             font-weight: 600; text-transform: uppercase; font-size: 0.85rem; transition: 0.3s;
         }
 
-        /* --- UKŁAD KART --- */
+        /* --- UKŁAD KART NA STRONIE GŁÓWNEJ --- */
         .position-section { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
         .position-title {
             font-size: 1.6rem; color: #00d4ff; text-transform: uppercase;
@@ -54,7 +54,10 @@
             background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 12px; padding: 15px; text-align: center; transition: 0.3s;
             display: flex; flex-direction: column;
+            cursor: pointer; /* Pokazuje, że można kliknąć */
         }
+        .player-card:hover { transform: translateY(-5px); border-color: #00d4ff; }
+
         .photo-square { width: 100%; aspect-ratio: 1/1; background: #0f172a; border-radius: 8px; object-fit: cover; margin-bottom: 12px; }
         
         .vote-count {
@@ -65,36 +68,47 @@
         }
 
         .player-name { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; text-transform: uppercase; }
-        .player-desc { color: #aaa; font-size: 0.85rem; margin-bottom: 15px; line-height: 1.3; }
+        
+        /* Opis skrócony na liście głównej */
+        .player-desc-short { 
+            color: #aaa; font-size: 0.85rem; margin-bottom: 15px; line-height: 1.3;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
 
         .vote-btn { 
             width: 100%; padding: 10px; background: #00d4ff; color: #000; border: none; 
             border-radius: 6px; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: auto;
+            position: relative; z-index: 2; /* Żeby przycisk był nad klikalną kartą */
         }
         .vote-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; opacity: 0.6; }
+        .vote-btn:hover:not(:disabled) { background: #fff; box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
+
 
         /* --- POPRAWKI NA TELEFON (Poniżej 600px) --- */
         @media (max-width: 600px) {
-            .nav-links { display: none; } /* Standardowe ukrycie menu */
-            
+            .nav-links { display: none; }
             .position-section { margin: 15px auto; }
             .position-title { font-size: 1.2rem; margin-bottom: 15px; }
-
-            .cards-grid { 
-                grid-template-columns: 1fr 1fr; /* Dwie karty obok siebie na telefonie! */
-                gap: 10px; 
-            }
-
+            .cards-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
             .player-card { padding: 10px; border-radius: 8px; }
             .player-name { font-size: 0.85rem; }
-            .player-desc { font-size: 0.75rem; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            /* Na telefonie ucinamy opis do 2 linii na głównej liście */
+            .player-desc-short { font-size: 0.75rem; margin-bottom: 10px; -webkit-line-clamp: 2; }
             .vote-count { font-size: 0.65rem; padding: 2px 6px; margin-bottom: 8px; }
             .vote-btn { padding: 8px; font-size: 0.75rem; }
-            
             h1 { font-size: 1.5rem !important; }
         }
 
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 10000; }
+        /* --- MODALE (Okienka) --- */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
+        .modal-box { background:#1e293b; padding:30px; border-radius:16px; text-align:center; border:1px solid #00d4ff; max-width: 500px; width: 100%; position: relative; max-height: 90vh; overflow-y: auto; }
+        
+        /* Styl dla Modala ze szczegółami zawodnika */
+        .details-modal-content { text-align: left; }
+        .details-photo { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 12px; margin-bottom: 20px; border: 2px solid #00d4ff; }
+        .details-name { font-size: 1.8rem; font-weight: 800; color: #00d4ff; text-transform: uppercase; margin-bottom: 10px; }
+        .details-desc-full { color: #ccc; font-size: 1rem; line-height: 1.6; margin-bottom: 30px; white-space: pre-line; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 2rem; color: #aaa; cursor: pointer; background: none; border: none; }
     </style>
 </head>
 <body>
@@ -119,7 +133,7 @@
 
     <div style="text-align:center; padding:30px 15px;">
         <h1 style="text-transform:uppercase; letter-spacing:2px; margin-bottom:5px; font-size: 2rem;">Głosowanie MVP</h1>
-        <p style="color:#aaa; font-size: 0.9rem;">Po 1 głosie na pozycję dziennie.</p>
+        <p style="color:#aaa; font-size: 0.9rem;">Po 1 głosie na pozycję dziennie. Kliknij w kartę, aby zobaczyć szczegóły.</p>
     </div>
 
     <div id="voting-sections">
@@ -127,10 +141,23 @@
     </div>
 
     <div id="success-modal" class="modal">
-        <div style="background:#1e293b; padding:30px; border-radius:16px; text-align:center; border:1px solid #00d4ff; max-width: 85%;">
-            <h2 style="margin-top:0;">Głos oddany!</h2>
-            <p id="modal-msg" style="font-size: 0.9rem;">Dziękujemy.</p>
-            <button onclick="closeModal()" style="padding:10px 25px; background:#00d4ff; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">OK</button>
+        <div class="modal-box">
+            <h2 style="margin-top:0; color:#00d4ff;">Głos oddany!</h2>
+            <p id="modal-msg" style="font-size: 1rem; color:#ccc; margin: 20px 0;">Dziękujemy.</p>
+            <button onclick="closeSuccessModal()" style="padding:12px 30px; background:#00d4ff; border:none; border-radius:5px; font-weight:bold; cursor:pointer; font-size:1rem;">OK</button>
+        </div>
+    </div>
+
+    <div id="player-details-modal" class="modal" onclick="closeDetailsModal(event)">
+        <div class="modal-box details-modal-content">
+            <button class="close-btn" onclick="closeDetailsModal(event, true)">&times;</button>
+            
+            <img id="detail-img" src="" class="details-photo">
+            <div id="detail-votes" class="vote-count" style="font-size: 1rem; padding: 8px 15px;">0 GŁOSÓW</div>
+            <div id="detail-name" class="details-name">NAZWISKO</div>
+            <div id="detail-desc" class="details-desc-full">Pełny opis zawodnika...</div>
+            
+            <div id="detail-vote-container"></div>
         </div>
     </div>
 
@@ -151,6 +178,7 @@
 
         const positions = ["bramkarz", "obrońca", "pomocnik", "napastnik"];
 
+        // GŁÓWNA PĘTLA GENERUJĄCA KARTY
         db.collection('players_mvp').onSnapshot(snap => {
             const mainContainer = document.getElementById('voting-sections');
             mainContainer.innerHTML = '';
@@ -172,14 +200,21 @@
                         const img = p.img || 'https://placehold.co/400x400/0f172a/FFFFFF?text=FOTO';
                         const isDisabled = hasVotedInPos ? 'disabled' : '';
                         const btnText = hasVotedInPos ? 'ZAGŁOSOWANO' : 'GŁOSUJ';
+                        const votes = p.votes || 0;
+                        
+                        // Bezpieczne przygotowanie opisu do przekazania w funkcji (usuwanie cudzysłowów)
+                        const safeDesc = (p.desc || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                        const safeName = p.name.replace(/'/g, "&#39;");
 
+                        // Dodajemy onclick="openDetails(...)" do całej karty
+                        // WAŻNE: event.stopPropagation() na przycisku, żeby kliknięcie "GŁOSUJ" nie otwierało modala
                         sectionHTML += `
-                            <div class="player-card">
+                            <div class="player-card" onclick="openDetails('${safeName}', '${safeDesc}', '${img}', ${votes}, '${p.id}', '${pos}', ${hasVotedInPos ? true : false})">
                                 <img src="${img}" class="photo-square">
-                                <div class="vote-count">${p.votes || 0} GŁOSÓW</div>
+                                <div class="vote-count">${votes} GŁOSÓW</div>
                                 <div class="player-name">${p.name}</div>
-                                <div class="player-desc">${p.desc || ''}</div>
-                                <button class="vote-btn" ${isDisabled} onclick="castVote('${p.id}', '${p.name}', '${pos}')">${btnText}</button>
+                                <div class="player-desc-short">${p.desc || ''}</div>
+                                <button class="vote-btn" ${isDisabled} onclick="event.stopPropagation(); castVote('${p.id}', '${safeName}', '${pos}')">${btnText}</button>
                             </div>`;
                     });
                     sectionHTML += `</div></div>`;
@@ -188,7 +223,33 @@
             });
         });
 
-        async function castVote(id, name, position) {
+        // FUNKCJA OTWIERAJĄCA MODAL ZE SZCZEGÓŁAMI
+        function openDetails(name, desc, img, votes, id, pos, hasVoted) {
+            document.getElementById('detail-img').src = img;
+            document.getElementById('detail-name').innerHTML = name;
+            document.getElementById('detail-desc').innerHTML = desc; // Tutaj description jest pełne
+            document.getElementById('detail-votes').innerText = `${votes} GŁOSÓW`;
+            
+            // Dodajemy przycisk głosowania również w modalu
+            const btnContainer = document.getElementById('detail-vote-container');
+            const isDisabled = hasVoted ? 'disabled' : '';
+            const btnText = hasVoted ? 'ZAGŁOSOWANO' : 'ZAGŁOSUJ TERAZ';
+            
+            // Używamy encodeURIComponent dla bezpieczeństwa przy przekazywaniu danych w onclick
+            btnContainer.innerHTML = `<button class="vote-btn" style="margin-top:0; padding: 15px; font-size:1.1rem;" ${isDisabled} onclick="castVote('${id}', '${encodeURIComponent(name)}', '${pos}'); closeDetailsModal(null, true);">${btnText}</button>`;
+
+            document.getElementById('player-details-modal').style.display = 'flex';
+        }
+
+        function closeDetailsModal(event, force) {
+            if (force || event.target.id === 'player-details-modal') {
+                document.getElementById('player-details-modal').style.display = 'none';
+            }
+        }
+
+        // FUNKCJA GŁOSOWANIA (bez zmian)
+        async function castVote(id, encodedName, position) {
+            const name = decodeURIComponent(encodedName);
             const today = new Date().toISOString().slice(0, 10);
             if (localStorage.getItem(`pg_voted_${position}_${today}`)) return;
             try {
@@ -202,12 +263,12 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 localStorage.setItem(`pg_voted_${position}_${today}`, 'true');
-                document.getElementById('modal-msg').innerText = `Głos na ${name} zapisany!`;
+                document.getElementById('modal-msg').innerText = `Głos na zawodnika ${name} zapisany!`;
                 document.getElementById('success-modal').style.display = 'flex';
             } catch (e) { alert("Błąd połączenia."); }
         }
 
-        function closeModal() { document.getElementById('success-modal').style.display = 'none'; }
+        function closeSuccessModal() { document.getElementById('success-modal').style.display = 'none'; }
     </script>
 </body>
 </html>
