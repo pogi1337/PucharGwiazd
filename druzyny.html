@@ -11,86 +11,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     
     <style>
-        /* --- STYLE NAWIGACJI (DODANE DLA HAMBURGERA) --- */
-        .navbar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 5%; background: rgba(15, 23, 42, 0.95);
-            border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-        .brand { text-decoration: none; display: flex; align-items: center; color: inherit; }
-        .logo-img { height: 35px; margin-right: 10px; }
-        .logo-text { font-weight: 800; color: #00d4ff; letter-spacing: 1px; }
-
-        .nav-links { display: flex; align-items: center; }
-        .nav-links a { 
-            color: #ccc; text-decoration: none; margin-left: 20px; 
-            font-weight: 600; text-transform: uppercase; font-size: 0.85rem; transition: 0.3s; 
-        }
-        .nav-links a:hover, .nav-links a.active-link { color: #00d4ff; }
-
-        /* Styl dla przycisków admina w menu */
-        .admin-btn {
-            border: 1px solid #00d4ff; padding: 8px 15px; border-radius: 6px; color: #00d4ff !important;
-        }
-        .admin-btn:hover { background: rgba(0, 212, 255, 0.1); box-shadow: 0 0 15px rgba(0, 212, 255, 0.3); }
-
-        /* HAMBURGER MENU (Domyślnie ukryty na PC) */
-        .hamburger {
-            display: none;
-            cursor: pointer;
-            z-index: 1001;
-        }
-        .bar {
-            display: block;
-            width: 25px;
-            height: 3px;
-            margin: 5px auto;
-            transition: all 0.3s ease-in-out;
-            background-color: #fff;
-            border-radius: 3px;
+        /* Styl sekcji kategorii */
+        .category-header {
+            max-width: 900px;
+            margin: 40px auto 10px;
+            padding: 10px 20px;
+            border-left: 4px solid #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
         }
 
-        /* MEDIA QUERIES - MENU MOBILNE */
-        @media(max-width:992px) {
-            .hamburger { display: block; }
-
-            /* Animacja X */
-            .hamburger.active .bar:nth-child(2) { opacity: 0; }
-            .hamburger.active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-            .hamburger.active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
-
-            /* Menu mobilne */
-            .nav-links {
-                position: absolute;
-                top: 70px; /* Wysokość navbara */
-                left: 0;
-                width: 100%;
-                background: rgba(15, 23, 42, 0.98);
-                flex-direction: column;
-                align-items: center;
-                gap: 20px;
-                padding: 30px 0;
-                opacity: 0;
-                transform: translateY(-20px);
-                pointer-events: none;
-                transition: all 0.3s ease-in-out;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
-            }
-
-            .nav-links.active {
-                opacity: 1;
-                transform: translateY(0);
-                pointer-events: auto;
-            }
-
-            .nav-links a { margin: 0; font-size: 1rem; }
-        }
-
-        /* --- POZOSTAŁE STYLE (LISTA DRUŻYN) --- */
         .teams-container {
             max-width: 900px;
-            margin: 40px auto;
+            margin: 0 auto 40px;
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -133,7 +69,6 @@
             margin: 0;
         }
 
-        /* PRZYCISK */
         .btn-mini {
             background: transparent;
             border: 1px solid rgba(255,255,255,0.2);
@@ -218,15 +153,34 @@
         
         signInAnonymously(auth).catch(console.error);
 
-        // --- 1. POBIERANIE DRUŻYN ---
+        // Funkcja do renderowania pojedynczego wiersza drużyny
+        const createTeamRow = (t) => {
+            const safeName = t.name ? t.name.replace(/'/g, "\\'") : "Drużyna";
+            return `
+                <div class="team-row" data-aos="fade-up">
+                    <div class="team-info">
+                        <img src="${t.logo || 'logo.png'}" alt="Logo" class="team-logo-small">
+                        <h3 class="team-name-row">${t.name || 'Brak nazwy'}</h3>
+                    </div>
+                    <button class="btn-mini" onclick="window.openSquad('${t.id}', '${safeName}')">
+                        <i class="fas fa-list"></i> SKŁAD
+                    </button>
+                </div>
+            `;
+        };
+
+        // --- POBIERANIE I FILTROWANIE DRUŻYN ---
         const q = query(collection(db, "teams"));
 
         onSnapshot(q, (snap) => {
-            const container = document.getElementById('teams-container');
-            container.innerHTML = '';
+            const footballContainer = document.getElementById('football-container');
+            const volleyballContainer = document.getElementById('volleyball-container');
+            
+            footballContainer.innerHTML = '';
+            volleyballContainer.innerHTML = '';
             
             if (snap.empty) {
-                container.innerHTML = '<p style="text-align:center; opacity:0.6;">Brak drużyn.</p>';
+                footballContainer.innerHTML = '<p style="text-align:center; opacity:0.6;">Brak drużyn.</p>';
                 return;
             }
 
@@ -237,32 +191,27 @@
                 teams.push(d);
             });
 
-            // Sortowanie Drużyn A-Z
-            teams.sort((a, b) => {
-                const nameA = a.name ? a.name.toString() : "";
-                const nameB = b.name ? b.name.toString() : "";
-                return nameA.localeCompare(nameB);
+            // Sortowanie A-Z
+            teams.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+            // Podział na kategorie
+            teams.forEach(t => {
+                const row = createTeamRow(t);
+                // Sprawdzamy pole 'category' w dokumencie Firebase
+                if (t.category === 'siatka') {
+                    volleyballContainer.innerHTML += row;
+                } else {
+                    // Domyślnie piłka lub jeśli category === 'pilka'
+                    footballContainer.innerHTML += row;
+                }
             });
 
-            teams.forEach(t => {
-                const safeName = t.name ? t.name.replace(/'/g, "\\'") : "Drużyna";
-                
-                const row = `
-                    <div class="team-row" data-aos="fade-up">
-                        <div class="team-info">
-                            <img src="${t.logo || 'logo.png'}" alt="Logo" class="team-logo-small">
-                            <h3 class="team-name-row">${t.name || 'Brak nazwy'}</h3>
-                        </div>
-                        <button class="btn-mini" onclick="window.openSquad('${t.id}', '${safeName}')">
-                            <i class="fas fa-list"></i> SKŁAD
-                        </button>
-                    </div>
-                `;
-                container.innerHTML += row;
-            });
+            // Obsługa pustych kategorii
+            if (footballContainer.innerHTML === '') footballContainer.innerHTML = '<p style="padding:20px; opacity:0.5;">Brak drużyn w tej kategorii.</p>';
+            if (volleyballContainer.innerHTML === '') volleyballContainer.innerHTML = '<p style="padding:20px; opacity:0.5;">Brak drużyn w tej kategorii.</p>';
         });
 
-        // --- 2. OBSŁUGA SKŁADU ---
+        // --- OBSŁUGA MODALA (SKŁADU) ---
         window.openSquad = async function(teamId, teamName) {
             const modal = document.getElementById('squadModal');
             const list = document.getElementById('squadList');
@@ -277,7 +226,6 @@
             try {
                 const playersRef = collection(db, "teams", teamId, "players");
                 const snap = await getDocs(playersRef);
-                
                 list.innerHTML = ''; 
 
                 if (snap.empty) {
@@ -286,14 +234,10 @@
                     let players = [];
                     snap.forEach(doc => players.push(doc.data()));
                     
-                    // --- SORTOWANIE PO SURNAME ---
                     players.sort((a, b) => {
                         const surA = a.surname ? a.surname.toString() : "";
                         const surB = b.surname ? b.surname.toString() : "";
-                        if (surA !== surB) return surA.localeCompare(surB);
-                        const nameA = a.name ? a.name.toString() : "";
-                        const nameB = b.name ? b.name.toString() : "";
-                        return nameA.localeCompare(nameB);
+                        return surA.localeCompare(surB) || (a.name || "").localeCompare(b.name || "");
                     });
 
                     players.forEach(p => {
@@ -307,7 +251,6 @@
                     });
                 }
             } catch (e) {
-                console.error(e);
                 list.innerHTML = '<li style="text-align:center; color:red; padding:20px;">Błąd pobierania danych.</li>';
             }
         };
@@ -330,13 +273,6 @@
             <img src="logo.png" alt="Logo" class="logo-img">
             <span class="logo-text">PUCHAR GWIAZD</span>
         </a>
-
-        <div class="hamburger">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-        </div>
-
         <div class="nav-links">
             <a href="index.html">STRONA GŁÓWNA</a>
             <a href="druzyny.html" class="active-link" style="color:#00d4ff; opacity:1;">DRUŻYNY</a>
@@ -351,11 +287,21 @@
 
     <main class="container">
         <header class="page-header" data-aos="fade-down" style="text-align:center; margin: 50px 0 30px;">
-            <h2 style="font-size:2rem; font-weight:800; margin:0;">DRUŻYNY</h2>
+            <h2 style="font-size:2rem; font-weight:800; margin:0;">LISTA DRUŻYN</h2>
             <p style="color:#00d4ff; letter-spacing:2px; font-size:0.9rem; font-weight:700;">UCZESTNICY TURNIEJU</p>
         </header>
 
-        <div id="teams-container" class="teams-container">
+        <div class="category-header" data-aos="fade-right">
+            <i class="fas fa-futbol"></i> PIŁKA NOŻNA
+        </div>
+        <div id="football-container" class="teams-container">
+            <p style="text-align:center; opacity:0.5;">Wczytywanie...</p>
+        </div>
+
+        <div class="category-header" data-aos="fade-right">
+            <i class="fas fa-volleyball-ball"></i> SIATKÓWKA
+        </div>
+        <div id="volleyball-container" class="teams-container">
             <p style="text-align:center; opacity:0.5;">Wczytywanie...</p>
         </div>
     </main>
@@ -366,8 +312,7 @@
                 <h3 id="modalTitle">Nazwa Drużyny</h3>
                 <i class="fas fa-times close-btn" onclick="window.closeSquad()"></i>
             </div>
-            <ul id="squadList" class="squad-list">
-                </ul>
+            <ul id="squadList" class="squad-list"></ul>
         </div>
     </div>
 
@@ -377,22 +322,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script> AOS.init({ duration: 600, once: true }); </script>
-
-    <script>
-        const hamburger = document.querySelector(".hamburger");
-        const navMenu = document.querySelector(".nav-links");
-
-        hamburger.addEventListener("click", () => {
-            hamburger.classList.toggle("active");
-            navMenu.classList.toggle("active");
-        });
-
-        // Zamknij menu po kliknięciu w link
-        document.querySelectorAll(".nav-links a").forEach(n => n.addEventListener("click", () => {
-            hamburger.classList.remove("active");
-            navMenu.classList.remove("active");
-        }));
-    </script>
 
 </body>
 </html>
