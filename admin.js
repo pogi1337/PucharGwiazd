@@ -1,4 +1,4 @@
-/* admin.js - NAPRAWIONY: STRZELCY (BRUTE FORCE) + CASE INSENSITIVE + MOBILE */
+/* admin.js - NAPRAWIONY: STRZELCY + USUWANIE WSZYSTKIEGO */
 
 const firebaseConfig = {
     apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
@@ -54,25 +54,18 @@ function initApp() {
     listenTeamsList();
     loadSettings();
     document.getElementById('mDate').value = new Date().toISOString().slice(0,10);
-    
-    // Oblicz strzelców
     calculateTopScorers();
 }
 
-// --- FUNKCJA NAPRAWIAJĄCA NAZWY DRUŻYN (Case Insensitive) ---
 function normalizeTeamName(inputName) {
     if(!inputName) return "Nieznana";
     const lowerInput = inputName.trim().toLowerCase();
-    
-    // Szukamy w definicji grup
     for (const group in GROUPS_DEF) {
         for (const team of GROUPS_DEF[group]) {
-            if (team.toLowerCase() === lowerInput) {
-                return team; // Zwracamy "ładną" nazwę z dużej litery
-            }
+            if (team.toLowerCase() === lowerInput) return team; 
         }
     }
-    return inputName; // Jak nie znajdzie, zwraca oryginał
+    return inputName; 
 }
 
 // --- MECZE ---
@@ -118,13 +111,30 @@ function listenMatches() {
     });
 }
 
-// --- TABELE GRUPOWE (POPRAWIONE) ---
+// MASOWE USUWANIE MECZÓW
+window.deleteAllMatches = async () => {
+    if (!confirm("CZY NA PEWNO CHCESZ USUNĄĆ WSZYSTKIE MECZE? Tej operacji nie można cofnąć!")) return;
+    try {
+        const snap = await db.collection('matches').get();
+        if (snap.empty) return alert("Brak meczów do usunięcia.");
+        
+        const batch = db.batch();
+        snap.docs.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        
+        alert("Wszystkie mecze zostały usunięte!");
+    } catch (error) {
+        console.error("Błąd podczas usuwania meczów: ", error);
+        alert("Wystąpił błąd: " + error.message);
+    }
+};
+
+// --- TABELE GRUPOWE ---
 function calculateGroupTables(matchesList) {
     const container = document.getElementById('groupsContainer');
     if(!container) return;
     container.innerHTML = '';
 
-    // 1. Puste statystyki
     let stats = {};
     Object.keys(GROUPS_DEF).forEach(groupName => {
         GROUPS_DEF[groupName].forEach(teamName => {
@@ -132,15 +142,11 @@ function calculateGroupTables(matchesList) {
         });
     });
 
-    // 2. Liczenie (tylko zakończone)
     matchesList.forEach(m => {
         if(m.status !== 'finished') return;
-
-        // Używamy normalizacji (boys -> Boys)
         const homeFixed = normalizeTeamName(m.home);
         const awayFixed = normalizeTeamName(m.away);
 
-        // Jeśli drużyna spoza listy (np. nowa), dodajemy ją dynamicznie
         if(!stats[homeFixed]) stats[homeFixed] = { group: m.group || '?', m:0, w:0, d:0, l:0, goals:0, pts:0 };
         if(!stats[awayFixed]) stats[awayFixed] = { group: m.group || '?', m:0, w:0, d:0, l:0, goals:0, pts:0 };
 
@@ -160,14 +166,10 @@ function calculateGroupTables(matchesList) {
         }
     });
 
-    // 3. Generowanie HTML
     Object.keys(GROUPS_DEF).forEach(groupName => {
         const teamsInGroup = GROUPS_DEF[groupName];
-        
         teamsInGroup.sort((t1, t2) => {
-            const s1 = stats[t1];
-            const s2 = stats[t2];
-            // Sortowanie: Punkty > Bramki Strzelone
+            const s1 = stats[t1]; const s2 = stats[t2];
             if (s2.pts !== s1.pts) return s2.pts - s1.pts;
             return s2.goals - s1.goals;
         });
@@ -175,18 +177,7 @@ function calculateGroupTables(matchesList) {
         let rows = '';
         teamsInGroup.forEach((team, idx) => {
             const s = stats[team];
-            rows += `
-                <tr>
-                    <td>${idx+1}</td>
-                    <td>${team}</td>
-                    <td>${s.m}</td>
-                    <td>${s.w}</td>
-                    <td>${s.d}</td>
-                    <td>${s.l}</td>
-                    <td>${s.goals}</td>
-                    <td><strong>${s.pts}</strong></td>
-                </tr>
-            `;
+            rows += `<tr><td>${idx+1}</td><td>${team}</td><td>${s.m}</td><td>${s.w}</td><td>${s.d}</td><td>${s.l}</td><td>${s.goals}</td><td><strong>${s.pts}</strong></td></tr>`;
         });
 
         container.innerHTML += `
@@ -194,20 +185,16 @@ function calculateGroupTables(matchesList) {
                 <h3 style="color:var(--accent); text-align:center;">GRUPA ${groupName}</h3>
                 <div class="table-responsive">
                     <table class="styled-table">
-                        <thead>
-                            <tr><th>#</th><th>Drużyna</th><th>M</th><th>W</th><th>R</th><th>P</th><th>B</th><th>PKT</th></tr>
-                        </thead>
+                        <thead><tr><th>#</th><th>Drużyna</th><th>M</th><th>W</th><th>R</th><th>P</th><th>B</th><th>PKT</th></tr></thead>
                         <tbody>${rows}</tbody>
                     </table>
                 </div>
-            </div>
-        `;
+            </div>`;
     });
 }
 
-// --- TOP STRZELCY (BRUTE FORCE - BEZ INDEKSU) ---
+// --- TOP STRZELCY ---
 function calculateTopScorers() {
-    // Pobieramy kolekcję BEZ orderBy w bazie, żeby nie krzyczało o indeks
     db.collectionGroup('players').onSnapshot(snap => {
         const tbody = document.getElementById('topScorersBody');
         if(!tbody) return;
@@ -215,21 +202,11 @@ function calculateTopScorers() {
         let allPlayers = [];
         snap.forEach(doc => {
             const p = doc.data();
-            // Sprawdzamy czy ma gole i czy gole to liczba
             const g = parseInt(p.goals) || 0;
-            if(g > 0) {
-                allPlayers.push({
-                    name: p.name,
-                    team: p.teamName || '(Brak)',
-                    goals: g
-                });
-            }
+            if(g > 0) allPlayers.push({ name: p.name, team: p.teamName || '(Brak)', goals: g });
         });
 
-        // Sortujemy w przeglądarce (malejąco)
         allPlayers.sort((a, b) => b.goals - a.goals);
-
-        // Bierzemy top 20
         const topList = allPlayers.slice(0, 20);
 
         tbody.innerHTML = '';
@@ -239,17 +216,9 @@ function calculateTopScorers() {
         }
 
         topList.forEach((p, i) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${i+1}</td>
-                    <td>${p.name}</td>
-                    <td>${p.team}</td>
-                    <td style="font-weight:bold; color:#38bdf8;">${p.goals}</td>
-                </tr>`;
+            tbody.innerHTML += `<tr><td>${i+1}</td><td>${p.name}</td><td>${p.team}</td><td style="font-weight:bold; color:#38bdf8;">${p.goals}</td></tr>`;
         });
-    }, err => {
-        console.error("Błąd strzelców:", err);
-    });
+    }, err => console.error("Błąd strzelców:", err));
 }
 
 // --- MODAL MECZU ---
@@ -294,7 +263,7 @@ window.saveMatch = () => {
     let p = id ? db.collection('matches').doc(id).update(data) : db.collection('matches').add(data);
     p.then(() => closeMatchModal()).catch(e => alert(e.message));
 };
-window.deleteMatch = (id) => { if(confirm("Usunąć?")) db.collection('matches').doc(id).delete(); };
+window.deleteMatch = (id) => { if(confirm("Usunąć ten mecz?")) db.collection('matches').doc(id).delete(); };
 
 // --- NEWSY ---
 function listenNews() {
@@ -336,6 +305,49 @@ function listenTeamsList() {
         });
     });
 }
+
+// MASOWE USUWANIE DRUŻYN (Z ZAWODNIKAMI)
+window.deleteAllTeams = async () => {
+    if (!confirm("CZY NA PEWNO CHCESZ USUNĄĆ WSZYSTKIE DRUŻYNY ORAZ ZAWODNIKÓW? Tej operacji nie można cofnąć!")) return;
+    try {
+        const teamsSnap = await db.collection('teams').get();
+        if (teamsSnap.empty) return alert("Brak drużyn do usunięcia.");
+
+        let batch = db.batch();
+        let opsCount = 0;
+
+        for (const teamDoc of teamsSnap.docs) {
+            // Najpierw usuwamy subkolekcję graczy dla każdej drużyny
+            const playersSnap = await teamDoc.ref.collection('players').get();
+            playersSnap.docs.forEach(pDoc => {
+                batch.delete(pDoc.ref);
+                opsCount++;
+            });
+            
+            // Następnie usuwamy główny dokument drużyny
+            batch.delete(teamDoc.ref);
+            opsCount++;
+
+            // Firebase Batch ma limit 500 operacji - jeśli go przekraczamy, wysyłamy i otwieramy nową paczkę
+            if (opsCount > 400) {
+                await batch.commit();
+                batch = db.batch();
+                opsCount = 0;
+            }
+        }
+        
+        // Zapisujemy resztę
+        if (opsCount > 0) {
+            await batch.commit();
+        }
+
+        alert("Wszystkie drużyny i zawodnicy zostali usunięci!");
+    } catch (error) {
+        console.error("Błąd podczas usuwania drużyn: ", error);
+        alert("Wystąpił błąd: " + error.message);
+    }
+};
+
 window.openTeamModal = (id, name) => {
     document.getElementById('teamModal').classList.add('open');
     document.getElementById('editTeamId').value = id;
@@ -364,7 +376,7 @@ window.addNewPlayer = () => {
     db.collection('teams').doc(tid).collection('players').add({name, number: num, goals: 0, teamName: document.getElementById('editTeamName').value})
       .then(() => { document.getElementById('newPlayerNum').value=''; document.getElementById('newPlayerName').value=''; });
 };
-window.deletePlayer = (tid, pid) => { if(confirm("Usunąć?")) db.collection('teams').doc(tid).collection('players').doc(pid).delete(); };
+window.deletePlayer = (tid, pid) => { if(confirm("Usunąć gracza?")) db.collection('teams').doc(tid).collection('players').doc(pid).delete(); };
 
 // --- POMOCNICZE ---
 function loadTeamsToSelect() {
@@ -406,7 +418,7 @@ window.createAccountAndTeam = async () => {
     const pass = document.getElementById('accPass').value;
     const tName = document.getElementById('accTeamName').value;
     const tId = document.getElementById('accTeamId').value;
-    if(!email || !pass || !tName) return alert("Dane!");
+    if(!email || !pass || !tName) return alert("Wypełnij dane!");
     try {
         const app2 = firebase.initializeApp(firebaseConfig, "App2");
         const c = await app2.auth().createUserWithEmailAndPassword(email, pass);
@@ -417,7 +429,7 @@ window.createAccountAndTeam = async () => {
         batch.set(db.collection('teams').doc(tId), { name:tName, captainId:c.user.uid });
         batch.set(db.collection('teams').doc(tId).collection('players').doc(), { name:"Manager", number:0, goals:0, teamName:tName });
         await batch.commit();
-        alert("Utworzono!");
+        alert("Utworzono drużynę i konto!");
     } catch(e) { alert(e.message); }
 };
 function loadSettings() {

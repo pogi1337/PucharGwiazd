@@ -28,7 +28,7 @@
             margin: 0; 
             display: flex; 
             height: 100vh; 
-            overflow: hidden; /* Desktop: brak scrolla na body */
+            overflow: hidden;
         }
 
         * { box-sizing: border-box; scrollbar-width: thin; }
@@ -83,7 +83,7 @@
         /* --- FORMS --- */
         .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: span 2; }
-        input, select, textarea { width: 100%; padding: 12px; background: #374151; border: 1px solid var(--border); color: white; border-radius: 8px; margin-top: 5px; font-size:16px; /* fix zoom on ios */ }
+        input, select, textarea { width: 100%; padding: 12px; background: #374151; border: 1px solid var(--border); color: white; border-radius: 8px; margin-top: 5px; font-size:16px; }
 
         /* --- MODAL --- */
         .modal-overlay {
@@ -103,78 +103,39 @@
         
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050a18; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 20px; }
 
-        /* =========================================
-           STYLE MOBILNE (TELEFON)
-           ========================================= */
+        /* --- MOBILE --- */
         @media (max-width: 768px) {
             body { 
                 flex-direction: column; 
                 height: auto; 
                 min-height: 100vh;
-                overflow-y: auto; /* Włącz scrolla na body na telefonie */
+                overflow-y: auto; 
             }
-            
-            /* MENU NA GÓRZE - PRZEWIJANE */
             .sidebar { 
-                width: 100%; 
-                height: auto; 
-                padding: 10px; 
-                border-right: none; 
-                border-bottom: 1px solid var(--border);
-                position: sticky; top: 0; /* Menu przyklejone do góry */
-                flex-direction: row; 
-                overflow-x: auto; /* Przewijanie poziome */
-                white-space: nowrap;
-                background: rgba(17, 24, 39, 0.95);
-                backdrop-filter: blur(10px);
-                gap: 8px;
+                width: 100%; height: auto; padding: 10px; border-right: none; border-bottom: 1px solid var(--border);
+                position: sticky; top: 0; flex-direction: row; overflow-x: auto; white-space: nowrap;
+                background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(10px); gap: 8px;
             }
-
-            .logo { display: none; /* Ukrywamy duże logo, bo zajmuje miejsce */ }
-            
-            .menu-btn { 
-                width: auto; 
-                font-size: 0.85rem; 
-                padding: 8px 12px; 
-                background: rgba(255,255,255,0.05);
-                border-radius: 20px;
-                margin: 0;
-            }
+            .logo { display: none; }
+            .menu-btn { width: auto; font-size: 0.85rem; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 20px; margin: 0; }
             .menu-btn span { display: inline-block; }
             .menu-btn i { margin-right: 5px; }
 
-            /* GŁÓWNA TREŚĆ */
             .main { padding: 15px; height: auto; overflow: visible; }
-            
-            /* NAGŁÓWKI */
             .header-row { flex-direction: column; align-items: stretch; text-align: center; gap: 10px; }
             .header-row h2 { font-size: 1.5rem; margin: 0; }
             .header-row button { width: 100%; padding: 12px; }
 
-            /* KARTA MECZU - PIONOWO */
-            .match-card { 
-                flex-direction: column; 
-                align-items: stretch; 
-                text-align: center; 
-            }
+            .match-card { flex-direction: column; align-items: stretch; text-align: center; }
             .match-card > div:first-child { margin-bottom: 10px; }
-            .match-card > div:last-child { 
-                display: flex; gap: 10px; 
-            }
-            .match-card button { flex: 1; padding: 10px; } /* Przyciski na całą szerokość */
+            .match-card > div:last-child { display: flex; gap: 10px; }
+            .match-card button { flex: 1; padding: 10px; }
 
-            /* FORMULARZE */
             .grid-form { grid-template-columns: 1fr; }
             .full-width { grid-column: span 1; }
-
-            /* TABELE */
             .tables-grid { grid-template-columns: 1fr; }
             
-            /* MODAL NA PEŁNY EKRAN */
-            .modal-box { 
-                width: 100%; height: 100%; max-height: 100vh; border-radius: 0; 
-                border: none;
-            }
+            .modal-box { width: 100%; height: 100%; max-height: 100vh; border-radius: 0; border: none; }
             .modal-body { padding: 15px; }
         }
     </style>
@@ -208,7 +169,10 @@
         <div id="tab-matches" class="section active">
             <div class="header-row">
                 <h2>Lista Meczów</h2>
-                <button class="btn btn-success" onclick="openMatchModal()"><i class="fas fa-plus"></i> Dodaj Mecz</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-danger" onclick="deleteAllMatches()"><i class="fas fa-trash"></i> Usuń Wszystkie</button>
+                    <button class="btn btn-success" onclick="openMatchModal()"><i class="fas fa-plus"></i> Dodaj Mecz</button>
+                </div>
             </div>
             <div id="matchesContainer">Ładowanie...</div>
         </div>
@@ -216,8 +180,7 @@
         <div id="tab-tables" class="section">
             <div class="header-row"><h2>Tabele Grupowe</h2></div>
             
-            <div class="tables-grid" id="groupsContainer">
-                </div>
+            <div class="tables-grid" id="groupsContainer"></div>
 
             <div class="card" style="margin-top:20px; border-top: 3px solid var(--warning);">
                 <div class="header-row" style="margin-bottom:15px;">
@@ -248,7 +211,10 @@
         <div id="tab-teams" class="section">
             <h2>Drużyny i Konta</h2>
             <div class="card">
-                <h3>Lista Drużyn (Edytuj składy)</h3>
+                <div class="header-row" style="margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Lista Drużyn (Edytuj składy)</h3>
+                    <button class="btn btn-danger btn-sm" onclick="deleteAllTeams()"><i class="fas fa-trash"></i> Usuń Wszystkie</button>
+                </div>
                 <div id="teamsListContainer">Ładowanie...</div>
             </div>
             <div class="card" style="border-top: 3px solid var(--success);">
