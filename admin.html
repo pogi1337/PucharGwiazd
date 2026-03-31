@@ -3,292 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Managera - Puchar Gwiazd</title>
+    <title>Multi-Sport Manager - Puchar Gwiazd</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
         :root {
-            --bg-body: #090f1f;
-            --sidebar-bg: #111827;
-            --modal-bg: #1f2937;
-            --accent: #38bdf8;
-            --primary: #3b82f6;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --text-main: #f3f4f6;
+            --bg-body: #090f1f; --sidebar-bg: #111827; --modal-bg: #1f2937;
+            --accent: #38bdf8; --primary: #3b82f6; --success: #22c55e;
+            --danger: #ef4444; --warning: #f59e0b; --text-main: #f3f4f6;
             --border: rgba(255,255,255,0.1);
         }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            margin: 0; 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden;
-        }
-
-        * { box-sizing: border-box; scrollbar-width: thin; }
-
-        /* --- SIDEBAR (DESKTOP) --- */
-        .sidebar {
-            width: 260px; background: var(--sidebar-bg); border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; padding: 20px; flex-shrink: 0;
-            overflow-y: auto; z-index: 100;
-        }
-        .logo { font-size: 1.4rem; font-weight: 800; margin-bottom: 30px; color: var(--accent); display:flex; gap:10px; align-items:center; }
-        
-        .menu-btn {
-            background: none; border: none; color: #9ca3af; padding: 15px; text-align: left; cursor: pointer;
-            font-size: 1rem; border-radius: 8px; transition: 0.2s; margin-bottom: 5px; font-weight: 600; display:flex; gap:10px; align-items:center;
-            width: 100%; white-space: nowrap;
-        }
-        .menu-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; }
+        .sidebar { width: 260px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; z-index: 100; }
+        .logo { font-size: 1.4rem; font-weight: 800; margin-bottom: 20px; color: var(--accent); display:flex; gap:10px; align-items:center; }
+        .sport-selector { margin-bottom: 20px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .sport-selector select { background: #374151; color: white; border: 1px solid var(--accent); padding: 8px; width: 100%; border-radius: 5px; cursor: pointer; }
+        .menu-btn { background: none; border: none; color: #9ca3af; padding: 12px; text-align: left; cursor: pointer; font-size: 0.9rem; border-radius: 8px; transition: 0.2s; margin-bottom: 5px; font-weight: 600; display:flex; gap:10px; align-items:center; width: 100%; }
         .menu-btn.active { background: rgba(56, 189, 248, 0.1); color: var(--accent); }
-
-        /* --- MAIN CONTENT --- */
-        .main { flex-grow: 1; padding: 30px; overflow-y: auto; position: relative; }
-        .section { display: none; padding-bottom: 50px; }
-        .section.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
-
-        /* --- UI ELEMENTS --- */
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .main { flex-grow: 1; padding: 25px; overflow-y: auto; }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.2s; }
+        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
         .card { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        
-        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition:0.2s; display:inline-flex; align-items:center; justify-content:center; gap:5px;}
+        .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; display:inline-flex; align-items:center; gap:5px; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: #4b5563; color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-success { background: var(--success); color: #000; }
-        .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
-
-        .match-card {
-            background: #1e293b; border: 1px solid var(--border); border-radius: 12px;
-            padding: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;
-            flex-wrap: wrap; gap: 10px;
-        }
-
-        /* --- TABLES --- */
-        .tables-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
-        .table-responsive { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; margin-bottom: 10px; }
-        .styled-table { width: 100%; border-collapse: collapse; margin-top: 5px; color: #ddd; font-size: 0.9rem; min-width: 400px; }
-        .styled-table th { text-align: center; padding: 10px; background: rgba(0,0,0,0.3); border-bottom: 2px solid var(--border); color: var(--accent); white-space: nowrap; }
+        .styled-table { width: 100%; border-collapse: collapse; color: #ddd; font-size: 0.85rem; }
+        .styled-table th { padding: 10px; background: rgba(0,0,0,0.2); border-bottom: 2px solid var(--border); color: var(--accent); }
         .styled-table td { padding: 10px; border-bottom: 1px solid var(--border); text-align: center; }
-        .styled-table td:nth-child(2) { text-align: left; font-weight: 600; color: white; } 
-
-        /* --- FORMS --- */
-        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .full-width { grid-column: span 2; }
-        input, select, textarea { width: 100%; padding: 12px; background: #374151; border: 1px solid var(--border); color: white; border-radius: 8px; margin-top: 5px; font-size:16px; }
-
-        /* --- MODAL --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
-            z-index: 2000; display: none; justify-content: center; align-items: center; padding: 10px;
-        }
+        input, select, textarea { width: 100%; padding: 10px; background: #374151; border: 1px solid var(--border); color: white; border-radius: 6px; margin-top: 5px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .modal-overlay.open { display: flex; }
-        .modal-box {
-            background: var(--modal-bg); width: 100%; max-width: 600px; max-height: 90vh;
-            border-radius: 16px; border: 1px solid var(--border);
-            display: flex; flex-direction: column; overflow: hidden;
-        }
-        .modal-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); }
-        .modal-body { padding: 20px; overflow-y: auto; }
-        .modal-footer { padding: 15px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: rgba(0,0,0,0.2); }
-        
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050a18; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-
-        /* --- MOBILE --- */
+        .modal-box { background: var(--modal-bg); width: 95%; max-width: 550px; border-radius: 12px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        #login-screen { position: fixed; inset: 0; background: #050a18; z-index: 3000; display: flex; align-items: center; justify-content: center; }
         @media (max-width: 768px) {
-            body { 
-                flex-direction: column; 
-                height: auto; 
-                min-height: 100vh;
-                overflow-y: auto; 
-            }
-            .sidebar { 
-                width: 100%; height: auto; padding: 10px; border-right: none; border-bottom: 1px solid var(--border);
-                position: sticky; top: 0; flex-direction: row; overflow-x: auto; white-space: nowrap;
-                background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(10px); gap: 8px;
-            }
-            .logo { display: none; }
-            .menu-btn { width: auto; font-size: 0.85rem; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 20px; margin: 0; }
-            .menu-btn span { display: inline-block; }
-            .menu-btn i { margin-right: 5px; }
-
-            .main { padding: 15px; height: auto; overflow: visible; }
-            .header-row { flex-direction: column; align-items: stretch; text-align: center; gap: 10px; }
-            .header-row h2 { font-size: 1.5rem; margin: 0; }
-            .header-row button { width: 100%; padding: 12px; }
-
-            .match-card { flex-direction: column; align-items: stretch; text-align: center; }
-            .match-card > div:first-child { margin-bottom: 10px; }
-            .match-card > div:last-child { display: flex; gap: 10px; }
-            .match-card button { flex: 1; padding: 10px; }
-
-            .grid-form { grid-template-columns: 1fr; }
-            .full-width { grid-column: span 1; }
-            .tables-grid { grid-template-columns: 1fr; }
-            
-            .modal-box { width: 100%; height: 100%; max-height: 100vh; border-radius: 0; border: none; }
-            .modal-body { padding: 15px; }
+            body { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; padding: 10px; position: sticky; top: 0; }
+            .logo, .sport-selector { display: none; }
+            .main { padding: 15px; }
         }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
-    <div style="background: #1f2937; padding: 30px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center;">
-        <h2 style="color:var(--accent);">ADMIN PANEL</h2>
+    <div class="card" style="width: 350px; text-align: center;">
+        <h2 style="color:var(--accent);">ADMIN LOGIN</h2>
         <input type="email" id="login-email" placeholder="Email">
-        <input type="password" id="login-password" placeholder="Hasło" style="margin-bottom:20px;">
-        <button class="btn btn-primary" onclick="login()" style="width:100%">ZALOGUJ</button>
+        <input type="password" id="login-password" placeholder="Hasło">
+        <button class="btn btn-primary" onclick="login()" style="width:100%; margin-top:15px;">ZALOGUJ</button>
     </div>
 </div>
 
-<div id="app-container" style="display:none; width:100%; min-height:100vh;">
+<div id="app-container" style="display:none; width:100%;">
     <nav class="sidebar">
-        <div class="logo"><i class="fas fa-crown"></i> MANAGER</div>
+        <div class="logo"><i class="fas fa-vial"></i> PANEL ADMINA</div>
         
-        <button class="menu-btn active" onclick="switchTab('matches', this)"><i class="fas fa-futbol"></i> <span>Mecze</span></button>
-        <button class="menu-btn" onclick="switchTab('tables', this)"><i class="fas fa-list-ol"></i> <span>Tabele</span></button>
-        <button class="menu-btn" onclick="switchTab('news', this)"><i class="fas fa-newspaper"></i> <span>Newsy</span></button>
-        <button class="menu-btn" onclick="switchTab('teams', this)"><i class="fas fa-users"></i> <span>Drużyny</span></button>
-        <button class="menu-btn" onclick="switchTab('settings', this)"><i class="fas fa-cog"></i> <span>Ustawienia</span></button>
-        
-        <button class="menu-btn" onclick="logout()" style="color:var(--danger); border:1px solid rgba(239, 68, 68, 0.3);"><i class="fas fa-sign-out-alt"></i> <span>Wyloguj</span></button>
+        <div class="sport-selector">
+            <label style="font-size: 0.7rem; color: var(--accent); font-weight: bold;">AKTYWNY SPORT:</label>
+            <select id="activeSport" onchange="changeSport()">
+                <option value="football">Piłka Nożna</option>
+                <option value="volleyball">Siatkówka</option>
+            </select>
+        </div>
+
+        <button class="menu-btn active" onclick="switchTab('matches', this)"><i class="fas fa-calendar-alt"></i> Mecze</button>
+        <button class="menu-btn" onclick="switchTab('tables', this)"><i class="fas fa-table"></i> Tabele</button>
+        <button class="menu-btn" onclick="switchTab('teams', this)"><i class="fas fa-users"></i> Drużyny</button>
+        <button class="menu-btn" onclick="switchTab('news', this)"><i class="fas fa-newspaper"></i> Newsy</button>
+        <button class="menu-btn" onclick="logout()" style="color:var(--danger); margin-top: auto;"><i class="fas fa-sign-out-alt"></i> Wyloguj</button>
     </nav>
 
     <main class="main">
-
         <div id="tab-matches" class="section active">
             <div class="header-row">
-                <h2>Lista Meczów</h2>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-danger" onclick="deleteAllMatches()"><i class="fas fa-trash"></i> Usuń Wszystkie</button>
-                    <button class="btn btn-success" onclick="openMatchModal()"><i class="fas fa-plus"></i> Dodaj Mecz</button>
+                <h2 id="matchTitle">Mecze: Piłka Nożna</h2>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-danger" onclick="deleteAllMatches()"><i class="fas fa-trash"></i> Wszystkie</button>
+                    <button class="btn btn-success" onclick="openMatchModal()"><i class="fas fa-plus"></i> Dodaj</button>
                 </div>
             </div>
-            <div id="matchesContainer">Ładowanie...</div>
+            <div id="matchesContainer"></div>
         </div>
 
         <div id="tab-tables" class="section">
-            <div class="header-row"><h2>Tabele Grupowe</h2></div>
-            
-            <div class="tables-grid" id="groupsContainer"></div>
+            <h2 id="tableTitle">Tabela: Piłka Nożna</h2>
+            <div id="groupsContainer"></div>
+        </div>
 
-            <div class="card" style="margin-top:20px; border-top: 3px solid var(--warning);">
-                <div class="header-row" style="margin-bottom:15px;">
-                    <h3 style="color:var(--warning); margin:0;">Top Strzelcy</h3>
-                    <button class="btn btn-secondary btn-sm" onclick="calculateTopScorers()">Odśwież</button>
+        <div id="tab-teams" class="section">
+            <div class="header-row">
+                <h2>Zarządzanie Drużynami</h2>
+                <button class="btn btn-danger btn-sm" onclick="deleteAllTeams()">Usuń Wszystkie</button>
+            </div>
+            <div id="teamsListContainer" class="card"></div>
+            
+            <div class="card" style="border-top: 3px solid var(--success);">
+                <h3>Kreator Konta Drużyny</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <input type="text" id="accTeamName" placeholder="Nazwa Drużyny">
+                    <select id="accSport">
+                        <option value="football">Piłka Nożna</option>
+                        <option value="volleyball">Siatkówka</option>
+                    </select>
+                    <input type="email" id="accEmail" placeholder="Email logowania">
+                    <input type="password" id="accPass" placeholder="Hasło">
                 </div>
-                <div class="table-responsive">
-                    <table class="styled-table">
-                        <thead><tr><th>#</th><th>Zawodnik</th><th>Drużyna</th><th>Gole</th></tr></thead>
-                        <tbody id="topScorersBody">
-                            <tr><td colspan="4">Ładowanie strzelców...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                <button class="btn btn-success" style="width:100%; margin-top:15px;" onclick="createAccountAndTeam()">UTWÓRZ KONTO I DRUŻYNĘ</button>
             </div>
         </div>
 
         <div id="tab-news" class="section">
-            <h2>Zarządzanie Newsami</h2>
+            <h2>Aktualności</h2>
             <div class="card">
                 <input type="text" id="newsTitle" placeholder="Tytuł newsa">
-                <textarea id="newsContent" rows="3" placeholder="Treść newsa..." style="margin-top:10px;"></textarea>
-                <button class="btn btn-primary" style="margin-top:15px; width:100%;" onclick="addNews()">Opublikuj</button>
+                <textarea id="newsContent" rows="3" placeholder="Treść..."></textarea>
+                <button class="btn btn-primary" style="margin-top:10px; width:100%;" onclick="addNews()">Opublikuj</button>
             </div>
             <div id="newsContainer"></div>
-        </div>
-
-        <div id="tab-teams" class="section">
-            <h2>Drużyny i Konta</h2>
-            <div class="card">
-                <div class="header-row" style="margin-bottom: 15px;">
-                    <h3 style="margin: 0;">Lista Drużyn (Edytuj składy)</h3>
-                    <button class="btn btn-danger btn-sm" onclick="deleteAllTeams()"><i class="fas fa-trash"></i> Usuń Wszystkie</button>
-                </div>
-                <div id="teamsListContainer">Ładowanie...</div>
-            </div>
-            <div class="card" style="border-top: 3px solid var(--success);">
-                <h3>Kreator Konta</h3>
-                <div class="grid-form">
-                    <div><label>Email</label><input type="email" id="accEmail"></div>
-                    <div><label>Hasło</label><input type="password" id="accPass"></div>
-                    <div><label>Nazwa</label><input type="text" id="accTeamName"></div>
-                    <div><label>ID</label><input type="text" id="accTeamId" placeholder="TEAM_01"></div>
-                </div>
-                <button class="btn btn-success" onclick="createAccountAndTeam()" style="margin-top:20px; width:100%">Utwórz</button>
-            </div>
-        </div>
-
-        <div id="tab-settings" class="section">
-            <h2>Ustawienia</h2>
-            <div class="card">
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <input type="checkbox" id="lockSquads" onchange="toggleLock()" style="width:25px; height:25px;">
-                    <label for="lockSquads" style="margin-top:0; font-size:1rem;">Zablokuj edycję składów</label>
-                </div>
-            </div>
         </div>
     </main>
 </div>
 
 <div id="matchModal" class="modal-overlay">
     <div class="modal-box">
-        <div class="modal-header"><h3 id="matchModalTitle" style="margin:0; color:white;">Mecz</h3><button onclick="closeMatchModal()" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button></div>
-        <div class="modal-body">
-            <input type="hidden" id="editMatchId">
-            <div class="grid-form">
-                <div class="full-width"><label>Status</label><select id="mStatus" style="font-weight:bold; color:var(--accent);"><option value="planned">PLANOWANY</option><option value="live">NA ŻYWO</option><option value="finished">ZAKOŃCZONY</option></select></div>
-                <div><label>Gospodarz</label><select id="mHome"></select></div>
-                <div><label>Gość</label><select id="mAway"></select></div>
-                <div><label>Data</label><input type="date" id="mDate"></div>
-                <div><label>Godzina</label><input type="time" id="mTime"></div>
-                <div class="full-width"><label>Grupa</label><select id="mGroup"><option value="A">Grupa A</option><option value="B">Grupa B</option><option value="C">Grupa C</option><option value="D">Grupa D</option><option value="faza_pucharowa">Pucharowa</option></select></div>
-                
-                <div style="border-top:1px solid #444; margin-top:10px; padding-top:10px;"><label style="color:var(--success)">Gole Gospodarze</label><input type="number" id="mHomeScore" value="0" style="font-size:1.2rem;"></div>
-                <div style="border-top:1px solid #444; margin-top:10px; padding-top:10px;"><label style="color:var(--success)">Gole Goście</label><input type="number" id="mAwayScore" value="0" style="font-size:1.2rem;"></div>
+        <h3 id="modalHeading">Mecz</h3>
+        <input type="hidden" id="editMatchId">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div><label>Gospodarz</label><select id="mHome"></select></div>
+            <div><label>Gość</label><select id="mAway"></select></div>
+            <div><label>Data</label><input type="date" id="mDate"></div>
+            <div><label>Godzina</label><input type="time" id="mTime"></div>
+            <div style="grid-column: span 2;"><label>Status</label>
+                <select id="mStatus">
+                    <option value="planned">Planowany</option>
+                    <option value="live">NA ŻYWO</option>
+                    <option value="finished">Zakończony</option>
+                </select>
             </div>
-            <div style="margin-top:20px; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
-                <label>Strzelcy (+1)</label>
-                <div class="grid-form">
-                    <div style="display:flex; gap:5px;"><select id="mHomePlayer" style="width:100%"><option>--</option></select><button class="btn-success" onclick="addGoal('home')" style="min-width:40px;">+</button></div>
-                    <div style="display:flex; gap:5px;"><select id="mAwayPlayer" style="width:100%"><option>--</option></select><button class="btn-success" onclick="addGoal('away')" style="min-width:40px;">+</button></div>
-                </div>
+            <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
+                <label id="scoreLabelH">Gole Gospodarz</label>
+                <input type="number" id="mHomeScore" value="0">
             </div>
-        </div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeMatchModal()">Anuluj</button><button class="btn btn-primary" onclick="saveMatch()">ZAPISZ</button></div>
-    </div>
-</div>
-
-<div id="teamModal" class="modal-overlay">
-    <div class="modal-box">
-        <div class="modal-header"><h3 style="margin:0; color:white;">Edycja Składu</h3><button onclick="closeTeamModal()" style="background:none; border:none; color:white; font-size:1.5rem;">&times;</button></div>
-        <div class="modal-body">
-            <input type="hidden" id="editTeamId">
-            <input type="text" id="editTeamName" style="margin-bottom:10px;">
-            <button class="btn btn-primary btn-sm" onclick="saveTeamName()" style="width:100%; margin-bottom:20px;">Zmień Nazwę</button>
-            
-            <h4 style="border-bottom:1px solid #444;">Zawodnicy</h4>
-            <div class="table-responsive" style="max-height:200px; overflow-y:auto;">
-                <table class="styled-table"><tbody id="teamPlayersList"></tbody></table>
-            </div>
-            
-            <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
-                <input type="number" id="newPlayerNum" placeholder="Nr" style="width:60px;">
-                <input type="text" id="newPlayerName" placeholder="Nazwisko" style="flex-grow:1;">
-                <button class="btn btn-success" onclick="addNewPlayer()" style="width:100%;">Dodaj Gracza</button>
+            <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:8px;">
+                <label id="scoreLabelA">Gole Gość</label>
+                <input type="number" id="mAwayScore" value="0">
             </div>
         </div>
-        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeTeamModal()">Zamknij</button></div>
+        <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+            <button class="btn btn-secondary" onclick="closeMatchModal()">Anuluj</button>
+            <button class="btn btn-primary" onclick="saveMatch()">ZAPISZ</button>
+        </div>
     </div>
 </div>
 
@@ -301,7 +169,7 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-'+id).classList.add('active');
-        if(btn) btn.classList.add('active');
+        btn.classList.add('active');
     }
 </script>
 </body>
