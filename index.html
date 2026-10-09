@@ -3,494 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puchar Gwiazd | Strona Główna</title>
-    
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/png" href="logo.png">
-
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    <title>Strona w trakcie przebudowy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- STYLE PODSTAWOWE --- */
-        body {
-            background: linear-gradient(rgba(5, 10, 24, 0.85), rgba(5, 10, 24, 0.95)), url('1.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            min-height: 100vh;
-            color: #fff;
-            overflow-x: hidden;
-            margin: 0;
+        * {
+            box-sizing: border-box;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* NAVBAR */
-        .navbar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 5%; background: rgba(15, 23, 42, 0.95);
-            border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-        .logo-link { text-decoration: none; display: flex; align-items: center; color: inherit; }
-        
-        .nav-links { display: flex; align-items: center; }
-        .nav-links a { 
-            color: #ccc; text-decoration: none; margin-left: 20px; 
-            font-weight: 600; text-transform: uppercase; font-size: 0.85rem; transition: 0.3s; 
-        }
-        .nav-links a:hover, .nav-links a.active { color: #00d4ff; }
-        
-        /* Styl dla przycisku Kapitana */
-        .nav-btn-captain {
-            border: 1px solid #00d4ff; padding: 8px 15px; border-radius: 6px; color: #00d4ff !important;
-        }
-        .nav-btn-captain:hover { background: rgba(0, 212, 255, 0.1); box-shadow: 0 0 15px rgba(0, 212, 255, 0.3); }
-
-        /* Styl dla Admina */
-        .nav-link-admin { color: #555 !important; font-size: 0.75rem !important; }
-        .nav-link-admin:hover { color: #fff !important; }
-
-        /* HAMBURGER MENU (Domyślnie ukryty na PC) */
-        .hamburger {
-            display: none;
-            cursor: pointer;
-            z-index: 1001;
-        }
-        .bar {
-            display: block;
-            width: 25px;
-            height: 3px;
-            margin: 5px auto;
-            transition: all 0.3s ease-in-out;
-            background-color: #fff;
-            border-radius: 3px;
+        .font-heading {
+            font-family: 'Space Grotesk', sans-serif;
         }
 
-        /* HERO SECTION */
-        .hero { 
-            text-align: center; 
-            padding: 60px 20px 20px 20px; 
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .hero-logo {
-            height: 120px; width: auto; margin-bottom: 20px;
-            filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.3));
-            animation: float 6s ease-in-out infinite;
-        }
-        .hero h1 { font-size: 3.5rem; margin: 10px 0; text-transform: uppercase; letter-spacing: 3px; font-weight: 800; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .hero p { color: #aaa; font-size: 1.2rem; margin-bottom: 30px; }
-
-        /* SOCIAL LINKS */
-        .social-links { margin-bottom: 40px; display: flex; gap: 20px; justify-content: center; }
-        .social-btn {
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            display: flex; justify-content: center; align-items: center;
-            color: #fff; font-size: 1.2rem; transition: 0.3s; text-decoration: none;
-        }
-        .social-btn:hover { background: #00d4ff; color: #000; transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4); }
-
-        /* LICZNIK CZASU */
-        .countdown-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; }
-        .time-unit {
-            background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.3);
-            padding: 15px 20px; border-radius: 12px; min-width: 90px; text-align: center;
-            backdrop-filter: blur(5px);
-        }
-        .time-val { font-size: 2.2rem; font-weight: 800; display: block; color: #fff; text-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
-        .time-label { font-size: 0.75rem; color: #00d4ff; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
-
-        /* STATYSTYKI */
-        .stats-container {
-            display: flex; justify-content: center; gap: 60px; margin: 20px auto 60px auto; flex-wrap: wrap;
-            padding: 30px; background: rgba(0,0,0,0.3); border-radius: 20px; max-width: 900px;
-            border: 1px solid rgba(0, 212, 255, 0.1);
-        }
-        .stat-box { text-align: center; position: relative; min-width: 120px; }
-        .stat-icon { 
-            font-size: 2.5rem; margin-bottom: 10px; color: #00d4ff;
-            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6)); 
-        }
-        .stat-number { 
-            font-size: 3.5rem; font-weight: 800; display: block; line-height: 1; color: #fff;
-            text-shadow: 0 0 15px rgba(0, 212, 255, 0.8), 0 0 30px rgba(0, 212, 255, 0.4);
-        }
-        .stat-label { 
-            font-size: 0.85rem; color: #ccc; text-transform: uppercase; letter-spacing: 2px; 
-            margin-top: 5px; font-weight: 700; 
+        /* Tło z głębokim granatem i subtelną siatką */
+        body {
+            background-color: #0b132b;
+            background-image: 
+                radial-gradient(circle at 50% 20%, #1c2541 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, #172a45 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, #0b132b 0%, transparent 50%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
         }
 
-        /* CENTRUM MECZOWE */
-        .dashboard-container { max-width: 900px; margin: 0 auto 60px auto; padding: 0 20px; }
-        .match-row {
-            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-            background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 12px; padding: 18px; border-radius: 16px;
-            backdrop-filter: blur(10px); transition: 0.3s;
+        /* Tło siatkowe w tle */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
         }
-        .match-row:hover { transform: translateY(-3px); background: rgba(30, 41, 59, 0.8); border-color: rgba(255,255,255,0.3); }
-        
-        .status-live { border-left: 4px solid #ff4d4d; background: linear-gradient(90deg, rgba(255,77,77,0.1), transparent); }
-        .status-planned { border-left: 4px solid #00d4ff; }
-        .status-finished { border-left: 4px solid #94a3b8; opacity: 0.7; }
 
-        .team { font-weight: 700; font-size: 1.1rem; }
-        .team-home { text-align: right; }
-        .team-away { text-align: left; }
-        
-        .score-badge {
-            background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 8px;
-            font-weight: 800; color: #00d4ff; font-size: 1.2rem; margin: 0 15px;
-            border: 1px solid rgba(255,255,255,0.05);
+        /* Glassmorphism karty */
+        .glass-card {
+            background: rgba(28, 37, 65, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
-        .status-live .score-badge { color: #ff4d4d; border-color: #ff4d4d; animation: pulse 1.5s infinite; }
-        .match-meta { font-size: 0.7rem; color: #aaa; margin-top: 5px; text-transform: uppercase; text-align: center; }
 
-        /* NEWSY */
-        .news-section { max-width: 1000px; margin: 0 auto 60px auto; padding: 0 20px; }
-        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
-        .news-card {
-            background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 25px; transition: 0.3s; cursor: pointer;
-            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 25px rgba(58, 80, 107, 0.3);
         }
-        .news-card:hover { transform: translateY(-5px); border-color: #00d4ff; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .news-date { font-size: 0.75rem; color: #00d4ff; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
-        .news-title { font-size: 1.3rem; font-weight: 700; margin: 0 0 10px 0; color: #fff; line-height: 1.3; }
-        .read-more { margin-top: 15px; color: #00d4ff; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
 
-        /* MODAL */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); z-index: 9999; display: none;
-            justify-content: center; align-items: center; padding: 20px; animation: fadeIn 0.3s ease;
+        /* Glow tekstu */
+        .text-glow {
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.35), 0 0 10px rgba(255, 255, 255, 0.2);
         }
-        .modal-content {
-            background: #1e293b; width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto;
-            border-radius: 20px; padding: 40px; position: relative; border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 0 50px rgba(0, 212, 255, 0.15); animation: slideUp 0.3s ease;
+
+        .text-glow-blue {
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
         }
-        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 2rem; color: #aaa; cursor: pointer; background: none; border: none; }
-        
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-        @keyframes slideUp { from {transform:translateY(30px);} to {transform:translateY(0);} }
 
-        /* --- MEDIA QUERIES (RESPONSYWNOŚĆ) --- */
-        @media(max-width:992px) {
-            /* Pokaż hamburgera */
-            .hamburger { display: block; }
-
-            /* Zmiana przycisku hamburgera w X po aktywacji */
-            .hamburger.active .bar:nth-child(2) { opacity: 0; }
-            .hamburger.active .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
-            .hamburger.active .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
-
-            /* Ukryj menu domyślnie, pokaż jako kolumnę po aktywacji */
-            .nav-links {
-                position: absolute;
-                top: 70px; /* Wysokość navbara */
-                left: 0;
-                width: 100%;
-                background: rgba(15, 23, 42, 0.98);
-                flex-direction: column;
-                align-items: center;
-                gap: 20px;
-                padding: 30px 0;
-                /* Płynne pojawianie się */
+        /* ANIMACJA DART */
+        @keyframes dartFly {
+            0% {
+                transform: translate(-120px, -100px) rotate(-20deg) scale(0.6);
                 opacity: 0;
-                transform: translateY(-20px);
-                pointer-events: none;
-                transition: all 0.3s ease-in-out;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
             }
-
-            .nav-links.active {
+            30% {
                 opacity: 1;
-                transform: translateY(0);
-                pointer-events: auto;
             }
-
-            .nav-links a { margin: 0; font-size: 1rem; }
+            75% {
+                transform: translate(0px, 0px) rotate(0deg) scale(1);
+            }
+            80% {
+                transform: translate(2px, -1px) rotate(2deg) scale(1.02);
+            }
+            85% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            100% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
         }
 
-        @media(max-width:768px) {
-            .hero h1 { font-size: 2rem; }
-            .hero-logo { height: 80px; }
-            .match-row { padding: 15px; gap: 10px; grid-template-columns: 1fr; text-align: center; }
-            .team { text-align: center; }
-            .score-info { margin: 10px 0; }
-            .stats-container { gap: 30px; }
+        @keyframes boardPulse {
+            0%, 70% { transform: scale(1); }
+            75% { transform: scale(1.04); }
+            85% { transform: scale(0.98); }
+            90%, 100% { transform: scale(1); }
+        }
+
+        @keyframes ringRipple {
+            0%, 72% { transform: scale(0.8); opacity: 0; }
+            75% { opacity: 0.8; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .animate-dart {
+            animation: dartFly 3.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+        }
+
+        .animate-board {
+            transform-origin: center;
+            animation: boardPulse 3.5s ease-out infinite;
+        }
+
+        .animate-ripple {
+            transform-origin: center;
+            animation: ringRipple 3.5s ease-out infinite;
+        }
+
+        /* ANIMACJA KOSZYKÓWKA */
+        @keyframes ballBounce {
+            0% {
+                transform: translate(-90px, -120px) scale(0.7) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-25px, -90px) scale(0.85) rotate(180deg);
+            }
+            70% {
+                transform: translate(0px, -15px) scale(1) rotate(360deg);
+            }
+            75% {
+                transform: translate(0px, 20px) scale(0.9, 1.1) rotate(420deg);
+            }
+            85% {
+                transform: translate(0px, 60px) scale(0.8) rotate(500deg);
+                opacity: 1;
+            }
+            95%, 100% {
+                transform: translate(0px, 90px) scale(0.7) rotate(540deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes netSwish {
+            0%, 68% { transform: scaleY(1) skewX(0deg); }
+            72% { transform: scaleY(1.25) skewX(5deg); }
+            78% { transform: scaleY(0.85) skewX(-3deg); }
+            85% { transform: scaleY(1.05) skewX(1deg); }
+            92%, 100% { transform: scaleY(1) skewX(0deg); }
+        }
+
+        .animate-ball {
+            animation: ballBounce 3.5s cubic-bezier(0.38, 0.1, 0.36, 0.9) infinite;
+        }
+
+        .animate-net {
+            transform-origin: top center;
+            animation: netSwish 3.5s ease-out infinite;
+        }
+
+        /* Pulsowanie diody / statusu */
+        @keyframes statusGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        .animate-status {
+            animation: statusGlow 2s infinite ease-in-out;
+        }
+
+        /* Pasek postępu animowany */
+        @keyframes progressIndeterminate {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+
+        .animate-progress {
+            animation: progressIndeterminate 2.5s infinite ease-in-out;
         }
     </style>
 </head>
-<body>
+<body class="relative flex flex-col justify-between min-h-screen bg-grid p-4 sm:p-6 md:p-10">
 
-    <nav class="navbar">
-        <a href="index.html" class="logo-link">
-            <img src="logo.png" alt="PG" style="height:35px; margin-right:10px;"> 
-            <span style="font-weight:800; color:#00d4ff; letter-spacing:1px;">PUCHAR GWIAZD</span>
-        </a>
-
-        <div class="hamburger">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
+    <!-- Górny nagłówek ze statusem -->
+    <header class="w-full max-w-6xl mx-auto flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-md">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h4zm0 0R15 4a2 2 0 012 2v14a2 2 0 01-2 2h-4a2 2 0 01-2-2V6a2 2 0 012-2h4z"></path>
+                </svg>
+            </div>
+            <span class="font-heading tracking-widest text-sm font-bold text-slate-300 uppercase">SYSTEM UPDATE</span>
         </div>
 
-        <div class="nav-links">
-            <a href="index.html" class="active">Start</a>
-            <a href="druzyny.html">Drużyny</a>
-            <a href="terminarz.html">Terminarz</a>
-            <a href="tabela.html">Tabele</a>
-            <a href="regulamin.html">Regulamin</a>
-            <a href="onas.html">O nas</a>
-            <a href="glosowanie.html">Głosowanie</a>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-status"></span>
+            <span class="text-xs font-semibold tracking-wide text-slate-300 uppercase">Prace w toku</span>
+        </div>
+    </header>
+
+    <!-- Główna sekcja z napisem -->
+    <main class="w-full max-w-6xl mx-auto my-auto py-8 z-10 flex flex-col items-center">
+        
+        <div class="text-center max-w-3xl mb-12">
+            <span class="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-widest text-blue-200 uppercase bg-blue-500/10 border border-blue-400/20 rounded-full">
+                Przebudowa serwisu
+            </span>
+            <h1 class="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white uppercase text-glow leading-tight mb-4">
+                Strona w trakcie <br class="hidden sm:inline"/>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-blue-300">
+                    przebudowy
+                </span>
+            </h1>
+            <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto font-light">
+                Przygotowujemy dla Ciebie coś wyjątkowego. Nadchodzą nowe moduły sportowe i wydarzenia. Sprawdź nadchodzące terminy poniżej.
+            </p>
+        </div>
+
+        <!-- Układ kart z datami i animacjami -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
             
-            <a href="login_kapitana.html" class="nav-btn-captain">Panel Kapitana</a>
-            <a href="admin.html" class="nav-link-admin">Admin</a>
-        </div>
-    </nav>
+            <!-- KARTA 1: DART (18.10.2026) -->
+            <div class="glass-card rounded-3xl p-6 sm:p-8 flex flex-col items-center transition-all duration-300 relative overflow-hidden group">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
+                
+                <!-- DATA NAD ANIMACJĄ -->
+                <div class="text-center mb-6 z-10">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-1">Turniej / Premiera</span>
+                    <div class="font-heading text-3xl sm:text-4xl font-extrabold text-white tracking-wider text-glow-blue">
+                        18.10.2026
+                    </div>
+                </div>
 
-    <div class="hero" data-aos="fade-down">
-        <img src="logo.png" alt="Logo Puchar Gwiazd" class="hero-logo">
-        
-        <h1>PUCHAR GWIAZD</h1>
-        <p>Pasja • Emocje • Rywalizacja</p>
+                <!-- ANIMACJA SVG - DART -->
+                <div class="w-48 h-48 sm:w-56 sm:h-56 relative flex items-center justify-center">
+                    <svg viewBox="0 0 200 200" class="w-full h-full">
+                        <!-- Fala powracająca (Ripple Effect) -->
+                        <circle cx="100" cy="100" r="30" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" class="animate-ripple" />
+                        
+                        <!-- Tarcza (Darts Board) -->
+                        <g class="animate-board">
+                            <!-- Zewnętrzna obręcz -->
+                            <circle cx="100" cy="100" r="85" fill="#0f172a" stroke="#ffffff" stroke-width="3" />
+                            <circle cx="100" cy="100" r="75" fill="none" stroke="#1e293b" stroke-width="8" />
+                            
+                            <!-- Pola tarczy -->
+                            <circle cx="100" cy="100" r="65" fill="none" stroke="#334155" stroke-width="12" stroke-dasharray="10 10" />
+                            <circle cx="100" cy="100" r="45" fill="none" stroke="#1e293b" stroke-width="16" />
+                            <circle cx="100" cy="100" r="30" fill="none" stroke="#334155" stroke-width="8" stroke-dasharray="8 8" />
+                            
+                            <!-- Środek tarczy (Bullseye) -->
+                            <circle cx="100" cy="100" r="14" fill="#1e293b" stroke="#ffffff" stroke-width="1.5" />
+                            <circle cx="100" cy="100" r="6" fill="#ffffff" />
+                            
+                            <!-- Linie podziału -->
+                            <line x1="100" y1="15" x2="100" y2="185" stroke="#334155" stroke-width="1" />
+                            <line x1="15" y1="100" x2="185" y2="100" stroke="#334155" stroke-width="1" />
+                            <line x1="40" y1="40" x2="160" y2="160" stroke="#334155" stroke-width="1" />
+                            <line x1="40" y1="160" x2="160" y2="40" stroke="#334155" stroke-width="1" />
+                        </g>
 
-        <div class="social-links">
-            <a href="https://www.facebook.com/profile.php?id=61576684634802" class="social-btn" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://www.instagram.com/puchargwiazd/" class="social-btn" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
-            <a href="https://www.youtube.com/@PucharGwiazd" class="social-btn" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i></a>
-            <a href="https://www.tiktok.com/@puchar.gwiazd" class="social-btn" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
-        </div>
-        
-        <div id="timer" class="countdown-box">
-            <div class="time-unit"><span class="time-val" id="days">00</span><span class="time-label">Dni</span></div>
-            <div class="time-unit"><span class="time-val" id="hours">00</span><span class="time-label">Godz</span></div>
-            <div class="time-unit"><span class="time-val" id="minutes">00</span><span class="time-label">Min</span></div>
-            <div class="time-unit"><span class="time-val" id="seconds">00</span><span class="time-label">Sek</span></div>
-        </div>
-    </div>
+                        <!-- Lotka Darta (Dart) -->
+                        <g class="animate-dart">
+                            <!-- Cień lotki -->
+                            <path d="M70,70 L100,100" stroke="rgba(0,0,0,0.5)" stroke-width="4" stroke-linecap="round" />
+                            
+                            <!-- Grot -->
+                            <line x1="82" y1="82" x2="100" y2="100" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
+                            
+                            <!-- Korpus (Barrel) -->
+                            <rect x="70" y="70" width="16" height="4" rx="1" fill="#cbd5e1" transform="rotate(45 78 72)" />
+                            
+                            <!-- Szaft (Shaft) -->
+                            <line x1="56" y1="56" x2="71" y2="71" stroke="#64748b" stroke-width="2" />
+                            
+                            <!-- Piórka (Flight) -->
+                            <path d="M42,42 L56,56 L45,61 L37,53 Z" fill="#ffffff" opacity="0.9" />
+                            <path d="M42,42 L56,56 L61,45 L53,37 Z" fill="#38bdf8" />
+                            <path d="M35,35 L48,48 L40,52 L32,44 Z" fill="#ffffff" opacity="0.7" />
+                        </g>
+                    </svg>
+                </div>
 
-    <div class="stats-container" data-aos="zoom-in">
-        <div class="stat-box">
-            <i class="fas fa-trophy stat-icon"></i>
-            <span class="stat-number count-up" data-target="5">0</span>
-            <span class="stat-label">ZREALIZOWANYCH EDYCJI</span>
-        </div>
-        
-        <div class="stat-box">
-            <i class="fas fa-users stat-icon"></i>
-            <span class="stat-number count-up" data-target="16">0</span>
-            <span class="stat-label">DRUŻYN</span>
+                <div class="mt-4 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                    <span class="text-xs text-slate-300 font-medium tracking-wide uppercase">Moduł Darts</span>
+                </div>
+            </div>
+
+            <!-- KARTA 2: KOSZYKÓWKA (07.11.2026) -->
+            <div class="glass-card rounded-3xl p-6 sm:p-8 flex flex-col items-center transition-all duration-300 relative overflow-hidden group">
+                <div class="absolute -left-10 -top-10 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl group-hover:bg-blue-400/20 transition-all"></div>
+
+                <!-- DATA NAD ANIMACJĄ -->
+                <div class="text-center mb-6 z-10">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-1">Rozgrywki / Start</span>
+                    <div class="font-heading text-3xl sm:text-4xl font-extrabold text-white tracking-wider text-glow-blue">
+                        07.11.2026
+                    </div>
+                </div>
+
+                <!-- ANIMACJA SVG - KOSZYKÓWKA -->
+                <div class="w-48 h-48 sm:w-56 sm:h-56 relative flex items-center justify-center">
+                    <svg viewBox="0 0 200 200" class="w-full h-full">
+                        <defs>
+                            <linearGradient id="netGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8" />
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Tablica i Kosz -->
+                        <g transform="translate(60, 40)">
+                            <!-- Tablica (Backboard) -->
+                            <rect x="10" y="10" width="60" height="45" rx="4" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8" />
+                            <rect x="25" y="28" width="30" height="22" rx="1" fill="none" stroke="#38bdf8" stroke-width="2" />
+                            
+                            <!-- Obręcz (Rim) -->
+                            <rect x="22" y="52" width="36" height="5" rx="2" fill="#ffffff" />
+                            
+                            <!-- Siatka (Net) z animacją uginań -->
+                            <g class="animate-net" transform="translate(25, 57)">
+                                <path d="M0,0 L5,35 L25,35 L30,0 Z" fill="url(#netGrad)" opacity="0.3" />
+                                <!-- Wzór siatki -->
+                                <path d="M0,0 L10,18 L20,0 M10,0 L20,18 L30,0 M0,12 L15,35 L30,12 M0,24 L15,35 M30,24 L15,35" 
+                                      stroke="#ffffff" stroke-width="1.5" fill="none" opacity="0.8" stroke-dasharray="2 1" />
+                            </g>
+                        </g>
+
+                        <!-- Piłka do koszykówki (Basketball) -->
+                        <g class="animate-ball" transform="translate(100, 80)">
+                            <!-- Cień/Baza piłki -->
+                            <circle cx="0" cy="0" r="18" fill="#1e293b" stroke="#ffffff" stroke-width="2" />
+                            
+                            <!-- Linie na piłce (Biało-granatowy styl) -->
+                            <path d="M-18,0 A18,18 0 0,0 18,0" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                            <path d="M0,-18 A18,18 0 0,0 0,18" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                            <path d="M-12,-12 C-4,-4 -4,4 -12,12" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                            <path d="M12,-12 C4,-4 4,4 12,12" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="mt-4 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-300"></span>
+                    <span class="text-xs text-slate-300 font-medium tracking-wide uppercase">Moduł Koszykówki</span>
+                </div>
+            </div>
+
         </div>
 
-        <div class="stat-box">
-            <i class="fas fa-volleyball-ball stat-icon" style="color: #ff9900; filter: drop-shadow(0 0 10px rgba(255, 153, 0, 0.6));"></i>
-            <span class="stat-number count-up" data-target="1" style="text-shadow: 0 0 15px rgba(255, 153, 0, 0.8);">0</span>
-            <span class="stat-label">SIATKÓWKA</span>
+        <!-- Wskaźnik postępu ładowania -->
+        <div class="w-full max-w-md mt-12 px-4">
+            <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
+                <span class="uppercase tracking-wider">Aktualizacja systemu</span>
+                <span id="progress-text" class="text-blue-300">78%</span>
+            </div>
+            <div class="w-full h-2 bg-slate-800/80 rounded-full overflow-hidden p-0.5 border border-white/10">
+                <div class="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-white rounded-full w-[78%] transition-all duration-500 shadow-[0_0_12px_rgba(56,189,248,0.5)]"></div>
+            </div>
         </div>
-    </div>
 
-    <div class="dashboard-container" data-aos="fade-up">
-        <h3 style="text-align:center; color:#fff; margin-bottom:25px; text-transform:uppercase; letter-spacing:2px; font-size:1rem; opacity:0.8;">Centrum Meczowe</h3>
-        <div id="match-dashboard">
-            <div style="text-align:center; color:#aaa; padding:20px;">Ładowanie meczów...</div>
-        </div>
-        <div style="text-align:center; margin-top:20px;">
-            <a href="terminarz.html" style="color:#00d4ff; text-decoration:none; font-size:0.9rem; font-weight:600; border-bottom:1px solid rgba(0, 212, 255, 0.3); padding-bottom:2px;">Zobacz pełny terminarz</a>
-        </div>
-    </div>
+    </main>
 
-    <div class="news-section" data-aos="fade-up">
-        <h3 style="text-align:center; color:#fff; margin-bottom:30px; text-transform:uppercase; letter-spacing:2px; font-size:1rem; opacity:0.8;">
-            Aktualności
-        </h3>
-        <div id="news-grid" class="news-grid">
-            <div style="text-align:center; width:100%; color:#888;">Ładowanie newsów...</div>
-        </div>
-    </div>
-
-    <div id="news-modal" class="modal-overlay" onclick="closeNewsModal(event)">
-        <div class="modal-content">
-            <button class="close-modal" onclick="closeNewsModal(event, true)">&times;</button>
-            <span id="modal-date" style="color:#00d4ff; font-weight:bold; font-size:0.9rem;">DATA</span>
-            <h2 id="modal-title" style="color:#fff; margin:10px 0 20px 0; font-size:2rem; line-height:1.2;">TYTUŁ</h2>
-            <div id="modal-text" style="color:#ccc; font-size:1.1rem; line-height:1.6; white-space:pre-line;">TREŚĆ</div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script> AOS.init(); </script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Stopka -->
+    <footer class="w-full max-w-6xl mx-auto text-center z-10 pt-4">
+        <p class="text-xs text-slate-300 font-light tracking-wider">
+            &copy; 2026 Wszelkie prawa zastrzeżone. Strona w trakcie modernizacji.
+        </p>
+    </footer>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyC6r04aG6T5EYqJ4OClraYU5Jr34ffONwo",
-            authDomain: "puchargwiazd-bdaa4.firebaseapp.com",
-            projectId: "puchargwiazd-bdaa4",
-            storageBucket: "puchargwiazd-bdaa4.firebasestorage.app",
-            messagingSenderId: "890734185883",
-            appId: "1:890734185883:web:75e8df76127397b913612d"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // --- OBSŁUGA HAMBURGER MENU ---
-        const hamburger = document.querySelector(".hamburger");
-        const navMenu = document.querySelector(".nav-links");
-
-        hamburger.addEventListener("click", () => {
-            hamburger.classList.toggle("active");
-            navMenu.classList.toggle("active");
-        });
-
-        // Zamknij menu po kliknięciu w link
-        document.querySelectorAll(".nav-links a").forEach(n => n.addEventListener("click", () => {
-            hamburger.classList.remove("active");
-            navMenu.classList.remove("active");
-        }));
-
-        // 1. ODLICZANIE LICZB
-        function animateStats() {
-            const counters = document.querySelectorAll('.count-up');
-            counters.forEach(counter => {
-                const target = +counter.getAttribute('data-target');
-                const duration = 2000; 
-                const increment = target / (duration / 16); 
-
-                let current = 0;
-                const updateCounter = () => {
-                    current += increment;
-                    if (current < target) {
-                        counter.innerText = Math.ceil(current);
-                        requestAnimationFrame(updateCounter);
-                    } else {
-                        counter.innerText = target;
-                    }
-                };
-                updateCounter();
-            });
-        }
-        window.addEventListener('load', animateStats);
-
-
-        // 2. ODLICZANIE CZASU
-        const targetDate = new Date("2026-07-11T09:00:00").getTime();
-        setInterval(() => {
-            const now = new Date().getTime();
-            const diff = targetDate - now;
-            if (diff > 0) {
-                document.getElementById("days").innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2,'0');
-                document.getElementById("hours").innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2,'0');
-                document.getElementById("minutes").innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2,'0');
-                document.getElementById("seconds").innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2,'0');
-            }
-        }, 1000);
-
-        // 3. MECZE
-        db.collection('matches').onSnapshot(snap => {
-            let all = [];
-            snap.forEach(doc => all.push(doc.data()));
-
-            let live = all.filter(m => m.status === 'live');
-            let planned = all.filter(m => m.status === 'planned' || !m.status);
-            let finished = all.filter(m => m.status === 'finished');
-
-            planned.sort((a,b) => (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
-            finished.sort((a,b) => (b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
-
-            let displayList = [];
-            if(live.length > 0) displayList.push(live[0]);
-            displayList = displayList.concat(planned.slice(0, 2));
-            displayList = displayList.concat(finished.slice(0, 2));
-
-            const container = document.getElementById('match-dashboard');
-            container.innerHTML = '';
-
-            if(displayList.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#aaa;">Brak meczów</div>';
-                return;
-            }
-
-            displayList.forEach(m => {
-                const h = m.home || m.team1 || "Drużyna 1";
-                const a = m.away || m.team2 || "Drużyna 2";
-                
-                let css = 'status-planned';
-                let score = m.time || '-:-';
-                let meta = `PLANOWANY: ${m.date}`;
-
-                if(m.status === 'live') {
-                    css = 'status-live';
-                    score = `${m.homeScore}:${m.awayScore}`;
-                    meta = 'NA ŻYWO';
-                } else if(m.status === 'finished') {
-                    css = 'status-finished';
-                    score = `${m.homeScore}:${m.awayScore}`;
-                    meta = `KONIEC (${m.date})`;
+        // Subtelny efekt płynnej zmiany wskaźnika postępu (dla dynamiki)
+        document.addEventListener('DOMContentLoaded', () => {
+            const progressText = document.getElementById('progress-text');
+            let progress = 78;
+            
+            setInterval(() => {
+                // Delikatne wahania postępu dla efektu "żywej strony"
+                const delta = (Math.random() * 0.4 - 0.2);
+                progress = Math.min(Math.max(progress + delta, 77.5), 79.5);
+                if (progressText) {
+                    progressText.textContent = `${progress.toFixed(1)}%`;
                 }
-
-                container.innerHTML += `
-                    <div class="match-row ${css}">
-                        <div class="team team-home">${h}</div>
-                        <div class="score-info">
-                            <div class="score-badge">${score}</div>
-                            <div class="match-meta">${meta}</div>
-                        </div>
-                        <div class="team team-away">${a}</div>
-                    </div>
-                `;
-            });
+            }, 2000);
         });
-
-        // 4. NEWSY + MODAL
-        db.collection('news').orderBy('createdAt', 'desc').limit(4).onSnapshot(snap => {
-            const container = document.getElementById('news-grid');
-            container.innerHTML = '';
-
-            if (snap.empty) {
-                container.innerHTML = '<div style="text-align:center; width:100%; color:#666;">Brak newsów.</div>';
-                return;
-            }
-
-            snap.forEach(doc => {
-                const n = doc.data();
-                let shortText = n.content || "";
-                if(shortText.length > 100) shortText = shortText.substring(0, 100) + "...";
-                
-                const safeTitle = (n.title || "").replace(/'/g, "&#39;").replace(/"/g, "&quot;");
-                const safeDate = (n.date || "").replace(/'/g, "&#39;");
-                const safeContent = (n.content || "").replace(/'/g, "&#39;").replace(/"/g, "&quot;").replace(/\n/g, "<br>");
-
-                container.innerHTML += `
-                    <div class="news-card" onclick="openNewsModal('${safeTitle}', '${safeDate}', '${safeContent}')">
-                        <span class="news-date">${n.date}</span>
-                        <div class="news-title">${n.title}</div>
-                        <div class="news-excerpt" style="color:#aaa; font-size:0.9rem;">${shortText}</div>
-                        <div class="read-more">Czytaj dalej <i class="fas fa-arrow-right"></i></div>
-                    </div>
-                `;
-            });
-        });
-
-        function openNewsModal(title, date, content) {
-            document.getElementById('modal-title').innerHTML = title;
-            document.getElementById('modal-date').innerText = date;
-            document.getElementById('modal-text').innerHTML = content;
-            document.getElementById('news-modal').style.display = 'flex';
-        }
-
-        function closeNewsModal(event, force) {
-            if (force || event.target.id === 'news-modal') {
-                document.getElementById('news-modal').style.display = 'none';
-            }
-        }
     </script>
 </body>
 </html>
