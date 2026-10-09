@@ -1,386 +1,790 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strona w trakcie przebudowy</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puchar Gwiazd - Strona w przebudowie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --navy-accent: #1e3a8a;
+      --blue-glow: #3b82f6;
+      --cyan-bright: #38bdf8;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --border-color: rgba(59, 130, 246, 0.25);
+    }
 
-        .font-heading {
-            font-family: 'Space Grotesk', sans-serif;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* Tło z głębokim granatem i subtelną siatką */
-        body {
-            background-color: #0b132b;
-            background-image: 
-                radial-gradient(circle at 50% 20%, #1c2541 0%, transparent 60%),
-                radial-gradient(circle at 80% 80%, #172a45 0%, transparent 50%),
-                radial-gradient(circle at 20% 80%, #0b132b 0%, transparent 50%);
-            min-height: 100vh;
-            color: #ffffff;
-            overflow-x: hidden;
-        }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
 
-        /* Tło siatkowe w tle */
-        .bg-grid {
-            background-size: 40px 40px;
-            background-image: 
-                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-        }
+    /* Tło z siatką i cząsteczkami */
+    #bg-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
 
-        /* Glassmorphism karty */
-        .glass-card {
-            background: rgba(28, 37, 65, 0.45);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
+    /* Ambient Lighting */
+    .ambient-glow {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(30, 58, 138, 0.4) 0%, rgba(3, 7, 18, 0) 70%);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      pointer-events: none;
+      animation: pulse-glow 8s infinite alternate ease-in-out;
+    }
 
-        .glass-card:hover {
-            border-color: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 25px rgba(58, 80, 107, 0.3);
-        }
+    @keyframes pulse-glow {
+      0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
+      100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    }
 
-        /* Glow tekstu */
-        .text-glow {
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.35), 0 0 10px rgba(255, 255, 255, 0.2);
-        }
+    /* =========================================
+       INTRO / LOADER OVERLAY
+       ========================================= */
+    #intro-loader {
+      position: fixed;
+      inset: 0;
+      background-color: #020617;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+    }
 
-        .text-glow-blue {
-            text-shadow: 0 0 20px rgba(96, 165, 250, 0.5);
-        }
+    #intro-loader.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
 
-        /* ANIMACJA DART */
-        @keyframes dartFly {
-            0% {
-                transform: translate(-120px, -100px) rotate(-20deg) scale(0.6);
-                opacity: 0;
-            }
-            30% {
-                opacity: 1;
-            }
-            75% {
-                transform: translate(0px, 0px) rotate(0deg) scale(1);
-            }
-            80% {
-                transform: translate(2px, -1px) rotate(2deg) scale(1.02);
-            }
-            85% {
-                transform: translate(0, 0) rotate(0deg) scale(1);
-            }
-            100% {
-                transform: translate(0, 0) rotate(0deg) scale(1);
-            }
-        }
+    .loader-stage {
+      position: relative;
+      width: 320px;
+      height: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
 
-        @keyframes boardPulse {
-            0%, 70% { transform: scale(1); }
-            75% { transform: scale(1.04); }
-            85% { transform: scale(0.98); }
-            90%, 100% { transform: scale(1); }
-        }
+    .loader-logo-wrap {
+      position: relative;
+      z-index: 10;
+      margin-bottom: 20px;
+    }
 
-        @keyframes ringRipple {
-            0%, 72% { transform: scale(0.8); opacity: 0; }
-            75% { opacity: 0.8; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
+    .loader-logo {
+      width: 180px;
+      height: auto;
+      filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.6));
+    }
 
-        .animate-dart {
-            animation: dartFly 3.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-        }
+    .loader-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #ffffff;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+      position: relative;
+      z-index: 10;
+    }
 
-        .animate-board {
-            transform-origin: center;
-            animation: boardPulse 3.5s ease-out infinite;
-        }
+    /* Piłki odbijające się w loaderze */
+    .anim-ball {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      top: -80px;
+      opacity: 0;
+      z-index: 15;
+    }
 
-        .animate-ripple {
-            transform-origin: center;
-            animation: ringRipple 3.5s ease-out infinite;
-        }
+    /* Bounce 1: Piłka Nożna */
+    .ball-football {
+      left: calc(50% - 70px);
+      animation: bounceFootball 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 0.3s;
+    }
 
-        /* ANIMACJA KOSZYKÓWKA */
-        @keyframes ballBounce {
-            0% {
-                transform: translate(-90px, -120px) scale(0.7) rotate(0deg);
-                opacity: 0;
-            }
-            20% {
-                opacity: 1;
-            }
-            50% {
-                transform: translate(-25px, -90px) scale(0.85) rotate(180deg);
-            }
-            70% {
-                transform: translate(0px, -15px) scale(1) rotate(360deg);
-            }
-            75% {
-                transform: translate(0px, 20px) scale(0.9, 1.1) rotate(420deg);
-            }
-            85% {
-                transform: translate(0px, 60px) scale(0.8) rotate(500deg);
-                opacity: 1;
-            }
-            95%, 100% {
-                transform: translate(0px, 90px) scale(0.7) rotate(540deg);
-                opacity: 0;
-            }
-        }
+    /* Bounce 2: Piłka Siatkowa */
+    .ball-volleyball {
+      left: calc(50% - 19px);
+      animation: bounceVolleyball 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 1.2s;
+    }
 
-        @keyframes netSwish {
-            0%, 68% { transform: scaleY(1) skewX(0deg); }
-            72% { transform: scaleY(1.25) skewX(5deg); }
-            78% { transform: scaleY(0.85) skewX(-3deg); }
-            85% { transform: scaleY(1.05) skewX(1deg); }
-            92%, 100% { transform: scaleY(1) skewX(0deg); }
-        }
+    /* Bounce 3: Piłka Koszykowa */
+    .ball-basketball {
+      left: calc(50% + 32px);
+      animation: bounceBasketball 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 2.1s;
+    }
 
-        .animate-ball {
-            animation: ballBounce 3.5s cubic-bezier(0.38, 0.1, 0.36, 0.9) infinite;
-        }
+    @keyframes bounceFootball {
+      0% { top: -80px; opacity: 1; transform: rotate(0deg); }
+      40% { top: 120px; transform: rotate(200deg) scaleY(0.85); } /* Odbicie od logo */
+      60% { top: 40px; transform: rotate(300deg); }
+      80% { top: 180px; transform: rotate(450deg) scaleY(0.8); } /* Odbicie od napisu */
+      100% { top: 450px; opacity: 0; transform: rotate(600deg); }
+    }
 
-        .animate-net {
-            transform-origin: top center;
-            animation: netSwish 3.5s ease-out infinite;
-        }
+    @keyframes bounceVolleyball {
+      0% { top: -80px; opacity: 1; transform: rotate(0deg); }
+      40% { top: 110px; transform: rotate(-180deg) scaleY(0.85); }
+      60% { top: 30px; transform: rotate(-280deg); }
+      80% { top: 180px; transform: rotate(-400deg) scaleY(0.8); }
+      100% { top: 450px; opacity: 0; transform: rotate(-520deg); }
+    }
 
-        /* Pulsowanie diody / statusu */
-        @keyframes statusGlow {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.85); }
-        }
+    @keyframes bounceBasketball {
+      0% { top: -80px; opacity: 1; transform: rotate(0deg); }
+      40% { top: 125px; transform: rotate(220deg) scaleY(0.85); }
+      60% { top: 50px; transform: rotate(320deg); }
+      80% { top: 180px; transform: rotate(480deg) scaleY(0.8); }
+      100% { top: 450px; opacity: 0; transform: rotate(640deg); }
+    }
 
-        .animate-status {
-            animation: statusGlow 2s infinite ease-in-out;
-        }
+    /* Animacja Lotki trafiającej w puchar */
+    .anim-dart-hit {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      top: -100px;
+      right: -80px;
+      opacity: 0;
+      z-index: 20;
+      transform: rotate(-45deg);
+      animation: dartFlyToTrophy 1.1s cubic-bezier(0.11, 0, 0.5, 1) forwards 3.6s;
+    }
 
-        /* Pasek postępu animowany */
-        @keyframes progressIndeterminate {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(200%); }
-        }
+    @keyframes dartFlyToTrophy {
+      0% {
+        top: -100px;
+        right: -80px;
+        opacity: 0;
+        transform: scale(1.8) rotate(-45deg);
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        top: 115px; /* trafienie w środek pucharów w logo */
+        right: 135px;
+        opacity: 1;
+        transform: scale(0.9) rotate(-15deg);
+      }
+    }
 
-        .animate-progress {
-            animation: progressIndeterminate 2.5s infinite ease-in-out;
-        }
-    </style>
+    /* Rozbłysk po trafieniu */
+    .trophy-flash {
+      position: absolute;
+      top: 115px;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(56,189,248,0.8) 40%, rgba(3,7,18,0) 80%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    .trophy-flash.active {
+      animation: flashBoom 0.6s ease-out forwards;
+    }
+
+    @keyframes flashBoom {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(2.5); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+    }
+
+
+    /* =========================================
+       GŁÓWNA ZAWARTOŚĆ STRONY
+       ========================================= */
+    .main-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 1100px;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Nagłówek z logo i indeksem */
+    .header-section {
+      text-align: center;
+      margin-bottom: 3.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .main-logo-container {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .main-logo {
+      width: 220px;
+      height: auto;
+      filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.3));
+      transition: transform 0.3s ease;
+    }
+
+    .main-logo:hover {
+      transform: scale(1.03);
+    }
+
+    .main-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #ffffff 30%, #a5f3fc 70%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      margin-bottom: 0.8rem;
+    }
+
+    .sub-title-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(30, 58, 138, 0.4);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 50px;
+      font-size: 0.9rem;
+      color: var(--cyan-bright);
+      font-weight: 600;
+      letter-spacing: 1px;
+      backdrop-filter: blur(10px);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--cyan-bright);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--cyan-bright);
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    /* Grid z dwiema sekcjami */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2.5rem;
+      width: 100%;
+    }
+
+    /* Karty Wydarzeń */
+    .event-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+      overflow: hidden;
+    }
+
+    .event-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--blue-glow), transparent);
+      opacity: 0.5;
+      transition: opacity 0.4s ease;
+    }
+
+    .event-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(59, 130, 246, 0.2);
+    }
+
+    .event-card:hover::before {
+      opacity: 1;
+    }
+
+    .card-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Kontener dla animacji SVG */
+    .anim-container {
+      width: 100%;
+      height: 180px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Countdown Styles */
+    .timer-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .target-date-label {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .target-date-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--cyan-bright);
+      margin-bottom: 1.2rem;
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+
+    .countdown-boxes {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .c-box {
+      background: rgba(3, 7, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 12px;
+      min-width: 65px;
+      text-align: center;
+    }
+
+    .c-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      display: block;
+    }
+
+    .c-lbl {
+      font-size: 0.65rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* ANIMACJE W KARTACH */
+    /* 1. DART ANIMATION */
+    .dart-board-svg {
+      width: 140px;
+      height: 140px;
+    }
+
+    .dart-arrow-svg {
+      position: absolute;
+      width: 55px;
+      height: 55px;
+      top: 15px;
+      right: 15px;
+      animation: throwDart 3s infinite cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    @keyframes throwDart {
+      0% { transform: translate(60px, -60px) scale(1.4) rotate(-30deg); opacity: 0; }
+      20% { opacity: 1; }
+      45%, 85% { transform: translate(-42px, 42px) scale(1) rotate(-10deg); opacity: 1; }
+      100% { transform: translate(-42px, 42px) scale(1) rotate(-10deg); opacity: 0; }
+    }
+
+    .dart-target-shockwave {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan-bright);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      pointer-events: none;
+      animation: shockwave 3s infinite cubic-bezier(0.1, 0.8, 0.3, 1);
+    }
+
+    @keyframes shockwave {
+      0%, 42% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      46% { opacity: 1; }
+      70% { transform: translate(-50%, -50%) scale(5); opacity: 0; }
+      100% { opacity: 0; }
+    }
+
+    /* 2. KOSZYKÓWKA ANIMATION */
+    .basketball-hoop-svg {
+      width: 140px;
+      height: 140px;
+    }
+
+    .basketball-ball-svg {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      animation: shootBasketball 3.5s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    }
+
+    @keyframes shootBasketball {
+      0% { transform: translate(-100px, 60px) scale(0.7) rotate(0deg); opacity: 0; }
+      15% { opacity: 1; }
+      45% { transform: translate(-5px, -65px) scale(1.1) rotate(260deg); }
+      60% { transform: translate(22px, -10px) scale(0.9) rotate(420deg); }
+      75%, 88% { transform: translate(22px, 50px) scale(0.85) rotate(540deg); opacity: 1; }
+      100% { transform: translate(22px, 80px) scale(0.8) rotate(600deg); opacity: 0; }
+    }
+
+    .net-swish {
+      transform-origin: top center;
+      animation: netMove 3.5s infinite ease-in-out;
+    }
+
+    @keyframes netMove {
+      0%, 55% { transform: scale1(1) skewX(0deg); }
+      60% { transform: scaleY(1.25) skewX(6deg); }
+      68% { transform: scaleY(0.9) skewX(-4deg); }
+      75% { transform: scaleY(1.05) skewX(2deg); }
+      85%, 100% { transform: scale(1) skewX(0deg); }
+    }
+
+    /* Stopka */
+    footer {
+      margin-top: 4rem;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    /* Responsywność */
+    @media (max-width: 640px) {
+      .main-title { font-size: 1.6rem; }
+      .events-grid { grid-template-columns: 1fr; }
+      .c-box { min-width: 55px; padding: 8px 6px; }
+      .c-val { font-size: 1.1rem; }
+      .loader-logo { width: 140px; }
+      .loader-text { font-size: 1.1rem; }
+    }
+  </style>
 </head>
-<body class="relative flex flex-col justify-between min-h-screen bg-grid p-4 sm:p-6 md:p-10">
+<body>
 
-    <!-- Górny nagłówek ze statusem -->
-    <header class="w-full max-w-6xl mx-auto flex justify-between items-center z-10">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-md">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h4zm0 0R15 4a2 2 0 012 2v14a2 2 0 01-2 2h-4a2 2 0 01-2-2V6a2 2 0 012-2h4z"></path>
-                </svg>
-            </div>
-            <span class="font-heading tracking-widest text-sm font-bold text-slate-300 uppercase">SYSTEM UPDATE</span>
-        </div>
+  <!-- TŁO Z KANWĄ DLA CZĄSTECZEK -->
+  <canvas id="bg-canvas"></canvas>
+  <div class="ambient-glow"></div>
 
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-status"></span>
-            <span class="text-xs font-semibold tracking-wide text-slate-300 uppercase">Prace w toku</span>
-        </div>
+  <!-- =========================================
+       EKRAN ŁADOWANIA (INTRO LOADER)
+       ========================================= -->
+  <div id="intro-loader">
+    <div class="loader-stage">
+      
+      <!-- LOGO W LOADERZE -->
+      <div class="loader-logo-wrap">
+        <img class="loader-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSU6BAAAAAA..." alt="Puchar Gwiazd Logo">
+      </div>
+
+      <!-- NAPIS DLA ODBIĆ -->
+      <div class="loader-text" id="loader-title-text">PUCHAR GWIAZD</div>
+
+      <!-- BŁYSK PO TRAFIENIU LOTKĄ -->
+      <div class="trophy-flash" id="flash-effect"></div>
+
+      <!-- ANIMOWANE PIŁKI (SPADAJĄCE I ODBIJAJĄCE SIĘ) -->
+      <!-- 1. Piłka Nożna -->
+      <svg class="anim-ball ball-football" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="46" fill="#ffffff" stroke="#1e293b" stroke-width="4"/>
+        <polygon points="50,25 30,38 37,62 63,62 70,38" fill="#0f172a"/>
+        <line x1="50" y1="25" x2="50" y2="6" stroke="#0f172a" stroke-width="3"/>
+        <line x1="30" y1="38" x2="11" y2="30" stroke="#0f172a" stroke-width="3"/>
+        <line x1="37" y1="62" x2="22" y2="80" stroke="#0f172a" stroke-width="3"/>
+        <line x1="63" y1="62" x2="78" y2="80" stroke="#0f172a" stroke-width="3"/>
+        <line x1="70" y1="38" x2="89" y2="30" stroke="#0f172a" stroke-width="3"/>
+      </svg>
+
+      <!-- 2. Piłka Siatkowa -->
+      <svg class="anim-ball ball-volleyball" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="46" fill="#f8fafc" stroke="#1e3a8a" stroke-width="4"/>
+        <path d="M50 4 A46 46 0 0 1 96 50 A46 46 0 0 1 50 96 A46 46 0 0 1 4 50 A46 46 0 0 1 50 4 Z" fill="none" stroke="#1e3a8a" stroke-width="3"/>
+        <path d="M20 15 C 40 35, 60 35, 80 15" fill="none" stroke="#2563eb" stroke-width="3.5"/>
+        <path d="M15 80 C 35 60, 35 40, 15 20" fill="none" stroke="#2563eb" stroke-width="3.5"/>
+        <path d="M80 85 C 60 65, 60 45, 85 20" fill="none" stroke="#2563eb" stroke-width="3.5"/>
+      </svg>
+
+      <!-- 3. Piłka Koszykowa -->
+      <svg class="anim-ball ball-basketball" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="46" fill="#3b82f6" stroke="#0f172a" stroke-width="4"/>
+        <line x1="4" y1="50" x2="96" y2="50" stroke="#0f172a" stroke-width="3.5"/>
+        <line x1="50" y1="4" x2="50" y2="96" stroke="#0f172a" stroke-width="3.5"/>
+        <path d="M 20,8 A 46,46 0 0,1 20,92" fill="none" stroke="#0f172a" stroke-width="3.5"/>
+        <path d="M 80,8 A 46,46 0 0,0 80,92" fill="none" stroke="#0f172a" stroke-width="3.5"/>
+      </svg>
+
+      <!-- LOTKA DART TRAFIAJĄCA W PUCHAR -->
+      <svg class="anim-dart-hit" viewBox="0 0 100 100">
+        <path d="M 15 85 L 35 65 L 25 55 Z" fill="#2563eb"/>
+        <path d="M 15 85 L 35 65 L 45 75 Z" fill="#1d4ed8"/>
+        <path d="M 15 85 L 5 65 L 25 55 Z" fill="#3b82f6"/>
+        <path d="M 15 85 L 65 35" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+        <path d="M 60 40 L 75 25 L 65 15 L 50 30 Z" fill="#f8fafc"/>
+        <polygon points="75,25 95,5 85,25" fill="#ef4444"/>
+        <polygon points="75,25 95,5 75,15" fill="#dc2626"/>
+      </svg>
+
+    </div>
+  </div>
+
+
+  <!-- =========================================
+       GŁÓWNA STRONA W PRZEBUDOWIE
+       ========================================= -->
+  <main class="main-container">
+    
+    <!-- NAGŁÓWEK Z LOGO -->
+    <header class="header-section">
+      <div class="main-logo-container">
+        <img class="main-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSU6BAAAAAA..." alt="Puchar Gwiazd Logo">
+      </div>
+      <h1 class="main-title">STRONA W TRAKCIE PRZEBUDOWY</h1>
+      <div class="sub-title-badge">
+        <span class="pulse-dot"></span>
+        SZYKUJEMY NOWĄ EDYCJĘ TURNIEJÓW
+      </div>
     </header>
 
-    <!-- Główna sekcja z napisem -->
-    <main class="w-full max-w-6xl mx-auto my-auto py-8 z-10 flex flex-col items-center">
-        
-        <div class="text-center max-w-3xl mb-12">
-            <span class="inline-block px-4 py-1.5 mb-4 text-xs font-bold tracking-widest text-blue-200 uppercase bg-blue-500/10 border border-blue-400/20 rounded-full">
-                Przebudowa serwisu
-            </span>
-            <h1 class="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white uppercase text-glow leading-tight mb-4">
-                Strona w trakcie <br class="hidden sm:inline"/>
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-blue-300">
-                    przebudowy
-                </span>
-            </h1>
-            <p class="text-slate-400 text-sm sm:text-base max-w-xl mx-auto font-light">
-                Przygotowujemy dla Ciebie coś wyjątkowego. Nadchodzą nowe moduły sportowe i wydarzenia. Sprawdź nadchodzące terminy poniżej.
-            </p>
+    <!-- GRID Z WYDARZENIAMI (DART & KOSZYKÓWKA) -->
+    <section class="events-grid">
+
+      <!-- KARTA 1: DART -->
+      <article class="event-card">
+        <h2 class="card-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          TURNIEJ DART
+        </h2>
+
+        <!-- Animacja Darta -->
+        <div class="anim-container">
+          <div class="dart-target-shockwave"></div>
+          
+          <!-- Tarcza SVG -->
+          <svg class="dart-board-svg" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="95" fill="#0b132b" stroke="#38bdf8" stroke-width="4"/>
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#1e3a8a" stroke-width="12"/>
+            <circle cx="100" cy="100" r="50" fill="none" stroke="#1d4ed8" stroke-width="10"/>
+            <circle cx="100" cy="100" r="25" fill="#020617" stroke="#38bdf8" stroke-width="3"/>
+            <circle cx="100" cy="100" r="8" fill="#ef4444"/>
+            <!-- Linie tarczy -->
+            <line x1="100" y1="5" x2="100" y2="195" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+            <line x1="5" y1="100" x2="195" y2="100" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+            <line x1="33" y1="33" x2="167" y2="167" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+            <line x1="33" y1="167" x2="167" y2="33" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+          </svg>
+
+          <!-- Lotka SVG -->
+          <svg class="dart-arrow-svg" viewBox="0 0 100 100">
+            <path d="M 20 80 L 40 60 L 30 50 Z" fill="#2563eb"/>
+            <path d="M 20 80 L 40 60 L 50 70 Z" fill="#1d4ed8"/>
+            <path d="M 20 80 L 70 30" stroke="#e2e8f0" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 65 35 L 80 20 L 70 10 L 55 25 Z" fill="#ffffff"/>
+            <polygon points="80,20 100,0 90,20" fill="#38bdf8"/>
+            <polygon points="80,20 100,0 80,10" fill="#1d4ed8"/>
+          </svg>
         </div>
 
-        <!-- Układ kart z datami i animacjami -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-            
-            <!-- KARTA 1: DART (18.10.2026) -->
-            <div class="glass-card rounded-3xl p-6 sm:p-8 flex flex-col items-center transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
-                
-                <!-- DATA NAD ANIMACJĄ -->
-                <div class="text-center mb-6 z-10">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-1">Turniej / Premiera</span>
-                    <div class="font-heading text-3xl sm:text-4xl font-extrabold text-white tracking-wider text-glow-blue">
-                        18.10.2026
-                    </div>
-                </div>
+        <!-- Odliczanie Dart -->
+        <div class="timer-wrap">
+          <span class="target-date-label">DATA WYDARZENIA</span>
+          <div class="target-date-value">18.10.2026</div>
+          <div class="countdown-boxes" id="cd-dart">
+            <div class="c-box"><span class="c-val" id="dart-days">00</span><span class="c-lbl">Dni</span></div>
+            <div class="c-box"><span class="c-val" id="dart-hours">00</span><span class="c-lbl">Godz</span></div>
+            <div class="c-box"><span class="c-val" id="dart-mins">00</span><span class="c-lbl">Min</span></div>
+            <div class="c-box"><span class="c-val" id="dart-secs">00</span><span class="c-lbl">Sek</span></div>
+          </div>
+        </div>
+      </article>
 
-                <!-- ANIMACJA SVG - DART -->
-                <div class="w-48 h-48 sm:w-56 sm:h-56 relative flex items-center justify-center">
-                    <svg viewBox="0 0 200 200" class="w-full h-full">
-                        <!-- Fala powracająca (Ripple Effect) -->
-                        <circle cx="100" cy="100" r="30" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" class="animate-ripple" />
-                        
-                        <!-- Tarcza (Darts Board) -->
-                        <g class="animate-board">
-                            <!-- Zewnętrzna obręcz -->
-                            <circle cx="100" cy="100" r="85" fill="#0f172a" stroke="#ffffff" stroke-width="3" />
-                            <circle cx="100" cy="100" r="75" fill="none" stroke="#1e293b" stroke-width="8" />
-                            
-                            <!-- Pola tarczy -->
-                            <circle cx="100" cy="100" r="65" fill="none" stroke="#334155" stroke-width="12" stroke-dasharray="10 10" />
-                            <circle cx="100" cy="100" r="45" fill="none" stroke="#1e293b" stroke-width="16" />
-                            <circle cx="100" cy="100" r="30" fill="none" stroke="#334155" stroke-width="8" stroke-dasharray="8 8" />
-                            
-                            <!-- Środek tarczy (Bullseye) -->
-                            <circle cx="100" cy="100" r="14" fill="#1e293b" stroke="#ffffff" stroke-width="1.5" />
-                            <circle cx="100" cy="100" r="6" fill="#ffffff" />
-                            
-                            <!-- Linie podziału -->
-                            <line x1="100" y1="15" x2="100" y2="185" stroke="#334155" stroke-width="1" />
-                            <line x1="15" y1="100" x2="185" y2="100" stroke="#334155" stroke-width="1" />
-                            <line x1="40" y1="40" x2="160" y2="160" stroke="#334155" stroke-width="1" />
-                            <line x1="40" y1="160" x2="160" y2="40" stroke="#334155" stroke-width="1" />
-                        </g>
+      <!-- KARTA 2: KOSZYKÓWKA -->
+      <article class="event-card">
+        <h2 class="card-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          TURNIEJ KOSZYKÓWKI
+        </h2>
 
-                        <!-- Lotka Darta (Dart) -->
-                        <g class="animate-dart">
-                            <!-- Cień lotki -->
-                            <path d="M70,70 L100,100" stroke="rgba(0,0,0,0.5)" stroke-width="4" stroke-linecap="round" />
-                            
-                            <!-- Grot -->
-                            <line x1="82" y1="82" x2="100" y2="100" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" />
-                            
-                            <!-- Korpus (Barrel) -->
-                            <rect x="70" y="70" width="16" height="4" rx="1" fill="#cbd5e1" transform="rotate(45 78 72)" />
-                            
-                            <!-- Szaft (Shaft) -->
-                            <line x1="56" y1="56" x2="71" y2="71" stroke="#64748b" stroke-width="2" />
-                            
-                            <!-- Piórka (Flight) -->
-                            <path d="M42,42 L56,56 L45,61 L37,53 Z" fill="#ffffff" opacity="0.9" />
-                            <path d="M42,42 L56,56 L61,45 L53,37 Z" fill="#38bdf8" />
-                            <path d="M35,35 L48,48 L40,52 L32,44 Z" fill="#ffffff" opacity="0.7" />
-                        </g>
-                    </svg>
-                </div>
+        <!-- Animacja Koszykówki -->
+        <div class="anim-container">
+          <!-- Kosz SVG -->
+          <svg class="basketball-hoop-svg" viewBox="0 0 200 200">
+            <!-- Tablica -->
+            <rect x="50" y="20" width="100" height="70" rx="6" fill="rgba(15, 23, 42, 0.8)" stroke="#38bdf8" stroke-width="4"/>
+            <rect x="75" y="45" width="50" height="35" fill="none" stroke="#ffffff" stroke-width="3"/>
+            <!-- Obręcz -->
+            <rect x="70" y="88" width="60" height="8" rx="3" fill="#ef4444"/>
+            <!-- Siatka z animacją swish -->
+            <g class="net-swish">
+              <path d="M 72 96 L 80 145 L 120 145 L 128 96 Z" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="6,4"/>
+              <path d="M 85 96 L 90 145 M 115 96 L 110 145 M 100 96 L 100 145" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+            </g>
+          </svg>
 
-                <div class="mt-4 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-                    <span class="text-xs text-slate-300 font-medium tracking-wide uppercase">Moduł Darts</span>
-                </div>
-            </div>
-
-            <!-- KARTA 2: KOSZYKÓWKA (07.11.2026) -->
-            <div class="glass-card rounded-3xl p-6 sm:p-8 flex flex-col items-center transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute -left-10 -top-10 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl group-hover:bg-blue-400/20 transition-all"></div>
-
-                <!-- DATA NAD ANIMACJĄ -->
-                <div class="text-center mb-6 z-10">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-1">Rozgrywki / Start</span>
-                    <div class="font-heading text-3xl sm:text-4xl font-extrabold text-white tracking-wider text-glow-blue">
-                        07.11.2026
-                    </div>
-                </div>
-
-                <!-- ANIMACJA SVG - KOSZYKÓWKA -->
-                <div class="w-48 h-48 sm:w-56 sm:h-56 relative flex items-center justify-center">
-                    <svg viewBox="0 0 200 200" class="w-full h-full">
-                        <defs>
-                            <linearGradient id="netGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8" />
-                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2" />
-                            </linearGradient>
-                        </defs>
-
-                        <!-- Tablica i Kosz -->
-                        <g transform="translate(60, 40)">
-                            <!-- Tablica (Backboard) -->
-                            <rect x="10" y="10" width="60" height="45" rx="4" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.8" />
-                            <rect x="25" y="28" width="30" height="22" rx="1" fill="none" stroke="#38bdf8" stroke-width="2" />
-                            
-                            <!-- Obręcz (Rim) -->
-                            <rect x="22" y="52" width="36" height="5" rx="2" fill="#ffffff" />
-                            
-                            <!-- Siatka (Net) z animacją uginań -->
-                            <g class="animate-net" transform="translate(25, 57)">
-                                <path d="M0,0 L5,35 L25,35 L30,0 Z" fill="url(#netGrad)" opacity="0.3" />
-                                <!-- Wzór siatki -->
-                                <path d="M0,0 L10,18 L20,0 M10,0 L20,18 L30,0 M0,12 L15,35 L30,12 M0,24 L15,35 M30,24 L15,35" 
-                                      stroke="#ffffff" stroke-width="1.5" fill="none" opacity="0.8" stroke-dasharray="2 1" />
-                            </g>
-                        </g>
-
-                        <!-- Piłka do koszykówki (Basketball) -->
-                        <g class="animate-ball" transform="translate(100, 80)">
-                            <!-- Cień/Baza piłki -->
-                            <circle cx="0" cy="0" r="18" fill="#1e293b" stroke="#ffffff" stroke-width="2" />
-                            
-                            <!-- Linie na piłce (Biało-granatowy styl) -->
-                            <path d="M-18,0 A18,18 0 0,0 18,0" fill="none" stroke="#ffffff" stroke-width="1.5" />
-                            <path d="M0,-18 A18,18 0 0,0 0,18" fill="none" stroke="#ffffff" stroke-width="1.5" />
-                            <path d="M-12,-12 C-4,-4 -4,4 -12,12" fill="none" stroke="#ffffff" stroke-width="1.5" />
-                            <path d="M12,-12 C4,-4 4,4 12,12" fill="none" stroke="#ffffff" stroke-width="1.5" />
-                        </g>
-                    </svg>
-                </div>
-
-                <div class="mt-4 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-300"></span>
-                    <span class="text-xs text-slate-300 font-medium tracking-wide uppercase">Moduł Koszykówki</span>
-                </div>
-            </div>
-
+          <!-- Piłka Koszykowa SVG -->
+          <svg class="basketball-ball-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+            <line x1="5" y1="50" x2="95" y2="50" stroke="#ffffff" stroke-width="3.5"/>
+            <line x1="50" y1="5" x2="50" y2="95" stroke="#ffffff" stroke-width="3.5"/>
+            <path d="M 20,10 A 45,45 0 0,1 20,90" fill="none" stroke="#ffffff" stroke-width="3.5"/>
+            <path d="M 80,10 A 45,45 0 0,0 80,90" fill="none" stroke="#ffffff" stroke-width="3.5"/>
+          </svg>
         </div>
 
-        <!-- Wskaźnik postępu ładowania -->
-        <div class="w-full max-w-md mt-12 px-4">
-            <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
-                <span class="uppercase tracking-wider">Aktualizacja systemu</span>
-                <span id="progress-text" class="text-blue-300">78%</span>
-            </div>
-            <div class="w-full h-2 bg-slate-800/80 rounded-full overflow-hidden p-0.5 border border-white/10">
-                <div class="h-full bg-gradient-to-r from-blue-600 via-sky-400 to-white rounded-full w-[78%] transition-all duration-500 shadow-[0_0_12px_rgba(56,189,248,0.5)]"></div>
-            </div>
+        <!-- Odliczanie Koszykówka -->
+        <div class="timer-wrap">
+          <span class="target-date-label">DATA WYDARZENIA</span>
+          <div class="target-date-value">07.11.2026</div>
+          <div class="countdown-boxes" id="cd-basketball">
+            <div class="c-box"><span class="c-val" id="bball-days">00</span><span class="c-lbl">Dni</span></div>
+            <div class="c-box"><span class="c-val" id="bball-hours">00</span><span class="c-lbl">Godz</span></div>
+            <div class="c-box"><span class="c-val" id="bball-mins">00</span><span class="c-lbl">Min</span></div>
+            <div class="c-box"><span class="c-val" id="bball-secs">00</span><span class="c-lbl">Sek</span></div>
+          </div>
         </div>
+      </article>
 
-    </main>
+    </section>
 
-    <!-- Stopka -->
-    <footer class="w-full max-w-6xl mx-auto text-center z-10 pt-4">
-        <p class="text-xs text-slate-300 font-light tracking-wider">
-            &copy; 2026 Wszelkie prawa zastrzeżone. Strona w trakcie modernizacji.
-        </p>
+    <footer>
+      &copy; 2026 PUCHAR GWIAZD. WSZELKIE PRAWA ZASTRZEŻONE.
     </footer>
+  </main>
 
-    <script>
-        // Subtelny efekt płynnej zmiany wskaźnika postępu (dla dynamiki)
-        document.addEventListener('DOMContentLoaded', () => {
-            const progressText = document.getElementById('progress-text');
-            let progress = 78;
-            
-            setInterval(() => {
-                // Delikatne wahania postępu dla efektu "żywej strony"
-                const delta = (Math.random() * 0.4 - 0.2);
-                progress = Math.min(Math.max(progress + delta, 77.5), 79.5);
-                if (progressText) {
-                    progressText.textContent = `${progress.toFixed(1)}%`;
-                }
-            }, 2000);
-        });
-    </script>
-</body>
-</html>
+  <script>
+    /* =========================================
+       1. OBSŁUGA SEKWENCJI LOADERA (INTRO)
+       ========================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      const loader = document.getElementById('intro-loader');
+      const flash = document.getElementById('flash-effect');
+
+      // Wyzwolenie rozbłysku gdy lotka trafia w puchar (~4.6s od startu)
+      setTimeout(() => {
+        flash.classList.add('active');
+      }, 4550);
+
+      // Płynne zamknięcie ekranu ładowania po zakończeniu całej animacji
+      setTimeout(() => {
+        loader.classList.add('fade-out');
+      }, 5100);
+    });
+
+    /* =========================================
+       2. SKRYPT ODLICZANIA CZASU (COUNTDOWN)
+       ========================================= */
+    const dartDate = new Date('2026-10-18T00:00:00').getTime();
+    const bballDate = new Date('2026-11-07T00:00:00').getTime();
+
+    function updateCountdowns() {
+      const now = new Date().getTime();
+
+      // Odliczanie Dart
+      const diffDart = dartDate - now;
+      if (diffDart > 0) {
+        document.getElementById('dart-days').innerText = String(Math.floor(diffDart / (1000 * 60 * 60 * 24))).padStart(2, '0');
+        document.getElementById('dart-hours').innerText = String(Math.floor((diffDart % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+        document.getElementById('dart-mins').innerText = String(Math.floor((diffDart % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+        document.getElementById('dart-secs').innerText = String(Math.floor((diffDart % (1000 * 60)) / 1000)).padStart(2, '0');
+      }
+
+      // Odliczanie Koszykówka
+      const diffBball = bballDate - now;
+      if (diffBball > 0) {
+        document.getElementById('bball-days').innerText = String(Math.floor(diffBball / (1000 * 60 * 60 * 24))).padStart(2, '0');
+        document.getElementById('bball-hours').innerText = String(Math.floor((diffBball % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+        document.getElementById('bball-mins').innerText = String(Math.floor((diffBball % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+        document.getElementById('bball-secs').innerText = String(Math.floor((diffBball % (1000 * 60)) / 1000)).padStart(2, '0');
+      }
+    }
+
+    setInterval(updateCountdowns, 1000);
+    updateCountdowns();
+
+    /* =========================================
+       3. ANIMAJA TŁA (INTERAKTYWNY CANVAS)
+       ========================================= */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let particles = [];
+
+    function resizeCanvas() {
+      width =
