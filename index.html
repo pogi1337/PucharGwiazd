@@ -6,7 +6,7 @@
   <title>Puchar Gwiazd - Strona w przebudowie</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #030712;
@@ -38,7 +38,7 @@
       position: relative;
     }
 
-    /* Tło z siatką i cząsteczkami */
+    /* Dynamiczne tło z cząsteczkami i światłem */
     #bg-canvas {
       position: fixed;
       top: 0;
@@ -49,12 +49,11 @@
       pointer-events: none;
     }
 
-    /* Ambient Lighting */
     .ambient-glow {
       position: fixed;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(30, 58, 138, 0.4) 0%, rgba(3, 7, 18, 0) 70%);
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(30, 58, 138, 0.45) 0%, rgba(3, 7, 18, 0) 70%);
       border-radius: 50%;
       top: 50%;
       left: 50%;
@@ -66,11 +65,11 @@
 
     @keyframes pulse-glow {
       0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.6; }
-      100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
     }
 
     /* =========================================
-       INTRO / LOADER OVERLAY
+       EKRAN ŁADOWANIA / INTRO (FULLSCREEN)
        ========================================= */
     #intro-loader {
       position: fixed;
@@ -87,11 +86,12 @@
     #intro-loader.fade-out {
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
     }
 
     .loader-stage {
       position: relative;
-      width: 320px;
+      width: 340px;
       height: 380px;
       display: flex;
       flex-direction: column;
@@ -102,96 +102,100 @@
     .loader-logo-wrap {
       position: relative;
       z-index: 10;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
 
     .loader-logo {
-      width: 180px;
+      width: 200px;
       height: auto;
       filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.6));
     }
 
     .loader-text {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       font-weight: 800;
       letter-spacing: 3px;
       color: #ffffff;
       text-transform: uppercase;
-      text-shadow: 0 0 15px rgba(56, 189, 248, 0.8);
+      text-shadow: 0 0 18px rgba(56, 189, 248, 0.9);
       position: relative;
       z-index: 10;
+      padding: 8px 16px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 8px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
     }
 
     /* Piłki odbijające się w loaderze */
     .anim-ball {
       position: absolute;
-      width: 38px;
-      height: 38px;
-      top: -80px;
+      width: 42px;
+      height: 42px;
+      top: -100px;
       opacity: 0;
       z-index: 15;
     }
 
-    /* Bounce 1: Piłka Nożna */
+    /* Odbicie 1: Piłka nożna */
     .ball-football {
-      left: calc(50% - 70px);
+      left: calc(50% - 85px);
       animation: bounceFootball 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 0.3s;
     }
 
-    /* Bounce 2: Piłka Siatkowa */
+    /* Odbicie 2: Piłka siatkowa */
     .ball-volleyball {
-      left: calc(50% - 19px);
-      animation: bounceVolleyball 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 1.2s;
+      left: calc(50% - 21px);
+      animation: bounceVolleyball 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 1.3s;
     }
 
-    /* Bounce 3: Piłka Koszykowa */
+    /* Odbicie 3: Piłka koszykowa */
     .ball-basketball {
-      left: calc(50% + 32px);
-      animation: bounceBasketball 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 2.1s;
+      left: calc(50% + 42px);
+      animation: bounceBasketball 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 2.3s;
     }
 
     @keyframes bounceFootball {
-      0% { top: -80px; opacity: 1; transform: rotate(0deg); }
-      40% { top: 120px; transform: rotate(200deg) scaleY(0.85); } /* Odbicie od logo */
-      60% { top: 40px; transform: rotate(300deg); }
-      80% { top: 180px; transform: rotate(450deg) scaleY(0.8); } /* Odbicie od napisu */
-      100% { top: 450px; opacity: 0; transform: rotate(600deg); }
+      0% { top: -100px; opacity: 1; transform: rotate(0deg); }
+      38% { top: 75px; transform: rotate(200deg) scaleY(0.82); } /* Odbicie od logo */
+      58% { top: -10px; transform: rotate(300deg); }
+      78% { top: 220px; transform: rotate(450deg) scaleY(0.8); } /* Odbicie od napisu */
+      100% { top: 480px; opacity: 0; transform: rotate(620deg); }
     }
 
     @keyframes bounceVolleyball {
-      0% { top: -80px; opacity: 1; transform: rotate(0deg); }
-      40% { top: 110px; transform: rotate(-180deg) scaleY(0.85); }
-      60% { top: 30px; transform: rotate(-280deg); }
-      80% { top: 180px; transform: rotate(-400deg) scaleY(0.8); }
-      100% { top: 450px; opacity: 0; transform: rotate(-520deg); }
+      0% { top: -100px; opacity: 1; transform: rotate(0deg); }
+      38% { top: 70px; transform: rotate(-180deg) scaleY(0.82); }
+      58% { top: -20px; transform: rotate(-280deg); }
+      78% { top: 220px; transform: rotate(-400deg) scaleY(0.8); }
+      100% { top: 480px; opacity: 0; transform: rotate(-540deg); }
     }
 
     @keyframes bounceBasketball {
-      0% { top: -80px; opacity: 1; transform: rotate(0deg); }
-      40% { top: 125px; transform: rotate(220deg) scaleY(0.85); }
-      60% { top: 50px; transform: rotate(320deg); }
-      80% { top: 180px; transform: rotate(480deg) scaleY(0.8); }
-      100% { top: 450px; opacity: 0; transform: rotate(640deg); }
+      0% { top: -100px; opacity: 1; transform: rotate(0deg); }
+      38% { top: 80px; transform: rotate(220deg) scaleY(0.82); }
+      58% { top: 0px; transform: rotate(320deg); }
+      78% { top: 220px; transform: rotate(480deg) scaleY(0.8); }
+      100% { top: 480px; opacity: 0; transform: rotate(660deg); }
     }
 
-    /* Animacja Lotki trafiającej w puchar */
+    /* Lotka uderzająca w puchar w logo */
     .anim-dart-hit {
       position: absolute;
-      width: 50px;
-      height: 50px;
-      top: -100px;
-      right: -80px;
+      width: 55px;
+      height: 55px;
+      top: -120px;
+      right: -90px;
       opacity: 0;
       z-index: 20;
       transform: rotate(-45deg);
-      animation: dartFlyToTrophy 1.1s cubic-bezier(0.11, 0, 0.5, 1) forwards 3.6s;
+      animation: dartFlyToTrophy 1.1s cubic-bezier(0.11, 0, 0.5, 1) forwards 3.8s;
     }
 
     @keyframes dartFlyToTrophy {
       0% {
-        top: -100px;
-        right: -80px;
+        top: -120px;
+        right: -90px;
         opacity: 0;
         transform: scale(1.8) rotate(-45deg);
       }
@@ -199,53 +203,51 @@
         opacity: 1;
       }
       100% {
-        top: 115px; /* trafienie w środek pucharów w logo */
-        right: 135px;
+        top: 105px; /* Punkt trafienia w puchar */
+        right: 142px;
         opacity: 1;
         transform: scale(0.9) rotate(-15deg);
       }
     }
 
-    /* Rozbłysk po trafieniu */
+    /* Błysk w momencie trafienia */
     .trophy-flash {
       position: absolute;
-      top: 115px;
+      top: 105px;
       left: 50%;
       transform: translate(-50%, -50%) scale(0);
-      width: 160px;
-      height: 160px;
-      background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(56,189,248,0.8) 40%, rgba(3,7,18,0) 80%);
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(56,189,248,0.85) 40%, rgba(3,7,18,0) 80%);
       border-radius: 50%;
       pointer-events: none;
       z-index: 25;
     }
 
     .trophy-flash.active {
-      animation: flashBoom 0.6s ease-out forwards;
+      animation: flashBoom 0.65s ease-out forwards;
     }
 
     @keyframes flashBoom {
       0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-      50% { transform: translate(-50%, -50%) scale(2.5); opacity: 0.9; }
-      100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(2.8); opacity: 0.95; }
+      100% { transform: translate(-50%, -50%) scale(4.5); opacity: 0; }
     }
 
-
     /* =========================================
-       GŁÓWNA ZAWARTOŚĆ STRONY
+       GŁÓWNA STRONA PO ŁADOWANIU
        ========================================= */
     .main-container {
       position: relative;
       z-index: 10;
       width: 100%;
       max-width: 1100px;
-      padding: 2rem 1.5rem;
+      padding: 2.5rem 1.5rem;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    /* Nagłówek z logo i indeksem */
     .header-section {
       text-align: center;
       margin-bottom: 3.5rem;
@@ -256,13 +258,12 @@
 
     .main-logo-container {
       margin-bottom: 1.5rem;
-      position: relative;
     }
 
     .main-logo {
-      width: 220px;
+      width: 230px;
       height: auto;
-      filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.3));
+      filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.35));
       transition: transform 0.3s ease;
     }
 
@@ -287,7 +288,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 16px;
+      padding: 6px 18px;
       background: rgba(30, 58, 138, 0.4);
       border: 1px solid rgba(56, 189, 248, 0.3);
       border-radius: 50px;
@@ -312,7 +313,7 @@
       50% { opacity: 1; }
     }
 
-    /* Grid z dwiema sekcjami */
+    /* Układ kart (Dart & Koszykówka obok siebie) */
     .events-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -320,7 +321,6 @@
       width: 100%;
     }
 
-    /* Karty Wydarzeń */
     .event-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -370,7 +370,6 @@
       gap: 10px;
     }
 
-    /* Kontener dla animacji SVG */
     .anim-container {
       width: 100%;
       height: 180px;
@@ -381,7 +380,7 @@
       margin-bottom: 1.5rem;
     }
 
-    /* Countdown Styles */
+    /* Liczniki Czasu */
     .timer-wrap {
       width: 100%;
       display: flex;
@@ -438,8 +437,7 @@
       margin-top: 2px;
     }
 
-    /* ANIMACJE W KARTACH */
-    /* 1. DART ANIMATION */
+    /* Animacja Dart */
     .dart-board-svg {
       width: 140px;
       height: 140px;
@@ -482,7 +480,7 @@
       100% { opacity: 0; }
     }
 
-    /* 2. KOSZYKÓWKA ANIMATION */
+    /* Animacja Koszykówka */
     .basketball-hoop-svg {
       width: 140px;
       height: 140px;
@@ -510,14 +508,13 @@
     }
 
     @keyframes netMove {
-      0%, 55% { transform: scale1(1) skewX(0deg); }
+      0%, 55% { transform: scale(1) skewX(0deg); }
       60% { transform: scaleY(1.25) skewX(6deg); }
       68% { transform: scaleY(0.9) skewX(-4deg); }
       75% { transform: scaleY(1.05) skewX(2deg); }
       85%, 100% { transform: scale(1) skewX(0deg); }
     }
 
-    /* Stopka */
     footer {
       margin-top: 4rem;
       font-size: 0.85rem;
@@ -526,42 +523,41 @@
       letter-spacing: 1px;
     }
 
-    /* Responsywność */
     @media (max-width: 640px) {
       .main-title { font-size: 1.6rem; }
       .events-grid { grid-template-columns: 1fr; }
       .c-box { min-width: 55px; padding: 8px 6px; }
       .c-val { font-size: 1.1rem; }
-      .loader-logo { width: 140px; }
+      .loader-logo { width: 150px; }
       .loader-text { font-size: 1.1rem; }
     }
   </style>
 </head>
 <body>
 
-  <!-- TŁO Z KANWĄ DLA CZĄSTECZEK -->
+  <!-- TŁO DYNAMICZNE -->
   <canvas id="bg-canvas"></canvas>
   <div class="ambient-glow"></div>
 
   <!-- =========================================
-       EKRAN ŁADOWANIA (INTRO LOADER)
+       EKRAN ŁADOWANIA (INTRO)
        ========================================= -->
   <div id="intro-loader">
     <div class="loader-stage">
       
-      <!-- LOGO W LOADERZE -->
+      <!-- LOGO PUCHAR GWIAZD -->
       <div class="loader-logo-wrap">
         <img class="loader-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSU6BAAAAAA..." alt="Puchar Gwiazd Logo">
       </div>
 
-      <!-- NAPIS DLA ODBIĆ -->
+      <!-- NAPIS POD LOGO -->
       <div class="loader-text" id="loader-title-text">PUCHAR GWIAZD</div>
 
-      <!-- BŁYSK PO TRAFIENIU LOTKĄ -->
+      <!-- EFEKT BŁYSKU PO HIT DART -->
       <div class="trophy-flash" id="flash-effect"></div>
 
-      <!-- ANIMOWANE PIŁKI (SPADAJĄCE I ODBIJAJĄCE SIĘ) -->
-      <!-- 1. Piłka Nożna -->
+      <!-- PIŁKI ODBIJAJĄCE SIĘ OD LOGO I NAPISU -->
+      <!-- 1. Piłka nożna -->
       <svg class="anim-ball ball-football" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="46" fill="#ffffff" stroke="#1e293b" stroke-width="4"/>
         <polygon points="50,25 30,38 37,62 63,62 70,38" fill="#0f172a"/>
@@ -572,7 +568,7 @@
         <line x1="70" y1="38" x2="89" y2="30" stroke="#0f172a" stroke-width="3"/>
       </svg>
 
-      <!-- 2. Piłka Siatkowa -->
+      <!-- 2. Piłka siatkowa -->
       <svg class="anim-ball ball-volleyball" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="46" fill="#f8fafc" stroke="#1e3a8a" stroke-width="4"/>
         <path d="M50 4 A46 46 0 0 1 96 50 A46 46 0 0 1 50 96 A46 46 0 0 1 4 50 A46 46 0 0 1 50 4 Z" fill="none" stroke="#1e3a8a" stroke-width="3"/>
@@ -581,13 +577,13 @@
         <path d="M80 85 C 60 65, 60 45, 85 20" fill="none" stroke="#2563eb" stroke-width="3.5"/>
       </svg>
 
-      <!-- 3. Piłka Koszykowa -->
+      <!-- 3. Piłka koszykowa -->
       <svg class="anim-ball ball-basketball" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="46" fill="#3b82f6" stroke="#0f172a" stroke-width="4"/>
-        <line x1="4" y1="50" x2="96" y2="50" stroke="#0f172a" stroke-width="3.5"/>
-        <line x1="50" y1="4" x2="50" y2="96" stroke="#0f172a" stroke-width="3.5"/>
-        <path d="M 20,8 A 46,46 0 0,1 20,92" fill="none" stroke="#0f172a" stroke-width="3.5"/>
-        <path d="M 80,8 A 46,46 0 0,0 80,92" fill="none" stroke="#0f172a" stroke-width="3.5"/>
+        <circle cx="50" cy="50" r="46" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
+        <line x1="4" y1="50" x2="96" y2="50" stroke="#ffffff" stroke-width="3.5"/>
+        <line x1="50" y1="4" x2="50" y2="96" stroke="#ffffff" stroke-width="3.5"/>
+        <path d="M 20,8 A 46,46 0 0,1 20,92" fill="none" stroke="#ffffff" stroke-width="3.5"/>
+        <path d="M 80,8 A 46,46 0 0,0 80,92" fill="none" stroke="#ffffff" stroke-width="3.5"/>
       </svg>
 
       <!-- LOTKA DART TRAFIAJĄCA W PUCHAR -->
@@ -597,20 +593,19 @@
         <path d="M 15 85 L 5 65 L 25 55 Z" fill="#3b82f6"/>
         <path d="M 15 85 L 65 35" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
         <path d="M 60 40 L 75 25 L 65 15 L 50 30 Z" fill="#f8fafc"/>
-        <polygon points="75,25 95,5 85,25" fill="#ef4444"/>
-        <polygon points="75,25 95,5 75,15" fill="#dc2626"/>
+        <polygon points="75,25 95,5 85,25" fill="#38bdf8"/>
+        <polygon points="75,25 95,5 75,15" fill="#1d4ed8"/>
       </svg>
 
     </div>
   </div>
 
-
   <!-- =========================================
-       GŁÓWNA STRONA W PRZEBUDOWIE
+       GŁÓWNA STRONA PO ZNIKNIĘCIU EKRANU ŁADOWANIA
        ========================================= -->
   <main class="main-container">
     
-    <!-- NAGŁÓWEK Z LOGO -->
+    <!-- NAGŁÓWEK NA ŚRODKU EKRANU -->
     <header class="header-section">
       <div class="main-logo-container">
         <img class="main-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSU6BAAAAAA..." alt="Puchar Gwiazd Logo">
@@ -622,10 +617,10 @@
       </div>
     </header>
 
-    <!-- GRID Z WYDARZENIAMI (DART & KOSZYKÓWKA) -->
+    <!-- DWIE SEKCJE OBOK SIEBIE -->
     <section class="events-grid">
 
-      <!-- KARTA 1: DART -->
+      <!-- SEKCJA 1: DART -->
       <article class="event-card">
         <h2 class="card-title">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
@@ -636,21 +631,18 @@
         <div class="anim-container">
           <div class="dart-target-shockwave"></div>
           
-          <!-- Tarcza SVG -->
           <svg class="dart-board-svg" viewBox="0 0 200 200">
             <circle cx="100" cy="100" r="95" fill="#0b132b" stroke="#38bdf8" stroke-width="4"/>
             <circle cx="100" cy="100" r="80" fill="none" stroke="#1e3a8a" stroke-width="12"/>
             <circle cx="100" cy="100" r="50" fill="none" stroke="#1d4ed8" stroke-width="10"/>
             <circle cx="100" cy="100" r="25" fill="#020617" stroke="#38bdf8" stroke-width="3"/>
             <circle cx="100" cy="100" r="8" fill="#ef4444"/>
-            <!-- Linie tarczy -->
             <line x1="100" y1="5" x2="100" y2="195" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
             <line x1="5" y1="100" x2="195" y2="100" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
             <line x1="33" y1="33" x2="167" y2="167" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
             <line x1="33" y1="167" x2="167" y2="33" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
           </svg>
 
-          <!-- Lotka SVG -->
           <svg class="dart-arrow-svg" viewBox="0 0 100 100">
             <path d="M 20 80 L 40 60 L 30 50 Z" fill="#2563eb"/>
             <path d="M 20 80 L 40 60 L 50 70 Z" fill="#1d4ed8"/>
@@ -665,7 +657,7 @@
         <div class="timer-wrap">
           <span class="target-date-label">DATA WYDARZENIA</span>
           <div class="target-date-value">18.10.2026</div>
-          <div class="countdown-boxes" id="cd-dart">
+          <div class="countdown-boxes">
             <div class="c-box"><span class="c-val" id="dart-days">00</span><span class="c-lbl">Dni</span></div>
             <div class="c-box"><span class="c-val" id="dart-hours">00</span><span class="c-lbl">Godz</span></div>
             <div class="c-box"><span class="c-val" id="dart-mins">00</span><span class="c-lbl">Min</span></div>
@@ -674,7 +666,7 @@
         </div>
       </article>
 
-      <!-- KARTA 2: KOSZYKÓWKA -->
+      <!-- SEKCJA 2: KOSZYKÓWKA -->
       <article class="event-card">
         <h2 class="card-title">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5 12h14"/><path d="M12 5v14"/></svg>
@@ -683,21 +675,16 @@
 
         <!-- Animacja Koszykówki -->
         <div class="anim-container">
-          <!-- Kosz SVG -->
           <svg class="basketball-hoop-svg" viewBox="0 0 200 200">
-            <!-- Tablica -->
             <rect x="50" y="20" width="100" height="70" rx="6" fill="rgba(15, 23, 42, 0.8)" stroke="#38bdf8" stroke-width="4"/>
             <rect x="75" y="45" width="50" height="35" fill="none" stroke="#ffffff" stroke-width="3"/>
-            <!-- Obręcz -->
             <rect x="70" y="88" width="60" height="8" rx="3" fill="#ef4444"/>
-            <!-- Siatka z animacją swish -->
             <g class="net-swish">
               <path d="M 72 96 L 80 145 L 120 145 L 128 96 Z" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-dasharray="6,4"/>
               <path d="M 85 96 L 90 145 M 115 96 L 110 145 M 100 96 L 100 145" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
             </g>
           </svg>
 
-          <!-- Piłka Koszykowa SVG -->
           <svg class="basketball-ball-svg" viewBox="0 0 100 100">
             <circle cx="50" cy="50" r="45" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
             <line x1="5" y1="50" x2="95" y2="50" stroke="#ffffff" stroke-width="3.5"/>
@@ -711,7 +698,7 @@
         <div class="timer-wrap">
           <span class="target-date-label">DATA WYDARZENIA</span>
           <div class="target-date-value">07.11.2026</div>
-          <div class="countdown-boxes" id="cd-basketball">
+          <div class="countdown-boxes">
             <div class="c-box"><span class="c-val" id="bball-days">00</span><span class="c-lbl">Dni</span></div>
             <div class="c-box"><span class="c-val" id="bball-hours">00</span><span class="c-lbl">Godz</span></div>
             <div class="c-box"><span class="c-val" id="bball-mins">00</span><span class="c-lbl">Min</span></div>
@@ -728,34 +715,29 @@
   </main>
 
   <script>
-    /* =========================================
-       1. OBSŁUGA SEKWENCJI LOADERA (INTRO)
-       ========================================= */
+    /* Sekwencja Ekranu Ładowania */
     window.addEventListener('DOMContentLoaded', () => {
       const loader = document.getElementById('intro-loader');
       const flash = document.getElementById('flash-effect');
 
-      // Wyzwolenie rozbłysku gdy lotka trafia w puchar (~4.6s od startu)
+      // Rozbłysk przy trafieniu lotką
       setTimeout(() => {
         flash.classList.add('active');
-      }, 4550);
+      }, 4750);
 
-      // Płynne zamknięcie ekranu ładowania po zakończeniu całej animacji
+      // Płynne zniknięcie ładowania
       setTimeout(() => {
         loader.classList.add('fade-out');
-      }, 5100);
+      }, 5300);
     });
 
-    /* =========================================
-       2. SKRYPT ODLICZANIA CZASU (COUNTDOWN)
-       ========================================= */
+    /* Żywe odliczanie do dat */
     const dartDate = new Date('2026-10-18T00:00:00').getTime();
     const bballDate = new Date('2026-11-07T00:00:00').getTime();
 
     function updateCountdowns() {
       const now = new Date().getTime();
 
-      // Odliczanie Dart
       const diffDart = dartDate - now;
       if (diffDart > 0) {
         document.getElementById('dart-days').innerText = String(Math.floor(diffDart / (1000 * 60 * 60 * 24))).padStart(2, '0');
@@ -764,7 +746,6 @@
         document.getElementById('dart-secs').innerText = String(Math.floor((diffDart % (1000 * 60)) / 1000)).padStart(2, '0');
       }
 
-      // Odliczanie Koszykówka
       const diffBball = bballDate - now;
       if (diffBball > 0) {
         document.getElementById('bball-days').innerText = String(Math.floor(diffBball / (1000 * 60 * 60 * 24))).padStart(2, '0');
@@ -777,14 +758,50 @@
     setInterval(updateCountdowns, 1000);
     updateCountdowns();
 
-    /* =========================================
-       3. ANIMAJA TŁA (INTERAKTYWNY CANVAS)
-       ========================================= */
+    /* Animacja cząsteczek tła */
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
-
-    let width, height;
-    let particles = [];
+    let width, height, particles = [];
 
     function resizeCanvas() {
-      width =
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.alpha = Math.random() * 0.5 + 0.1;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) this.reset();
+      }
+      draw() {
+        ctx.fillStyle = `rgba(56, 189, 248, ${this.alpha})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 70; i++) particles.push(new Particle());
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+  </script>
+</body>
+</html>
