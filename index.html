@@ -38,7 +38,7 @@
       position: relative;
     }
 
-    /* Dynamiczne tło z cząsteczkami i światłem */
+    /* Tło animowane z cząsteczkami */
     #bg-canvas {
       position: fixed;
       top: 0;
@@ -109,6 +109,7 @@
       width: 200px;
       height: auto;
       filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.6));
+      object-fit: contain;
     }
 
     .loader-text {
@@ -265,6 +266,7 @@
       height: auto;
       filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.35));
       transition: transform 0.3s ease;
+      object-fit: contain;
     }
 
     .main-logo:hover {
@@ -313,7 +315,7 @@
       50% { opacity: 1; }
     }
 
-    /* Układ kart (Dart & Koszykówka obok siebie) */
+    /* Layout kart: Dart i Koszykówka obok siebie */
     .events-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -547,13 +549,13 @@
       
       <!-- LOGO PUCHAR GWIAZD -->
       <div class="loader-logo-wrap">
-        <img class="loader-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSU6BAAAAAA..." alt="Puchar Gwiazd Logo">
+        <img class="loader-logo" src="logo.png" alt="Puchar Gwiazd Logo">
       </div>
 
       <!-- NAPIS POD LOGO -->
       <div class="loader-text" id="loader-title-text">PUCHAR GWIAZD</div>
 
-      <!-- EFEKT BŁYSKU PO HIT DART -->
+      <!-- EFEKT BŁYSKU PO TRAFIENIU LOTKĄ -->
       <div class="trophy-flash" id="flash-effect"></div>
 
       <!-- PIŁKI ODBIJAJĄCE SIĘ OD LOGO I NAPISU -->
@@ -581,7 +583,7 @@
       <svg class="anim-ball ball-basketball" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="46" fill="#2563eb" stroke="#ffffff" stroke-width="4"/>
         <line x1="4" y1="50" x2="96" y2="50" stroke="#ffffff" stroke-width="3.5"/>
-        <line x1="50" y1="4" x2="50" y2="96" stroke="#ffffff" stroke-width="3.5"/>
+        <line x1="50" y1="4" x2="50" y2="95" stroke="#ffffff" stroke-width="3.5"/>
         <path d="M 20,8 A 46,46 0 0,1 20,92" fill="none" stroke="#ffffff" stroke-width="3.5"/>
         <path d="M 80,8 A 46,46 0 0,0 80,92" fill="none" stroke="#ffffff" stroke-width="3.5"/>
       </svg>
@@ -601,14 +603,14 @@
   </div>
 
   <!-- =========================================
-       GŁÓWNA STRONA PO ZNIKNIĘCIU EKRANU ŁADOWANIA
+       GŁÓWNA STRONA PO ŁADOWANIU
        ========================================= -->
   <main class="main-container">
     
     <!-- NAGŁÓWEK NA ŚRODKU EKRANU -->
     <header class="header-section">
       <div class="main-logo-container">
-        <img class="main-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSU6BAAAAAA..." alt="Puchar Gwiazd Logo">
+        <img class="main-logo" src="logo.png" alt="Puchar Gwiazd Logo">
       </div>
       <h1 class="main-title">STRONA W TRAKCIE PRZEBUDOWY</h1>
       <div class="sub-title-badge">
@@ -731,7 +733,7 @@
       }, 5300);
     });
 
-    /* Żywe odliczanie do dat */
+    /* Odliczanie czasu */
     const dartDate = new Date('2026-10-18T00:00:00').getTime();
     const bballDate = new Date('2026-11-07T00:00:00').getTime();
 
