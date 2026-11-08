@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puchar Gwiazd - Turniej Piłkarski</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #070d19;
+      --secondary: rgba(15, 28, 46, 0.75);
+      --accent: #64ffda;
+      --accent-hover: #4cd8b2;
+      --text-light: #edf2f7;
+      --text-dim: #8892b0;
+      --white: #ffffff;
+      --danger: #ff4d4d;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --card-bg: rgba(15, 28, 46, 0.55);
+      --header-bg: rgba(7, 13, 25, 0.85);
+      --border-color: rgba(100, 255, 218, 0.2);
+      --input-bg: rgba(7, 13, 25, 0.6);
+      --hero-bg: rgba(7, 13, 25, 0.65);
+    }
+
+    [data-theme="light"] {
+      --primary: #f0f4f8;
+      --secondary: rgba(255, 255, 255, 0.8);
+      --accent: #0056b3;
+      --accent-hover: #003d80;
+      --text-light: #1e293b;
+      --text-dim: #64748b;
+      --white: #0f172a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --success: #059669;
+      --card-bg: rgba(255, 255, 255, 0.65);
+      --header-bg: rgba(255, 255, 255, 0.85);
+      --border-color: rgba(0, 86, 179, 0.2);
+      --input-bg: rgba(248, 250, 252, 0.8);
+      --hero-bg: rgba(240, 244, 248, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    body {
+      color: var(--text-light);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      filter: brightness(0.25) contrast(1.1);
+      z-index: -1;
+    }
+
+    header {
+      background-color: var(--header-bg);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid var(--border-color);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem 2rem;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--accent);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      cursor: pointer;
+    }
+
+    .logo img {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.8rem;
+      list-style: none;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s;
+      cursor: pointer;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent);
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .theme-toggle {
+      background: var(--secondary);
+      border: 1px solid var(--border-color);
+      color: var(--accent);
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+
+    .theme-toggle:hover {
+      background: rgba(100, 255, 218, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .btn {
+      padding: 0.65rem 1.4rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-outline {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(100, 255, 218, 0.05);
+      backdrop-filter: blur(5px);
+    }
+
+    .btn-outline:hover {
+      background: rgba(100, 255, 218, 0.15);
+      color: var(--accent);
+    }
+
+    .btn-solid {
+      background: var(--accent);
+      color: #070d19;
+    }
+
+    [data-theme="light"] .btn-solid {
+      color: #ffffff;
+    }
+
+    .btn-solid:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #e03e3e;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #e08e0b;
+    }
+
+    .panel-subnav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .subnav-btn {
+      background: var(--secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-light);
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      backdrop-filter: blur(5px);
+    }
+
+    .subnav-btn.active, .subnav-btn:hover {
+      background: var(--accent);
+      color: var(--primary);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .panel-section {
+      display: none;
+    }
+
+    .panel-section.active {
+      display: block;
+    }
+
+    .schedule-filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-light);
+      padding: 0.6rem 1.2rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      backdrop-filter: blur(5px);
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--accent);
+      color: var(--primary);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .hamburger {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      color: var(--text-light);
+      cursor: pointer;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 3rem;
+      background: var(--hero-bg);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      margin-bottom: 1rem;
+      color: var(--white);
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+
+    .timer-container {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .time-box {
+      background: var(--secondary);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      min-width: 90px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(8px);
+    }
+
+    .time-box span {
+      display: block;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    .time-box label {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* SEKCJA ZREALIZOWANYCH EDYCJI */
+    .history-stats-section {
+      margin-top: 3rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .history-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 1.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.2rem;
+      align-items: center;
+      max-width: 950px;
+      margin: 0 auto;
+    }
+
+    .history-card {
+      background: var(--secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.5rem 1rem;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .history-card.main-editions {
+      background: rgba(100, 255, 218, 0.08);
+      border-color: var(--accent);
+      padding: 1.8rem 1rem;
+      box-shadow: 0 8px 25px rgba(100, 255, 218, 0.15);
+    }
+
+    .history-number {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    .history-card.main-editions .history-number {
+      font-size: 2.8rem;
+    }
+
+    .history-label {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .history-card.main-editions .history-label {
+      font-size: 0.95rem;
+      color: var(--text-light);
+    }
+
+    /* SPOŁECZNOŚĆ / ODNOŚNIKI */
+    .social-links-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .social-link-btn {
+      background: var(--secondary);
+      border: 1px solid var(--border-color);
+      color: var(--accent);
+      padding: 0.7rem 1.4rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      backdrop-filter: blur(6px);
+    }
+
+    .social-link-btn:hover {
+      background: rgba(100, 255, 218, 0.15);
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--white);
+      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 1.8rem;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .card h3 {
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .team-accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding-bottom: 0.5rem;
+    }
+
+    .team-accordion-header h3 {
+      margin-bottom: 0;
+    }
+
+    .accordion-icon {
+      color: var(--accent);
+      transition: transform 0.3s ease;
+    }
+
+    .team-squad-list {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, margin-top 0.3s ease;
+      list-style: none;
+      padding-left: 0;
+      border-top: 1px solid transparent;
+    }
+
+    .team-card.expanded .team-squad-list {
+      max-height: 300px;
+      margin-top: 1rem;
+      padding-top: 0.8rem;
+      border-top: 1px solid var(--border-color);
+      overflow-y: auto;
+    }
+
+    .team-card.expanded .accordion-icon {
+      transform: rotate(180deg);
+    }
+
+    .squad-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      font-size: 0.9rem;
+      border-bottom: 1px dashed rgba(255,255,255,0.08);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(100, 255, 218, 0.15);
+      color: var(--accent);
+      backdrop-filter: blur(4px);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.7rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .status-live { background: rgba(255, 77, 77, 0.2); color: var(--danger); animation: pulse 1.5s infinite; }
+    .status-ended { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .match-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      padding: 1.2rem 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .match-teams {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .match-score {
+      background: var(--secondary);
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-weight: 900;
+      font-size: 1.3rem;
+      border: 1px solid var(--border-color);
+      color: var(--accent);
+      backdrop-filter: blur(5px);
+    }
+
+    .match-info {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      margin-bottom: 0.3rem;
+    }
+
+    .match-scorers-view {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 0.4rem;
+    }
+
+    .drag-container {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .teams-pool {
+      flex: 1;
+      min-width: 250px;
+      background: var(--secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1rem;
+      max-height: 450px;
+      overflow-y: auto;
+    }
+
+    .bracket-builder {
+      flex: 2;
+      min-width: 320px;
+      background: var(--secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+
+    .draggable-team {
+      background: var(--card-bg);
+      border: 1px solid var(--accent);
+      color: var(--text-light);
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      cursor: grab;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .draggable-team:active { cursor: grabbing; }
+
+    .drop-slot {
+      background: var(--input-bg);
+      border: 2px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      min-height: 42px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .drop-slot.drag-over { border-color: var(--accent); background: rgba(100, 255, 218, 0.1); }
+    .drop-slot.filled { border-style: solid; border-color: var(--accent); color: var(--white); font-weight: 600; }
+
+    .bracket-match-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .tournament-bracket {
+      display: flex;
+      gap: 2rem;
+      overflow-x: auto;
+      padding: 1rem 0;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .bracket-round {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      min-width: 260px;
+    }
+
+    .bracket-round-title {
+      color: var(--accent);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .bracket-match-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      backdrop-filter: blur(8px);
+    }
+
+    .bracket-team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--white);
+    }
+
+    .bracket-team-row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.08); }
+
+    .bracket-score-badge {
+      background: var(--secondary);
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      color: var(--accent);
+      font-weight: 900;
+      border: 1px solid var(--border-color);
+    }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none; justify-content: center; align-items: center;
+      z-index: 2000;
+    }
+
+    .modal {
+      background: rgba(15, 28, 46, 0.9);
+      padding: 2.5rem;
+      border-radius: 16px;
+      width: 90%; max-width: 500px;
+      max-height: 90vh; overflow-y: auto;
+      border: 1px solid var(--accent);
+      position: relative;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    }
+
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none;
+      color: var(--text-dim); font-size: 1.2rem; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--accent); }
+
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-light); }
+
+    .form-control {
+      width: 100%; padding: 0.8rem;
+      border-radius: 8px; border: 1px solid var(--border-color);
+      background: var(--input-bg); color: var(--text-light);
+      font-size: 1rem; backdrop-filter: blur(5px);
+    }
+    .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.15); }
+
+    .dashboard-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem; background: var(--secondary);
+      padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);
+      flex-wrap: wrap; gap: 1rem; backdrop-filter: blur(12px);
+    }
+
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 1rem;
+      background: var(--secondary); border-radius: 12px; overflow: hidden;
+      border: 1px solid var(--border-color); backdrop-filter: blur(12px);
+    }
+
+    th, td { padding: 0.9rem 1rem; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+    th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th { background: rgba(100, 255, 218, 0.12); color: var(--accent); }
+
+    footer {
+      background: var(--header-bg); text-align: center; padding: 2rem;
+      border-top: 1px solid var(--border-color); color: var(--text-dim);
+      font-size: 0.9rem; backdrop-filter: blur(12px);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none; flex-direction: column; position: absolute;
+        top: 100%; left: 0; width: 100%; background: var(--header-bg);
+        padding: 1.5rem; border-bottom: 1px solid var(--accent); backdrop-filter: blur(16px);
+      }
+      .nav-links.active { display: flex; }
+      .hamburger { display: block; }
+      .hero h1 { font-size: 2.2rem; }
+      .timer-container { gap: 0.5rem; }
+      .time-box { min-width: 70px; padding: 0.8rem 0.5rem; }
+      .history-grid { grid-template-columns: 1fr 1fr; }
+      .history-card.main-editions { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <header>
+    <div class="nav-container">
+      <div class="logo" onclick="switchTab('home')">
+        <img src="logo.png" alt="Puchar Gwiazd Logo" onerror="this.style.display='none'; document.getElementById('fallbackIcon').style.display='inline-block';">
+        <i class="fa-solid fa-trophy" id="fallbackIcon" style="display: none;"></i>
+        PUCHAR GWIAZD
+      </div>
+      <button class="hamburger" onclick="toggleMenu()">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a onclick="switchTab('home')" class="active" id="navHome">Strona Główna</a></li>
+        <li><a onclick="switchTab('schedule')" id="navSchedule">Terminarz</a></li>
+        <li><a onclick="switchTab('rules')" id="navRules">Regulamin</a></li>
+        <li><a onclick="switchTab('teams')" id="navTeams">Drużyny</a></li>
+        <li><a onclick="switchTab('about')" id="navAbout">O nas</a></li>
+      </ul>
+      <div class="auth-buttons">
+        <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Zmień motyw">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="btn btn-outline" onclick="openModal('captainModal')"><i class="fa-solid fa-key"></i> Kapitan</button>
+        <button class="btn btn-solid" onclick="openModal('adminModal')"><i class="fa-solid fa-user-shield"></i> Admin</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <div class="main-container">
+
+    <!-- HOME TAB -->
+    <div id="home" class="tab-content active">
+      <section class="hero">
+        <h1>PUCHAR GWIAZD 2026</h1>
+        <p>Wielki Turniej Piłkarski. Zgłoś swoją drużynę i walcz o najwyższe trofeum!</p>
+        
+        <div class="timer-container">
+          <div class="time-box"><span id="days">00</span><label>Dni</label></div>
+          <div class="time-box"><span id="hours">00</span><label>Godzin</label></div>
+          <div class="time-box"><span id="minutes">00</span><label>Minut</label></div>
+          <div class="time-box"><span id="seconds">00</span><label>Sekund</label></div>
+        </div>
+
+        <a href="https://instagram.com" target="_blank" class="btn btn-solid" style="font-size: 1.1rem; padding: 0.8rem 2rem; margin-bottom: 2rem;">
+          <i class="fa-brands fa-instagram"></i> Zgłoś drużynę
+        </a>
+
+        <!-- ZREALIZOWANE EDYCJE -->
+        <div class="history-stats-section">
+          <h3 class="history-title"><i class="fa-solid fa-chart-line"></i> Zrealizowane Edycje</h3>
+          <div class="history-grid">
+            
+            <!-- Lewa: Dart -->
+            <div class="history-card">
+              <span class="history-number" data-target="2">0</span>
+              <div class="history-label"><i class="fa-solid fa-bullseye"></i> Edycje w Darta</div>
+            </div>
+
+            <!-- Środek: Piłka nożna (Duże) -->
+            <div class="history-card main-editions">
+              <span class="history-number" data-target="5">0</span>
+              <div class="history-label"><i class="fa-solid fa-futbol"></i> Piłka Nożna</div>
+            </div>
+
+            <!-- Prawa: Siatkówka -->
+            <div class="history-card">
+              <span class="history-number" data-target="2">0</span>
+              <div class="history-label"><i class="fa-solid fa-volleyball"></i> Siatkówka</div>
+            </div>
+
+            <!-- Dodatkowy kafelek: X ? -->
+            <div class="history-card">
+              <span class="history-number" style="font-size: 2rem;">X ?</span>
+              <div class="history-label"><i class="fa-solid fa-circle-question"></i> Kolejna Dyscyplina</div>
+            </div>
+
+          </div>
+
+          <!-- Odnośniki społecznościowe -->
+          <div class="social-links-container">
+            <a href="https://www.instagram.com/puchargwiazd/" target="_blank" class="social-link-btn">
+              <i class="fa-brands fa-instagram" style="color: #E4405F;"></i> Instagram
+            </a>
+            <a href="https://www.youtube.com/@PucharGwiazd" target="_blank" class="social-link-btn">
+              <i class="fa-brands fa-youtube" style="color: #FF0000;"></i> YouTube
+            </a>
+            <a href="https://www.tiktok.com/@puchar.gwiazd" target="_blank" class="social-link-btn">
+              <i class="fa-brands fa-tiktok" style="color: #00f2fe;"></i> TikTok
+            </a>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+    <!-- TERMINARZ I TABELA -->
+    <div id="schedule" class="tab-content">
+      <h2 class="section-title">Terminarz i Tabele</h2>
+      
+      <div class="schedule-filters">
+        <button class="filter-btn active" onclick="filterSchedule('all', this)">Wszystkie Mecze</button>
+        <button class="filter-btn" onclick="filterSchedule('Faza Grupowa', this)">Faza Grupowa</button>
+        <button class="filter-btn" onclick="filterSchedule('Faza Pucharowa', this)">Drabinka Pucharowa</button>
+        <button class="filter-btn" onclick="showStandingsView(this)"><i class="fa-solid fa-table-list"></i> Tabele Grupowe</button>
+      </div>
+
+      <!-- KONTENER NA TERMINARZ -->
+      <div id="publicScheduleContainer" style="margin-top: 1.5rem;">
+        <p style="color: var(--text-dim);">Ładowanie terminarza...</p>
+      </div>
+
+      <!-- KONTENER NA TABELE GRUPOWE -->
+      <div id="publicStandingsContainer" style="display: none; margin-top: 1.5rem;">
+        <div class="panel-subnav" style="justify-content: center; border-bottom: none; margin-bottom: 1.5rem;">
+          <button class="subnav-btn active" onclick="switchGroupTab('Grupa A', this)">Grupa A</button>
+          <button class="subnav-btn" onclick="switchGroupTab('Grupa B', this)">Grupa B</button>
+          <button class="subnav-btn" onclick="switchGroupTab('Grupa C', this)">Grupa C</button>
+          <button class="subnav-btn" onclick="switchGroupTab('Grupa D', this)">Grupa D</button>
+        </div>
+
+        <div class="card">
+          <h3 id="currentGroupTitle" style="text-align: center; margin-bottom: 1rem;">Tabela - Grupa A</h3>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Poz</th>
+                  <th>Drużyna</th>
+                  <th>M</th>
+                  <th>Z</th>
+                  <th>R</th>
+                  <th>P</th>
+                  <th>Bramki</th>
+                  <th>Bilans</th>
+                  <th>Pkt</th>
+                </tr>
+              </thead>
+              <tbody id="standingsTableBody">
+                <tr><td colspan="9" style="text-align: center; color: var(--text-dim);">Ładowanie tabeli...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGULAMIN -->
+    <div id="rules" class="tab-content">
+      <h2 class="section-title">Regulamin Turnieju</h2>
+      
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+          <h3 style="color: var(--accent); margin-bottom: 0.3rem;">REGULAMIN VI EDYCJI PUCHARU GWIAZD</h3>
+          <p style="color: var(--text-dim); font-size: 0.9rem;"><strong>Data:</strong> 28 listopada 2026 r. | <strong>Miejsce:</strong> Hala Sportowa w Miastkowie Kościelnym</p>
+        </div>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§1. Postanowienia ogólne</h3>
+        <p>1. Puchar Gwiazd jest amatorskim turniejem piłki nożnej.</p>
+        <p>2. Turniej odbędzie się 28 listopada 2026 r. w Hali Sportowej w Miastkowie Kościelnym.</p>
+        <p>3. Udział w turnieju jest dobrowolny i odbywa się na własną odpowiedzialność zawodników.</p>
+        <p>4. Każda drużyna musi posiadać kapitana, który reprezentuje zespół w kontaktach z Organizatorem.</p>
+        <p>5. Udział w turnieju oznacza akceptację niniejszego regulaminu.</p>
+        <p>6. Organizator zastrzega sobie prawo do podejmowania decyzji organizacyjnych niezbędnych do prawidłowego przeprowadzenia turnieju.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§2. Zgłoszenia i warunki uczestnictwa</h3>
+        <p>1. W turnieju mogą uczestniczyć osoby, które ukończyły co najmniej 12 lat.</p>
+        <p>2. Każdy zawodnik zobowiązany jest do przestrzegania regulaminu oraz poleceń Organizatora i obsługi turnieju.</p>
+        <p>3. Organizator ma prawo odmówić udziału zawodnikowi lub drużynie w przypadku niespełnienia wymagań określonych w regulaminie.</p>
+        <p>4. Każda drużyna i każdy zawodnik zobowiązani są do samodzielnego ubezpieczenia NNW na czas trwania turnieju.</p>
+        <p>5. Ubezpieczenie zawodników leży w ich własnym zakresie. Organizator nie zapewnia indywidualnego ubezpieczenia zawodnikom.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§3. Składy drużyn</h3>
+        <p>1. Maksymalna liczba zawodników w jednej drużynie wynosi 12 osób.</p>
+        <p>2. Na boisku podczas meczu przebywa 6 zawodników jednej drużyny, w tym 5 zawodników w polu oraz bramkarz.</p>
+        <p>3. Zmiany zawodników odbywają się systemem lotnym i są nieograniczone.</p>
+        <p>4. Zawodnik może reprezentować wyłącznie jedną drużynę podczas turnieju.</p>
+        <p>5. Kapitan drużyny odpowiada za skład zespołu oraz komunikację z Organizatorem.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§4. Czas gry</h3>
+        <p>1. Mecz trwa 10 minut bez przerwy.</p>
+        <p>2. Czas gry jest ciągły, chyba że sędzia zarządzi jego zatrzymanie.</p>
+        <p>3. Organizator zastrzega sobie prawo do zmiany czasu gry w zależności od liczby drużyn, harmonogramu oraz warunków organizacyjnych.</p>
+        <p>4. Czas gry kontrolowany jest przez sędziego lub osobę wyznaczoną przez Organizatora.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§5. Zasady gry</h3>
+        <p>1. Mecze rozgrywane są zgodnie z zasadami piłki nożnej, z uwzględnieniem wyjątków określonych w niniejszym regulaminie.</p>
+        <p>2. Przepis o spalonym nie obowiązuje.</p>
+        <p>3. Wślizgi kontaktowe, polegające na atakowaniu nóg przeciwnika, są zabronione i traktowane jako przewinienie.</p>
+        <p>4. Dozwolone są wyłącznie wślizgi ratunkowe, polegające na próbie zablokowania piłki bez kontaktu z przeciwnikiem.</p>
+        <p>5. Wszystkie pozostałe przewinienia oceniane są przez sędziego zgodnie z zasadami gry i niniejszym regulaminem.</p>
+        <p>6. Decyzje sędziego dotyczące przebiegu spotkania są wiążące.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§6. Kary dyscyplinarne</h3>
+        <p>1. Zawodnicy zobowiązani są do przestrzegania zasad fair play oraz zachowania szacunku wobec przeciwników, sędziów, Organizatora i pozostałych uczestników.</p>
+        <p>2. Za przewinienia zawodnicy mogą zostać ukarani żółtą lub czerwoną kartką.</p>
+        <p style="margin-top: 0.5rem;"><strong>Żółta kartka:</strong></p>
+        <p>- Żółta kartka oznacza karę czasową wynoszącą 2 minuty.</p>
+        <p>- Drużyna ukaranego zawodnika gra w osłabieniu przez 2 minuty lub do momentu utraty bramki.</p>
+        <p>- Po upływie kary zawodnik może powrócić na boisko zgodnie z decyzją sędziego.</p>
+        <p style="margin-top: 0.5rem;"><strong>Czerwona kartka:</strong></p>
+        <p>- Czerwona kartka oznacza wykluczenie zawodnika z dalszej gry w danym meczu.</p>
+        <p>- Drużyna ukaranego zawodnika gra w osłabieniu przez 5 minut.</p>
+        <p>- Zawodnik ukarany czerwoną kartką nie może powrócić do gry w tym samym spotkaniu.</p>
+        <p>- Organizator może podjąć decyzję o dodatkowym zawieszeniu zawodnika w kolejnych spotkaniach lub wykluczeniu go z turnieju w przypadku poważnego naruszenia zasad.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§7. Rozstrzyganie remisów</h3>
+        <p>1. W fazie grupowej remis oznacza przyznanie obu drużynom po 1 punkcie.</p>
+        <p>2. W fazie pucharowej, w przypadku remisu po regulaminowym czasie gry, o awansie decyduje seria rzutów karnych.</p>
+        <p>3. Każda drużyna wykonuje po 3 rzuty karne.</p>
+        <p>4. Jeżeli po wykonaniu trzech rzutów karnych przez każdą drużynę wynik nadal jest remisowy, rzuty karne wykonywane są w systemie nagłej śmierci, do momentu uzyskania przewagi przez jedną z drużyn przy tej samej liczbie wykonanych strzałów.</p>
+        <p>5. Do wykonywania rzutów karnych uprawnieni są zawodnicy znajdujący się na boisku w momencie zakończenia spotkania.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§8. Wyposażenie zawodników</h3>
+        <p>1. Zawodnicy zobowiązani są do posiadania odpowiedniego obuwia sportowego przeznaczonego do gry na hali.</p>
+        <p>2. Zabrania się używania obuwia mogącego uszkodzić nawierzchnię hali.</p>
+        <p>3. Zabrania się gry w biżuterii, zegarkach i innych przedmiotach mogących stanowić zagrożenie dla zawodników.</p>
+        <p>4. Drużyny powinny posiadać jednolite lub zbliżone kolorystycznie stroje.</p>
+        <p>5. W przypadku podobnych kolorów strojów Organizator może zarządzić zmianę koszulek lub użycie znaczników.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§9. Bezpieczeństwo i odpowiedzialność</h3>
+        <p>1. Uczestnicy zobowiązani są do przestrzegania zasad bezpieczeństwa oraz poleceń Organizatora i obsługi obiektu.</p>
+        <p>2. Każdy zawodnik uczestniczy w turnieju dobrowolnie i na własną odpowiedzialność.</p>
+        <p>3. Zawodnicy zobowiązani są do ubezpieczenia się we własnym zakresie. Organizator nie zapewnia indywidualnego ubezpieczenia NNW.</p>
+        <p>4. Organizator nie ponosi odpowiedzialności za rzeczy osobiste pozostawione bez nadzoru.</p>
+        <p>5. Uczestnicy ponoszą odpowiedzialność za szkody wyrządzone przez siebie na terenie obiektu.</p>
+        <p>6. Zabronione jest zachowanie agresywne, stosowanie przemocy, obrażanie innych uczestników oraz niszczenie mienia.</p>
+        <p>7. Organizator ma prawo wykluczyć z turnieju osoby naruszające zasady bezpieczeństwa lub postanowienia regulaminu.</p>
+
+        <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent);">§10. Postanowienia końcowe</h3>
+        <p>1. Organizator zastrzega sobie prawo do rozstrzygania wszelkich kwestii nieujętych w niniejszym regulaminie.</p>
+        <p>2. Organizator może dokonać zmian w harmonogramie oraz systemie rozgrywek, jeżeli będzie to konieczne do sprawnego przeprowadzenia turnieju.</p>
+        <p>3. Wszelkie protesty dotyczące przebiegu spotkań należy zgłaszać Organizatorowi za pośrednictwem kapitana drużyny.</p>
+        <p>4. Organizator zastrzega sobie prawo do wprowadzenia zmian w regulaminie przed rozpoczęciem turnieju.</p>
+        <p>5. Ostateczna interpretacja regulaminu należy do Organizatora.</p>
+        <p>6. Regulamin obowiązuje wszystkich uczestników VI Edycji Pucharu Gwiazd.</p>
+
+        <p style="margin-top: 1.5rem; font-weight: 700; color: var(--accent);">ORGANIZATOR: PUCHAR GWIAZD</p>
+      </div>
+    </div>
+
+    <!-- DRUŻYNY -->
+    <div id="teams" class="tab-content">
+      <h2 class="section-title">Zarejestrowane Drużyny</h2>
+      <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Kliknij na drużynę lub strzałkę, aby rozwinąć jej skład.</p>
+      <div class="grid-cards" id="publicTeamsGrid">
+        <p>Ładowanie listy drużyn...</p>
+      </div>
+    </div>
+
+    <!-- O NAS (ŁODZIO NA ŚRODKU) -->
+    <div id="about" class="tab-content">
+      <div style="max-width: 1100px; margin: 0 auto;">
+        <header class="page-header" data-aos="fade-down">
+            <p>Zespół Organizacyjny</p>
+            <h2>POZNAJ NAS</h2>
+        </header>
+
+        <div class="team-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 60px;">
+            <!-- 1. Po lewej: Socha (Indeks 1) -->
+            <div class="member-box" onclick="openModalMember(1)" style="background: var(--card-bg); border-radius: 16px; padding: 40px 20px; text-align: center; border: 1px solid var(--border-color); cursor: pointer; backdrop-filter: blur(12px);">
+                <img src="socha.jpg" alt="Piotr Soszka" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 15px;">
+                <h3 style="margin: 15px 0 5px; font-size: 1.3rem; font-weight: 700; color: var(--white);">Piotr "Socha" Soszka</h3>
+                <span style="color: var(--accent); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Dyrektor Operacyjny</span>
+            </div>
+
+            <!-- 2. Na środku: Łodzio (Indeks 0) -->
+            <div class="member-box main-editions" onclick="openModalMember(0)" style="background: rgba(100, 255, 218, 0.08); border-radius: 16px; padding: 40px 20px; text-align: center; border: 1px solid var(--accent); cursor: pointer; backdrop-filter: blur(12px); transform: scale(1.03);">
+                <img src="lodzio.jpg" alt="Krzysztof Łodziński" style="width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 15px;">
+                <h3 style="margin: 15px 0 5px; font-size: 1.3rem; font-weight: 700; color: var(--white);">Krzysztof "Łodzio" Łodziński</h3>
+                <span style="color: var(--accent); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Właściciel</span>
+            </div>
+
+            <!-- 3. Po prawej: Lechu (Indeks 2) -->
+            <div class="member-box" onclick="openModalMember(2)" style="background: var(--card-bg); border-radius: 16px; padding: 40px 20px; text-align: center; border: 1px solid var(--border-color); cursor: pointer; backdrop-filter: blur(12px);">
+                <img src="ja.jpg" alt="Kacper Kowalski" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin-bottom: 15px;">
+                <h3 style="margin: 15px 0 5px; font-size: 1.3rem; font-weight: 700; color: var(--white);">Kacper "Lechu" Kowalski</h3>
+                <span style="color: var(--accent); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Head of IT & Social Media</span>
+            </div>
+        </div>
+
+        <section class="story-section" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 45px; text-align: center; max-width: 900px; margin: 0 auto; backdrop-filter: blur(12px);">
+            <h3 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; color: var(--accent);">Kim jesteśmy?</h3>
+            <div class="story-text" style="color: var(--text-dim); line-height: 1.8; font-size: 1.05rem;">
+                <p style="margin-bottom: 1rem;">
+                    Nasza historia zaczęła się znacznie wcześniej niż pierwszy gwizdek na boisku – jesteśmy grupą przyjaciół ze szkolnej ławki, których od zawsze łączyła wspólna pasja do futbolu. Chcieliśmy stworzyć coś więcej niż kolejną ligę. Naszym celem był turniej <span class="highlight" style="color: var(--accent); font-weight: 600;">"od ludzi dla ludzi"</span> – bez cen z kosmosu, ale z organizacją na najwyższym poziomie.
+                </p>
+                <p style="margin-bottom: 0;">
+                    Pierwsza edycja, stworzona z czystej pasji, przyjęła się znakomicie i dała nam impuls do działania. Wiedzieliśmy, że chcemy to ciągnąć dalej. Dziś Puchar Gwiazd to projekt budowany w 100% z <span class="highlight" style="color: var(--accent); font-weight: 600;">zajawki</span>, który jednocześnie posiada otoczkę ekskluzywnego, profesjonalnego turnieju. Tutaj każdy może poczuć się jak gwiazda.
+                </p>
+            </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- PANEL ADMINA -->
+    <div id="adminPanel" class="tab-content">
+      <div class="dashboard-header">
+        <h2><i class="fa-solid fa-user-shield"></i> Panel Administratora</h2>
+        <button class="btn btn-outline" onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Wyloguj</button>
+      </div>
+
+      <div class="panel-subnav">
+        <button class="subnav-btn active" onclick="switchAdminSection('adminCodesSection', this)"><i class="fa-solid fa-key"></i> Kody i Drużyny</button>
+        <button class="subnav-btn" onclick="switchAdminSection('adminMatchSection', this)"><i class="fa-solid fa-calendar-days"></i> Terminarz i Wyniki</button>
+      </div>
+
+      <!-- SEKCJA 1: KODY I DRUŻYNY -->
+      <div id="adminCodesSection" class="panel-section active">
+        <div class="card" style="margin-bottom: 2rem;">
+          <h3>Generuj Kod dla Kapitana</h3>
+          <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+            <input type="text" id="newTeamName" class="form-control" placeholder="Nazwa drużyny" style="flex: 1; min-width: 200px;">
+            <button class="btn btn-solid" onclick="generateCode()"><i class="fa-solid fa-plus"></i> Generuj Kod</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Aktywne Kody i Drużyny</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Kod</th>
+                <th>Drużyna</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody id="codesTableBody">
+              <tr><td colspan="3">Ładowanie kodów...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SEKCJA 2: TERMINARZ I DRAG & DROP DRABINKI -->
+      <div id="adminMatchSection" class="panel-section">
+        <div class="card" style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1.2rem;"><i class="fa-solid fa-sitemap"></i> Kreator Fazy Pucharowej (Drag & Drop)</h3>
+          
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+            <div class="form-group" style="flex: 1; min-width: 220px; margin-bottom:0;">
+              <label>Wybierz rundę do ustawienia</label>
+              <select id="bracketSizeSelect" class="form-control" onchange="initBracketBuilder()">
+                <option value="2">Finał (1 mecz / 2 drużyny)</option>
+                <option value="4">Półfinały (2 mecze / 4 drużyny)</option>
+                <option value="8" selected>Ćwierćfinały (4 mecze / 8 drużyn)</option>
+                <option value="16">1/8 Finału (8 meczów / 16 drużyn)</option>
+              </select>
+            </div>
+          </div>
+
+          <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1rem;">Przeciągnij drużyny do slotów oraz ustaw datę i godzinę dla wybranej rundy.</p>
+
+          <div class="drag-container">
+            <div class="teams-pool">
+              <h4 style="color: var(--accent); margin-bottom: 0.8rem; font-size: 0.95rem;"><i class="fa-solid fa-users"></i> Dostępne Drużyny</h4>
+              <div id="dragTeamsPool" style="min-height: 150px;">
+                <p style="color: var(--text-dim); font-size: 0.85rem;">Brak drużyn</p>
+              </div>
+            </div>
+
+            <div class="bracket-builder">
+              <h4 style="color: var(--accent); margin-bottom: 0.8rem; font-size: 0.95rem;"><i class="fa-solid fa-trophy"></i> Układ Wybranej Rundy i Terminarz</h4>
+              <div id="bracketSlotsContainer"></div>
+            </div>
+          </div>
+
+          <button class="btn btn-solid" style="margin-top: 1.5rem; width: 100%; justify-content: center;" onclick="saveBracketMatches()"><i class="fa-solid fa-floppy-disk"></i> Zapisz tę rundę pucharową do terminarza</button>
+        </div>
+
+        <div class="card" style="margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1.2rem;"><i class="fa-solid fa-calendar-plus"></i> Dodaj Pojedynczy Mecz</h3>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Gospodarz</label>
+              <select id="matchTeamA" class="form-control"><option value="">Wybierz drużynę...</option></select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Gość</label>
+              <select id="matchTeamB" class="form-control"><option value="">Wybierz drużynę...</option></select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Etap Rozgrywek</label>
+              <select id="matchStage" class="form-control" onchange="toggleGroupSelector()">
+                <option value="Faza Grupowa">Faza Grupowa</option>
+                <option value="Faza Pucharowa">Faza Pucharowa</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;" id="groupSelectorContainer">
+              <label>Wybierz Grupę</label>
+              <select id="matchGroup" class="form-control">
+                <option value="Grupa A">Grupa A</option>
+                <option value="Grupa B">Grupa B</option>
+                <option value="Grupa C">Grupa C</option>
+                <option value="Grupa D">Grupa D</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Data Meczu</label>
+              <input type="date" id="matchDate" class="form-control">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Godzina</label>
+              <input type="time" id="matchTime" class="form-control">
+            </div>
+          </div>
+
+          <button class="btn btn-solid" style="width: 100%; justify-content: center;" onclick="addMatch()"><i class="fa-solid fa-plus-circle"></i> Dodaj Mecz do Terminarza</button>
+        </div>
+
+        <div class="card">
+          <h3>Zarządzaj Meczami i Wynikami na Żywo</h3>
+          <div id="adminMatchesList" style="margin-top: 1rem;">Brak zaplanowanych meczów.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL KAPITANA -->
+    <div id="captainPanel" class="tab-content">
+      <div class="dashboard-header">
+        <h2>Panel Kapitana: <span id="captainTeamName" style="color: var(--accent);"></span></h2>
+        <div style="display: flex; gap: 0.8rem; align-items: center;">
+          <button class="btn btn-solid" onclick="switchTab('home')"><i class="fa-solid fa-house"></i> Strona Główna</button>
+          <button class="btn btn-outline" onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Wyloguj</button>
+        </div>
+      </div>
+
+      <div class="panel-subnav">
+        <button class="subnav-btn active" onclick="switchCaptainSection('captainSquadSection', this)"><i class="fa-solid fa-users"></i> Zarządzaj Składem</button>
+        <button class="subnav-btn" onclick="switchCaptainSection('captainScheduleSection', this)"><i class="fa-solid fa-calendar-days"></i> Terminarz Drużyny</button>
+      </div>
+
+      <div id="captainSquadSection" class="panel-section active">
+        <div class="card" style="margin-bottom: 2rem;">
+          <h3>Dodaj Zawodnika do Składu</h3>
+          <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+            <input type="text" id="playerNameInput" class="form-control" placeholder="Imię i nazwisko zawodnika" style="flex: 1; min-width: 200px;">
+            <input type="text" id="playerNumberInput" class="form-control" placeholder="Nr (np. 10)" style="width: 100px;">
+            <button class="btn btn-solid" onclick="addPlayer()"><i class="fa-solid fa-user-plus"></i> Dodaj</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Aktualny Skład Drużyny</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Nr</th>
+                <th>Zawodnik</th>
+                <th>Akcja</th>
+              </tr>
+            </thead>
+            <tbody id="captainPlayersTableBody">
+              <tr><td colspan="3">Brak zawodników w składzie.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="captainScheduleSection" class="panel-section">
+        <div class="card">
+          <h3>Terminarz i Wyniki Naszej Drużyny</h3>
+          <div id="captainTeamSchedule" style="margin-top: 1rem;">
+            <p style="color: var(--text-dim);">Ładowanie meczów drużyny...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL: EDYCJA MECZU -->
+  <div class="modal-overlay" id="editMatchModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('editMatchModal')">&times;</button>
+      <h3 style="color: var(--accent); margin-bottom: 1.5rem;"><i class="fa-solid fa-futbol"></i> Edytuj Wynik i Strzelców</h3>
+      <input type="hidden" id="editMatchId">
+      <input type="hidden" id="editTeamAName">
+      <input type="hidden" id="editTeamBName">
+      
+      <div class="form-group">
+        <label id="editMatchTeamsLabel" style="font-weight: 700; color: var(--white); margin-bottom: 1rem; display:block; text-align: center; font-size: 1.1rem;"></label>
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.2rem;">
+        <div class="form-group" style="flex: 1;">
+          <label id="labelTeamA">Gospodarze</label>
+          <input type="number" id="editScoreA" class="form-control" min="0" value="0" oninput="buildScorersInputs()">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label id="labelTeamB">Goście</label>
+          <input type="number" id="editScoreB" class="form-control" min="0" value="0" oninput="buildScorersInputs()">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+        <div>
+          <label style="font-size: 0.85rem; color: var(--accent); margin-bottom: 0.4rem; display:block;">Strzelcy Gospodarzy</label>
+          <div id="scorersContainerA" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+        </div>
+        <div>
+          <label style="font-size: 0.85rem; color: var(--accent); margin-bottom: 0.4rem; display:block;">Strzelcy Gości</label>
+          <div id="scorersContainerB" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Status Meczu</label>
+        <select id="editMatchStatus" class="form-control">
+          <option value="pending">Przed rozpoczęciem (Oczekujący)</option>
+          <option value="live">Trwa (NA ŻYWO)</option>
+          <option value="ended">Zakończony</option>
+        </select>
+      </div>
+
+      <button class="btn btn-solid" style="width: 100%; justify-content: center;" onclick="saveMatchEdit()">Zapisz wynik i strzelców</button>
+    </div>
+  </div>
+
+  <!-- MODAL: EDYCJA DRUŻYNY -->
+  <div class="modal-overlay" id="editTeamModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('editTeamModal')">&times;</button>
+      <h3 style="color: var(--accent); margin-bottom: 1.5rem;"><i class="fa-solid fa-pen-to-square"></i> Edytuj Nazwę Drużyny</h3>
+      <input type="hidden" id="editTeamCode">
+      <div class="form-group">
+        <label>Nowa Nazwa Drużyny</label>
+        <input type="text" id="editTeamNameInput" class="form-control">
+      </div>
+      <button class="btn btn-solid" style="width: 100%; justify-content: center;" onclick="saveTeamEdit()">Zapisz zmiany</button>
+    </div>
+  </div>
+
+  <!-- MODAL: LOGOWANIE ADMINA -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
+      <h3 style="color: var(--accent); margin-bottom: 1.5rem;"><i class="fa-solid fa-user-shield"></i> Logowanie Administratora</h3>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="adminEmail" class="form-control" placeholder="admin@puchargwiazd.pl">
+      </div>
+      <div class="form-group">
+        <label>Hasło</label>
+        <input type="password" id="adminPassword" class="form-control" placeholder="••••••••">
+      </div>
+      <button class="btn btn-solid" style="width: 100%; justify-content: center;" onclick="loginAdmin()">Zaloguj się</button>
+    </div>
+  </div>
+
+  <!-- MODAL: LOGOWANIE KAPITANA -->
+  <div class="modal-overlay" id="captainModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('captainModal')">&times;</button>
+      <h3 style="color: var(--accent); margin-bottom: 1.5rem;"><i class="fa-solid fa-key"></i> Kod Dostępu Kapitana</h3>
+      <div class="form-group">
+        <label>Jednorazowy Kod Dostępu</label>
+        <input type="text" id="captainCodeInput" class="form-control" placeholder="np. ORLY-2026">
+      </div>
+      <button class="btn btn-solid" style="width: 100%; justify-content: center;" onclick="loginCaptain()">Zaloguj do Panelu</button>
+    </div>
+  </div>
+
+  <!-- MODAL: OSOBA Z ZAKŁADKI O NAS -->
+  <div class="modal-overlay" id="memberModalOverlay" onclick="closeMemberModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeMemberModal()">&times;</button>
+      
+      <button class="modal-nav-btn prev" onclick="changeSlide(-1)" style="position:absolute; top:40%; left:10px; background:var(--secondary); color:var(--accent); border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; z-index:10;"><i class="fas fa-chevron-left"></i></button>
+      <button class="modal-nav-btn next" onclick="changeSlide(1)" style="position:absolute; top:40%; right:10px; background:var(--secondary); color:var(--accent); border:none; width:40px; height:40px; border-radius:50%; cursor:pointer; z-index:10;"><i class="fas fa-chevron-right"></i></button>
+
+      <img src="" id="m-img" style="width: 100%; max-height: 280px; object-fit: cover; border-bottom: 1px solid var(--border-color); display:block;">
+      
+      <div style="padding: 20px;">
+        <h2 id="m-name" style="margin:0; font-size: 1.4rem; font-weight: 700; color: var(--white);"></h2>
+        <span id="m-role" style="color:var(--accent); font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing: 2px; display:block; margin-top:5px;"></span>
+        <p id="m-bio" style="color: var(--text-dim); margin: 15px 0; font-size: 0.9rem; line-height: 1.6;"></p>
+        <div class="social-row" style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+          <a href="#" id="m-fb" class="social-btn" target="_blank" style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--secondary);color:var(--accent);text-decoration:none;"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" id="m-ig" class="social-btn" target="_blank" style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--secondary);color:var(--accent);text-decoration:none;"><i class="fab fa-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Puchar Gwiazd. Wszystkie prawa zastrzeżone.</p>
+  </footer>
+
+  <!-- FIREBASE SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, updateDoc, getDoc, getDocs, deleteDoc, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEwW1g0b1UAt1BoRcfvWzYVDUzpLXF-qQ",
+      authDomain: "puchargwiazd-bf19a.firebaseapp.com",
+      projectId: "puchargwiazd-bf19a",
+      storageBucket: "puchargwiazd-bf19a.appspot.com",
+      messagingSenderId: "510304289045",
+      appId: "1:510304289045:web:904a868f68e6d04c8ca91c",
+      measurementId: "G-K12NMFDXG8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.auth = auth;
+    window.db = db;
+    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window.signOut = signOut;
+    window.collection = collection;
+    window.doc = doc;
+    window.setDoc = setDoc;
+    window.updateDoc = updateDoc;
+    window.getDoc = getDoc;
+    window.getDocs = getDocs;
+    window.deleteDoc = deleteDoc;
+    window.addDoc = addDoc;
+    window.onSnapshot = onSnapshot;
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        switchTab('adminPanel');
+        loadCodes();
+        loadAdminMatches();
+      }
+    });
+
+    window.allMatches = [];
+    window.allTeamsData = {};
+    window.currentFilter = 'all';
+    window.currentGroup = 'Grupa A';
+
+    onSnapshot(collection(db, "teams"), (snapshot) => {
+      const publicGrid = document.getElementById('publicTeamsGrid');
+      const selectA = document.getElementById('matchTeamA');
+      const selectB = document.getElementById('matchTeamB');
+      
+      publicGrid.innerHTML = '';
+      window.allTeamsData = {};
+      if(selectA && selectB) {
+        selectA.innerHTML = '<option value="">Wybierz drużynę...</option>';
+        selectB.innerHTML = '<option value="">Wybierz drużynę...</option>';
+      }
+
+      if (snapshot.empty) {
+        publicGrid.innerHTML = '<p style="color: var(--text-dim);">Brak zarejestrowanych drużyn.</p>';
+        return;
+      }
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const teamId = docSnap.id;
+        const teamName = data.teamName;
+
+        window.allTeamsData[teamName] = [];
+
+        if(selectA && selectB) {
+          selectA.innerHTML += `<option value="${teamName}">${teamName}</option>`;
+          selectB.innerHTML += `<option value="${teamName}">${teamName}</option>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'card team-card';
+        card.innerHTML = `
+          <div class="team-accordion-header" onclick="toggleTeamCard(this)">
+            <div>
+              <h3 style="margin-bottom: 0;">${teamName}</h3>
+              <span class="badge" style="margin-top: 0.4rem;">Zgłoszona</span>
+            </div>
+            <i class="fa-solid fa-chevron-down accordion-icon"></i>
+          </div>
+          <ul class="team-squad-list" id="squad-${teamId}">
+            <li class="squad-item" style="color: var(--text-dim);">Ładowanie składu...</li>
+          </ul>
+        `;
+        publicGrid.appendChild(card);
+
+        onSnapshot(collection(db, "teams", teamId, "players"), (playersSnapshot) => {
+          const squadList = document.getElementById(`squad-${teamId}`);
+          if (!squadList) return;
+          squadList.innerHTML = '';
+
+          if (playersSnapshot.empty) {
+            squadList.innerHTML = '<li class="squad-item" style="color: var(--text-dim);">Brak zawodników w składzie.</li>';
+            return;
+          }
+
+          playersSnapshot.forEach((playerDoc) => {
+            const p = playerDoc.data();
+            window.allTeamsData[teamName].push(p.name);
+
+            const li = document.createElement('li');
+            li.className = 'squad-item';
+            li.innerHTML = `<span><strong>${p.number ? '#' + p.number : ''}</strong> ${p.name}</span>`;
+            squadList.appendChild(li);
+          });
+        });
+      });
+      renderStandings();
+      initBracketBuilder();
+    });
+
+    onSnapshot(collection(db, "matches"), (snapshot) => {
+      window.allMatches = [];
+      snapshot.forEach((docSnap) => {
+        window.allMatches.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      renderPublicSchedule();
+      renderStandings();
+      if(window.currentCaptainTeamName) {
+        renderCaptainSchedule(window.currentCaptainTeamName);
+      }
+      if(auth.currentUser) loadAdminMatches();
+    });
+  </script>
+
+  <script>
+    window.currentCaptainTeamId = null;
+    window.currentCaptainTeamName = null;
+    window.activeMatchScorersA = [];
+    window.activeMatchScorersB = [];
+
+    // ANIMACJA LICZNIKÓW
+    function animateCounters() {
+      const counters = document.querySelectorAll('.history-number');
+      counters.forEach(counter => {
+        const target = +counter.getAttribute('data-target');
+        if (!target) return;
+        let current = 0;
+        const increment = target / 30;
+        const updateCounter = () => {
+          current += increment;
+          if (current < target) {
+            counter.innerText = Math.ceil(current);
+            setTimeout(updateCounter, 40);
+          } else {
+            counter.innerText = target;
+          }
+        };
+        updateCounter();
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      animateCounters();
+    });
+
+    // DANE CZŁONKÓW (ZGODNE Z KOLEJNOŚCIĄ WYŚWIETLANIA: 0-Socha, 1-Łodzio, 2-Lechu)
+    const teamData = [
+      {
+        name: 'Piotr "Socha" Soszka',
+        role: 'Dyrektor Operacyjny',
+        img: 'socha.jpg',
+        bio: 'Prawa ręka właściciela. Odpowiada za kluczowe decyzje organizacyjne i logistykę, dbając o to, by wszystko działało jak w zegarku.',
+        fb: 'https://www.facebook.com/profile.php?id=100069876260867',
+        ig: 'https://www.instagram.com/soszka.piotr/'
+      },
+      {
+        name: 'Krzysztof "Łodzio" Łodziński',
+        role: 'Właściciel',
+        img: 'lodzio.jpg',
+        bio: 'Pomysłodawca i główny organizator. To dzięki jego wizji Puchar Gwiazd stał się rzeczywistością. Czuwa nad całością projektu.',
+        fb: 'https://www.facebook.com/profile.php?id=100079660903476',
+        ig: 'https://www.instagram.com/lodzinskikrzysztof/'
+      },
+      {
+        name: 'Kacper "Lechu" Kowalski',
+        role: 'Head of IT & Social Media',
+        img: 'ja.jpg',
+        bio: 'Odpowiedzialny za zaplecze technologiczne, prowadzenie mediów społecznościowych oraz wdrażanie kreatywnych rozwiązań dla kibiców.',
+        fb: 'https://www.facebook.com/kacper.kowalski.75098/',
+        ig: 'https://www.instagram.com/am_kacper/'
+      }
+    ];
+
+    let currentIdx = 0;
+
+    function openModalMember(index) {
+      currentIdx = index;
+      updateMemberModalContent();
+      const overlay = document.getElementById('memberModalOverlay');
+      overlay.style.display = 'flex';
+      setTimeout(() => { overlay.classList.add('active'); }, 10);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function updateMemberModalContent() {
+      const person = teamData[currentIdx];
+      document.getElementById('m-name').innerText = person.name;
+      document.getElementById('m-role').innerText = person.role;
+      document.getElementById('m-img').src = person.img;
+      document.getElementById('m-bio').innerText = person.bio;
+      document.getElementById('m-fb').href = person.fb;
+      document.getElementById('m-ig').href = person.ig;
+    }
+
+    function changeSlide(direction) {
+      currentIdx += direction;
+      if (currentIdx < 0) {
+        currentIdx = teamData.length - 1;
+      } else if (currentIdx >= teamData.length) {
+        currentIdx = 0;
+      }
+      updateMemberModalContent();
+    }
+
+    function closeMemberModal() {
+      const overlay = document.getElementById('memberModalOverlay');
+      overlay.classList.remove('active');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }, 500);
+    }
+
+    function initBracketBuilder() {
+      const pool = document.getElementById('dragTeamsPool');
+      const slotsContainer = document.getElementById('bracketSlotsContainer');
+      const size = parseInt(document.getElementById('bracketSizeSelect').value) || 8;
+
+      pool.innerHTML = '';
+      slotsContainer.innerHTML = '';
+
+      const teamNames = Object.keys(window.allTeamsData);
+      if (teamNames.length === 0) {
+        pool.innerHTML = '<p style="color: var(--text-dim); font-size: 0.85rem;">Brak zarejestrowanych drużyn</p>';
+      } else {
+        teamNames.forEach(team => {
+          const item = document.createElement('div');
+          item.className = 'draggable-team';
+          item.draggable = true;
+          item.innerText = team;
+          item.id = `pool-team-${Math.random().toString(36).substr(2, 9)}`;
+          item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', team);
+          });
+          pool.appendChild(item);
+        });
+      }
+
+      let roundName = 'Finał';
+      if (size === 4) roundName = 'Półfinał';
+      if (size === 8) roundName = 'Ćwierćfinał';
+      if (size === 16) roundName = '1/8 Finału';
+
+      const matchCount = size / 2;
+      for (let i = 1; i <= matchCount; i++) {
+        const box = document.createElement('div');
+        box.className = 'bracket-match-box';
+        box.innerHTML = `
+          <div style="font-size: 0.8rem; color: var(--accent); margin-bottom: 0.5rem; font-weight: 700;">${roundName} - Mecz ${i}</div>
+          <div class="drop-slot" data-slot="m${i}-a" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropTeam(event)">Przeciągnij Gospodarza</div>
+          <div class="drop-slot" data-slot="m${i}-b" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="dropTeam(event)" style="margin-top: 0.4rem;">Przeciągnij Gościa</div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.6rem;">
+            <input type="date" class="form-control bracket-date" style="padding: 0.4rem; font-size: 0.85rem;" data-match="${i}">
+            <input type="time" class="form-control bracket-time" style="padding: 0.4rem; font-size: 0.85rem;" data-match="${i}">
+          </div>
+        `;
+        slotsContainer.appendChild(box);
+      }
+    }
+
+    function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function removeDropStyle(e) { e.currentTarget.classList.remove('drag-over'); }
+    function dropTeam(e) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      const teamName = e.dataTransfer.getData('text/plain');
+      if (!teamName) return;
+      e.currentTarget.innerText = teamName;
+      e.currentTarget.classList.add('filled');
+    }
+
+    async function saveBracketMatches() {
+      const matchBoxes = document.querySelectorAll('.bracket-match-box');
+      let matchesToCreate = [];
+
+      matchBoxes.forEach((box) => {
+        const slots = box.querySelectorAll('.drop-slot');
+        const teamA = slots[0].classList.contains('filled') ? slots[0].innerText : 'TBD';
+        const teamB = slots[1].classList.contains('filled') ? slots[1].innerText : 'TBD';
+        const dateInput = box.querySelector('.bracket-date').value;
+        const timeInput = box.querySelector('.bracket-time').value;
+
+        matchesToCreate.push({
+          teamA: teamA,
+          teamB: teamB,
+          date: dateInput || 'Do ustalenia',
+          time: timeInput || ''
+        });
+      });
+
+      const size = parseInt(document.getElementById('bracketSizeSelect').value) || 8;
+      let stageName = 'Faza Pucharowa (Ćwierćfinał)';
+      if (size === 4) stageName = 'Faza Pucharowa (Półfinał)';
+      if (size === 2) stageName = 'Faza Pucharowa (Finał)';
+      if (size === 16) stageName = 'Faza Pucharowa (1/8 Finału)';
+
+      try {
+        for (let m of window.allMatches) {
+          if (m.stage === stageName) {
+            await window.deleteDoc(window.doc(window.db, "matches", m.id));
+          }
+        }
+
+        for (let match of matchesToCreate) {
+          await window.addDoc(window.collection(window.db, "matches"), {
+            teamA: match.teamA,
+            teamB: match.teamB,
+            stage: stageName,
+            group: '',
+            date: match.date,
+            time: match.time,
+            scoreA: 0,
+            scoreB: 0,
+            scorersA: [],
+            scorersB: [],
+            status: 'pending',
+            createdAt: new Date()
+          });
+        }
+
+        alert(`Runda "${stageName}" została pomyślnie zapisana!`);
+        loadAdminMatches();
+      } catch (err) {
+        alert('Błąd: ' + err.message);
+      }
+    }
+
+    function toggleGroupSelector() {
+      const stage = document.getElementById('matchStage').value;
+      const groupContainer = document.getElementById('groupSelectorContainer');
+      groupContainer.style.display = (stage === 'Faza Grupowa') ? 'block' : 'none';
+    }
+
+    function switchAdminSection(sectionId, btnElement) {
+      document.querySelectorAll('#adminPanel .panel-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('#adminPanel .subnav-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      btnElement.classList.add('active');
+    }
+
+    function switchCaptainSection(sectionId, btnElement) {
+      document.querySelectorAll('#captainPanel .panel-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('#captainPanel .subnav-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+      btnElement.classList.add('active');
+    }
+
+    function toggleTeamCard(headerElement) {
+      headerElement.closest('.team-card').classList.toggle('expanded');
+    }
+
+    function filterSchedule(stage, btnElement) {
+      window.currentFilter = stage;
+      document.querySelectorAll('.schedule-filters .filter-btn').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+      document.getElementById('publicScheduleContainer').style.display = 'block';
+      document.getElementById('publicStandingsContainer').style.display = 'none';
+      renderPublicSchedule();
+    }
+
+    function showStandingsView(btnElement) {
+      document.querySelectorAll('.schedule-filters .filter-btn').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+      document.getElementById('publicScheduleContainer').style.display = 'none';
+      document.getElementById('publicStandingsContainer').style.display = 'block';
+      renderStandings();
+    }
+
+    function switchGroupTab(groupName, btnElement) {
+      window.currentGroup = groupName;
+      document.querySelectorAll('#publicStandingsContainer .subnav-btn').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+      document.getElementById('currentGroupTitle').innerText = `Tabela - ${groupName}`;
+      renderStandings();
+    }
+
+    function renderPublicSchedule() {
+      const scheduleContainer = document.getElementById('publicScheduleContainer');
+      scheduleContainer.innerHTML = '';
+
+      if (window.currentFilter === 'Faza Pucharowa') {
+        const playoffMatches = window.allMatches.filter(m => m.stage && m.stage.includes('Faza Pucharowa'));
+        if (playoffMatches.length === 0) {
+          scheduleContainer.innerHTML = '<div class="card"><p style="color: var(--text-dim);">Drabinka pucharowa nie została jeszcze wygenerowana.</p></div>';
+          return;
+        }
+
+        const stageOrder = ['1/8 Finału', 'Ćwierćfinał', 'Półfinał', 'Finał'];
+        const stagesMap = {};
+        playoffMatches.forEach(m => {
+          stageOrder.forEach(stName => {
+            if (m.stage.includes(stName)) {
+              if (!stagesMap[stName]) stagesMap[stName] = [];
+              stagesMap[stName].push(m);
+            }
+          });
+        });
+
+        const bracketWrapper = document.createElement('div');
+        bracketWrapper.className = 'tournament-bracket';
+
+        stageOrder.forEach(stName => {
+          if (stagesMap[stName] && stagesMap[stName].length > 0) {
+            const roundDiv = document.createElement('div');
+            roundDiv.className = 'bracket-round';
+            roundDiv.innerHTML = `<div class="bracket-round-title">${stName}</div>`;
+
+            stagesMap[stName].forEach(m => {
+              const scoreA = m.scoreA !== undefined ? m.scoreA : 0;
+              const scoreB = m.scoreB !== undefined ? m.scoreB : 0;
+              const matchCard = document.createElement('div');
+              matchCard.className = 'bracket-match-card';
+              matchCard.innerHTML = `
+                <div style="font-size: 0.75rem; color: var(--accent); margin-bottom: 0.4rem;"><i class="fa-regular fa-calendar"></i> ${m.date || ''} ${m.time || ''}</div>
+                <div class="bracket-team-row"><span>${m.teamA}</span><span class="bracket-score-badge">${scoreA}</span></div>
+                <div class="bracket-team-row"><span>${m.teamB}</span><span class="bracket-score-badge">${scoreB}</span></div>
+              `;
+              roundDiv.appendChild(matchCard);
+            });
+            bracketWrapper.appendChild(roundDiv);
+          }
+        });
+        scheduleContainer.appendChild(bracketWrapper);
+        return;
+      }
+
+      const filtered = window.currentFilter === 'all' 
+        ? window.allMatches 
+        : window.allMatches.filter(m => m.stage && m.stage.includes(window.currentFilter));
+
+      if (filtered.length === 0) {
+        scheduleContainer.innerHTML = '<div class="card"><p style="color: var(--text-dim);">Brak meczów.</p></div>';
+        return;
+      }
+
+      filtered.forEach((m) => { scheduleContainer.appendChild(createMatchCardHTML(m)); });
+    }
+
+    function renderStandings() {
+      const tbody = document.getElementById('standingsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const groupMatches = window.allMatches.filter(m => m.stage === 'Faza Grupowa' && m.group === window.currentGroup && m.status === 'ended');
+      const stats = {};
+      
+      window.allMatches.forEach(m => {
+        if (m.stage === 'Faza Grupowa' && m.group === window.currentGroup) {
+          if (m.teamA) stats[m.teamA] = { played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, pts: 0 };
+          if (m.teamB) stats[m.teamB] = { played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, pts: 0 };
+        }
+      });
+
+      groupMatches.forEach(m => {
+        const sA = m.scoreA !== undefined ? m.scoreA : 0;
+        const sB = m.scoreB !== undefined ? m.scoreB : 0;
+        if (stats[m.teamA]) { stats[m.teamA].played++; stats[m.teamA].gf += sA; stats[m.teamA].ga += sB; }
+        if (stats[m.teamB]) { stats[m.teamB].played++; stats[m.teamB].gf += sB; stats[m.teamB].ga += sA; }
+
+        if (sA > sB) {
+          if (stats[m.teamA]) { stats[m.teamA].won++; stats[m.teamA].pts += 3; }
+          if (stats[m.teamB]) { stats[m.teamB].lost++; }
+        } else if (sA < sB) {
+          if (stats[m.teamB]) { stats[m.teamB].won++; stats[m.teamB].pts += 3; }
+          if (stats[m.teamA]) { stats[m.teamA].lost++; }
+        } else {
+          if (stats[m.teamA]) { stats[m.teamA].drawn++; stats[m.teamA].pts += 1; }
+          if (stats[m.teamB]) { stats[m.teamB].drawn++; stats[m.teamB].pts += 1; }
+        }
+      });
+
+      const sortedTeams = Object.keys(stats).sort((a, b) => {
+        const diffA = stats[a].gf - stats[a].ga;
+        const diffB = stats[b].gf - stats[b].ga;
+        if (stats[b].pts !== stats[a].pts) return stats[b].pts - stats[a].pts;
+        if (diffB !== diffA) return diffB - diffA;
+        return stats[b].gf - stats[a].gf;
+      });
+
+      if (sortedTeams.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-dim);">Brak drużyn w tej grupie.</td></tr>';
+        return;
+      }
+
+      sortedTeams.forEach((teamName, index) => {
+        const st = stats[teamName];
+        const diff = st.gf - st.ga;
+        const diffStr = diff > 0 ? `+${diff}` : `${diff}`;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${index + 1}</strong></td>
+          <td style="font-weight: 700; color: var(--white);">${teamName}</td>
+          <td>${st.played}</td><td>${st.won}</td><td>${st.drawn}</td><td>${st.lost}</td>
+          <td>${st.gf}:${st.ga}</td><td>${diffStr}</td>
+          <td><strong style="color: var(--accent);">${st.pts}</strong></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderCaptainSchedule(teamName) {
+      const container = document.getElementById('captainTeamSchedule');
+      container.innerHTML = '';
+      const teamMatches = window.allMatches.filter(m => m.teamA === teamName || m.teamB === teamName);
+      if (teamMatches.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-dim);">Brak meczów dla Twojej drużyny.</p>';
+        return;
+      }
+      teamMatches.forEach((m) => { container.appendChild(createMatchCardHTML(m)); });
+    }
+
+    function createMatchCardHTML(m) {
+      let statusBadge = '';
+      if (m.status === 'live') statusBadge = '<span class="status-badge status-live"><i class="fa-solid fa-circle"></i> NA ŻYWO</span>';
+      else if (m.status === 'ended') statusBadge = '<span class="status-badge status-ended">ZAKOŃCZONY</span>';
+      else statusBadge = '<span class="status-badge status-pending">Oczekujący</span>';
+
+      const scoreA = m.scoreA !== undefined ? m.scoreA : 0;
+      const scoreB = m.scoreB !== undefined ? m.scoreB : 0;
+      const groupInfo = m.group ? ` • ${m.group}` : '';
+
+      let scorersHTML = '';
+      if ((m.scorersA && m.scorersA.length > 0) || (m.scorersB && m.scorersB.length > 0)) {
+        scorersHTML = `<div class="match-scorers-view"><i class="fa-solid fa-futbol"></i> Strzelcy: ${m.teamA}: <strong>${m.scorersA?.join(', ') || '-'}</strong> | ${m.teamB}: <strong>${m.scorersB?.join(', ') || '-'}</strong></div>`;
+      }
+
+      const card = document.createElement('div');
+      card.className = 'match-card';
+      card.innerHTML = `
+        <div style="flex: 1;">
+          <div class="match-info"><span class="badge">${m.stage}${groupInfo}</span>${statusBadge}</div>
+          <div class="match-teams"><span>${m.teamA}</span><div class="match-score">${scoreA} : ${scoreB}</div><span>${m.teamB}</span></div>
+          ${scorersHTML}
+        </div>
+        <div style="text-align: right;"><div style="color: var(--accent); font-weight: 600; font-size: 0.9rem;"><i class="fa-regular fa-calendar"></i> ${m.date || ''} <i class="fa-regular fa-clock" style="margin-left: 0.4rem;"></i> ${m.time || ''}</div></div>
+      `;
+      return card;
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const icon = document.getElementById('themeIcon');
+      if (currentTheme === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+        icon.className = 'fa-solid fa-moon';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+        icon.className = 'fa-solid fa-sun';
+      }
+    }
+
+    if (localStorage.getItem('theme') === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById('themeIcon').className = 'fa-solid fa-sun';
+      });
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      if (tabId === 'home') document.getElementById('navHome').classList.add('active');
+      if (tabId === 'schedule') document.getElementById('navSchedule').classList.add('active');
+      if (tabId === 'rules') document.getElementById('navRules').classList.add('active');
+      if (tabId === 'teams') document.getElementById('navTeams').classList.add('active');
+      if (tabId === 'about') document.getElementById('navAbout').classList.add('active');
+
+      document.getElementById('navLinks').classList.remove('active');
+    }
+
+    function toggleMenu() { document.getElementById('navLinks').classList.toggle('active'); }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    const targetDate = new Date('November 28, 2026 09:00:00').getTime();
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const difference = targetDate - now;
+      if (difference > 0) {
+        document.getElementById('days').innerText = String(Math.floor(difference / (1000 * 60 * 60 * 24))).padStart(2, '0');
+        document.getElementById('hours').innerText = String(Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(Math.floor((difference % (1000 * 60)) / 1000)).padStart(2, '0');
+      }
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    async function loginAdmin() {
+      const email = document.getElementById('adminEmail').value;
+      const pass = document.getElementById('adminPassword').value;
+      try {
+        await window.signInWithEmailAndPassword(window.auth, email, pass);
+        closeModal('adminModal');
+        switchTab('adminPanel');
+      } catch (err) { alert('Błąd: ' + err.message); }
+    }
+
+    async function loginCaptain() {
+      const code = document.getElementById('captainCodeInput').value.trim().toUpperCase();
+      if (!code) return alert('Wpisz kod!');
+      try {
+        const docSnap = await window.getDoc(window.doc(window.db, "codes", code));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          window.currentCaptainTeamId = code;
+          window.currentCaptainTeamName = data.teamName;
+          document.getElementById('captainTeamName').innerText = data.teamName;
+          closeModal('captainModal');
+          switchTab('captainPanel');
+          loadCaptainPlayers();
+          renderCaptainSchedule(data.teamName);
+        } else { alert('Nieprawidłowy kod!'); }
+      } catch (err) { alert('Błąd: ' + err.message); }
+    }
+
+    async function addPlayer() {
+      const name = document.getElementById('playerNameInput').value.trim();
+      const number = document.getElementById('playerNumberInput').value.trim();
+      if (!name) return alert('Wpisz imię!');
+      try {
+        await window.addDoc(window.collection(window.db, "teams", window.currentCaptainTeamId, "players"), { name, number: number || '' });
+        document.getElementById('playerNameInput').value = '';
+        document.getElementById('playerNumberInput').value = '';
+        loadCaptainPlayers();
+      } catch (err) { alert('Błąd: ' + err.message); }
+    }
+
+    async function loadCaptainPlayers() {
+      if (!window.currentCaptainTeamId) return;
+      const tbody = document.getElementById('captainPlayersTableBody');
+      try {
+        const snap = await window.getDocs(window.collection(window.db, "teams", window.currentCaptainTeamId, "players"));
+        tbody.innerHTML = '';
+        if (snap.empty) { tbody.innerHTML = '<tr><td colspan="3">Brak zawodników.</td></tr>'; return; }
+        snap.forEach((d) => {
+          const p = d.data();
+          tbody.innerHTML += `<tr><td><strong>${p.number ? '#' + p.number : '-'}</strong></td><td>${p.name}</td><td><button class="btn btn-danger" onclick="deletePlayer('${d.id}')">Usuń</button></td></tr>`;
+        });
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="3">Błąd.</td></tr>'; }
+    }
+
+    async function deletePlayer(id) {
+      if (confirm('Usunąć?')) {
+        await window.deleteDoc(window.doc(window.db, "teams", window.currentCaptainTeamId, "players", id));
+        loadCaptainPlayers();
+      }
+    }
+
+    async function generateCode() {
+      const teamName = document.getElementById('newTeamName').value.trim();
+      if (!teamName) return alert('Wpisz nazwę drużyny!');
+      const code = `${teamName.substring(0, 4).toUpperCase().replace(/\s+/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      try {
+        await window.setDoc(window.doc(window.db, "codes", code), { teamName, createdAt: new Date() });
+        await window.setDoc(window.doc(window.db, "teams", code), { teamName });
+        document.getElementById('newTeamName').value = '';
+        loadCodes();
+        alert(`Kod: ${code}`);
+      } catch (err) { alert('Błąd: ' + err.message); }
+    }
+
+    async function loadCodes() {
+      const tbody = document.getElementById('codesTableBody');
+      try {
+        const snap = await window.getDocs(window.collection(window.db, "codes"));
+        tbody.innerHTML = '';
+        if (snap.empty) { tbody.innerHTML = '<tr><td colspan="3">Brak kodów.</td></tr>'; return; }
+        snap.forEach((d) => {
+          const dat = d.data();
+          tbody.innerHTML += `<tr><td><strong>${d.id}</strong></td><td>${dat.teamName}</td><td><button class="btn btn-warning" onclick="openEditTeamModal('${d.id}', '${dat.teamName}')">Edytuj</button> <button class="btn btn-danger" onclick="deleteCode('${d.id}')">Usuń</button></td></tr>`;
+        });
+      } catch (err) { tbody.innerHTML = '<tr><td colspan="3">Błąd.</td></tr>'; }
+    }
+
+    function openEditTeamModal(code, name) {
+      document.getElementById('editTeamCode').value = code;
+      document.getElementById('editTeamNameInput').value = name;
+      openModal('editTeamModal');
+    }
+
+    async function saveTeamEdit() {
+      const code = document.getElementById('editTeamCode').value;
+      const newName = document.getElementById('editTeamNameInput').value.trim();
+      if (!newName) return;
+      await window.updateDoc(window.doc(window.db, "codes", code), { teamName: newName });
+      await window.updateDoc(window.doc(window.db, "teams", code), { teamName: newName });
+      closeModal('editTeamModal');
+      loadCodes();
+    }
+
+    async function deleteCode(code) {
+      if (confirm('Usunąć?')) {
+        await window.deleteDoc(window.doc(window.db, "codes", code));
+        await window.deleteDoc(window.doc(window.db, "teams", code));
+        loadCodes();
+      }
+    }
+
+    async function addMatch() {
+      const teamA = document.getElementById('matchTeamA').value;
+      const teamB = document.getElementById('matchTeamB').value;
+      const stage = document.getElementById('matchStage').value;
+      const group = stage === 'Faza Grupowa' ? document.getElementById('matchGroup').value : '';
+      const date = document.getElementById('matchDate').value;
+      const time = document.getElementById('matchTime').value;
+
+      if (!teamA || !teamB) return alert('Wybierz drużyny!');
+      if (teamA === teamB) return alert('Ta sama drużyna!');
+
+      await window.addDoc(window.collection(window.db, "matches"), {
+        teamA, teamB, stage, group, date: date || 'Brak', time: time || '',
+        scoreA: 0, scoreB: 0, scorersA: [], scorersB: [], status: 'pending', createdAt: new Date()
+      });
+      loadAdminMatches();
+      alert('Dodano mecz!');
+    }
+
+    async function loadAdminMatches() {
+      const container = document.getElementById('adminMatchesList');
+      container.innerHTML = '';
+      if (window.allMatches.length === 0) { container.innerHTML = 'Brak meczów.'; return; }
+      window.allMatches.forEach((m) => {
+        container.innerHTML += `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; background: var(--secondary); border-radius: 8px; margin-bottom: 0.5rem; border: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.5rem;">
+            <div><strong>[${m.stage}]</strong> ${m.teamA} <span style="color: var(--accent);">${m.scoreA} : ${m.scoreB}</span> ${m.teamB}</div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-warning" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="openEditMatchModal('${m.id}')">Wynik</button>
+              <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="deleteMatch('${m.id}')">Usuń</button>
+            </div>
+          </div>`;
+      });
+    }
+
+    function openEditMatchModal(matchId) {
+      const m = window.allMatches.find(item => item.id === matchId);
+      if (!m) return;
+      document.getElementById('editMatchId').value = m.id;
+      document.getElementById('editTeamAName').value = m.teamA;
+      document.getElementById('editTeamBName').value = m.teamB;
+      document.getElementById('editMatchTeamsLabel').innerText = `${m.teamA} vs ${m.teamB}`;
+      document.getElementById('labelTeamA').innerText = m.teamA;
+      document.getElementById('labelTeamB').innerText = m.teamB;
+      document.getElementById('editScoreA').value = m.scoreA || 0;
+      document.getElementById('editScoreB').value = m.scoreB || 0;
+      document.getElementById('editMatchStatus').value = m.status || 'pending';
+      window.activeMatchScorersA = m.scorersA || [];
+      window.activeMatchScorersB = m.scorersB || [];
+      buildScorersInputs();
+      openModal('editMatchModal');
+    }
+
+    function buildScorersInputs() {
+      const teamA = document.getElementById('editTeamAName').value;
+      const teamB = document.getElementById('editTeamBName').value;
+      const scoreA = parseInt(document.getElementById('editScoreA').value) || 0;
+      const scoreB = parseInt(document.getElementById('editScoreB').value) || 0;
+      const cA = document.getElementById('scorersContainerA');
+      const cB = document.getElementById('scorersContainerB');
+      cA.innerHTML = ''; cB.innerHTML = '';
+      const sA = window.allTeamsData[teamA] || [];
+      const sB = window.allTeamsData[teamB] || [];
+
+      for (let i = 0; i < scoreA; i++) {
+        let opts = '<option value="">Strzelec</option>';
+        sA.forEach(p => opts += `<option value="${p}">${p}</option>`);
+        cA.innerHTML += `<select class="form-control scorer-select-a" style="font-size:0.85rem; padding:0.4rem;">${opts}</select>`;
+      }
+      for (let i = 0; i < scoreB; i++) {
+        let opts = '<option value="">Strzelec</option>';
+        sB.forEach(p => opts += `<option value="${p}">${p}</option>`);
+        cB.innerHTML += `<select class="form-control scorer-select-b" style="font-size:0.85rem; padding:0.4rem;">${opts}</select>`;
+      }
+    }
+
+    async function saveMatchEdit() {
+      const matchId = document.getElementById('editMatchId').value;
+      const scoreA = parseInt(document.getElementById('editScoreA').value) || 0;
+      const scoreB = parseInt(document.getElementById('editScoreB').value) || 0;
+      const status = document.getElementById('editMatchStatus').value;
+      const scorersA = [], scorersB = [];
+      document.querySelectorAll('.scorer-select-a').forEach(s => { if (s.value) scorersA.push(s.value); });
+      document.querySelectorAll('.scorer-select-b').forEach(s => { if (s.value) scorersB.push(s.value); });
+
+      await window.updateDoc(window.doc(window.db, "matches", matchId), { scoreA, scoreB, scorersA, scorersB, status });
+      closeModal('editMatchModal');
+      loadAdminMatches();
+      alert('Zapisano wynik!');
+    }
+
+    async function deleteMatch(id) {
+      if (confirm('Usunąć mecz?')) {
+        await window.deleteDoc(window.doc(window.db, "matches", id));
+        loadAdminMatches();
+      }
+    }
+
+    async function logout() {
+      await window.signOut(window.auth);
+      window.currentCaptainTeamId = null;
+      window.currentCaptainTeamName = null;
+      switchTab('home');
+    }
+  </script>
+</body>
+</html>
